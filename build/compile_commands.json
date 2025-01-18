@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/home/sd_bert/projects/Panorama/build",
+  "command": "/usr/bin/c++   -g -o CMakeFiles/panorama.dir/main.cpp.o -c /home/sd_bert/projects/Panorama/main.cpp",
+  "file": "/home/sd_bert/projects/Panorama/main.cpp",
+  "output": "CMakeFiles/panorama.dir/main.cpp.o"
+}
+]
