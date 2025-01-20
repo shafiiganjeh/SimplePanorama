@@ -166,6 +166,9 @@
 		{
 			"isExternal" : true,
 			"path" : "/usr/lib/x86_64-linux-gnu/cmake/opencv4/OpenCVModules-release.cmake"
+		},
+		{
+			"path" : "res/drag.jpg"
 		}
 	],
 	"kind" : "cmakeFiles",

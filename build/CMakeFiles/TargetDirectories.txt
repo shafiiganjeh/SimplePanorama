@@ -1,3 +1,4 @@
+/home/sd_bert/projects/Panorama/build/CMakeFiles/code.dir
 /home/sd_bert/projects/Panorama/build/CMakeFiles/panorama.dir
 /home/sd_bert/projects/Panorama/build/CMakeFiles/edit_cache.dir
 /home/sd_bert/projects/Panorama/build/CMakeFiles/rebuild_cache.dir

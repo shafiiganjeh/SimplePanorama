@@ -1,0 +1,2 @@
+/usr/bin/ar qc libcode.a CMakeFiles/code.dir/src/ui/_build_ui.cpp.o CMakeFiles/code.dir/src/ui/_gtk_ops.cpp.o CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o
+/usr/bin/ranlib libcode.a

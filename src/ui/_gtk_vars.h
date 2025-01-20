@@ -1,10 +1,18 @@
 
-#ifndef UI_H
-#define UI_H
+#ifndef GTKVARS_H
+#define GTKVARS_H
 
 #include <gtk/gtk.h>
+#include <vector>
+#include <string>
+#include <opencv2/opencv.hpp>
 
-namespace ui {
+extern GtkTargetEntry targetentries[];
+
+struct image_paths{
+    std::vector<std::string> f_list;
+    std::vector<cv::Mat> img_data;
+};
 
 struct flowbox_{
     GtkWidget *flowbox_main;
@@ -15,6 +23,7 @@ struct flowbox_{
     std::vector<GtkWidget*> flowbox_event;
     std::vector<GtkLabel*> flowbox_items_label;
     std::vector<GtkImage*> flowbox_items_imgs;
+
 };
 
 struct menu_bar_{
@@ -37,6 +46,7 @@ struct menu_bar_{
    GtkWidget *bar_edit_unselect;
    GtkWidget *bar_edit_order;
 
+
    GtkWidget *toolbar;
 };
 
@@ -49,17 +59,5 @@ struct {
     struct menu_bar_ menu_bar;
 } gtk_var;
 
-void build_flowbox();
-
-void create_menu_bar();
-
-void build_window(int argc, char** argv);
-
-
-}
-
 
 #endif
-
-
-

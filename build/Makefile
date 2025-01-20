@@ -162,6 +162,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named code
+
+# Build rule for target.
+code: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 code
+.PHONY : code
+
+# fast build rule for target.
+code/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/build
+.PHONY : code/fast
+
+#=============================================================================
 # Target rules for targets named panorama
 
 # Build rule for target.
@@ -174,29 +187,101 @@ panorama/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/panorama.dir/build.make CMakeFiles/panorama.dir/build
 .PHONY : panorama/fast
 
-main.o: main.cpp.o
-.PHONY : main.o
+src/main.o: src/main.cpp.o
+.PHONY : src/main.o
 
 # target to build an object file
-main.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/panorama.dir/build.make CMakeFiles/panorama.dir/main.cpp.o
-.PHONY : main.cpp.o
+src/main.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/panorama.dir/build.make CMakeFiles/panorama.dir/src/main.cpp.o
+.PHONY : src/main.cpp.o
 
-main.i: main.cpp.i
-.PHONY : main.i
+src/main.i: src/main.cpp.i
+.PHONY : src/main.i
 
 # target to preprocess a source file
-main.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/panorama.dir/build.make CMakeFiles/panorama.dir/main.cpp.i
-.PHONY : main.cpp.i
+src/main.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/panorama.dir/build.make CMakeFiles/panorama.dir/src/main.cpp.i
+.PHONY : src/main.cpp.i
 
-main.s: main.cpp.s
-.PHONY : main.s
+src/main.s: src/main.cpp.s
+.PHONY : src/main.s
 
 # target to generate assembly for a file
-main.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/panorama.dir/build.make CMakeFiles/panorama.dir/main.cpp.s
-.PHONY : main.cpp.s
+src/main.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/panorama.dir/build.make CMakeFiles/panorama.dir/src/main.cpp.s
+.PHONY : src/main.cpp.s
+
+src/math/_img_manipulation.o: src/math/_img_manipulation.cpp.o
+.PHONY : src/math/_img_manipulation.o
+
+# target to build an object file
+src/math/_img_manipulation.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o
+.PHONY : src/math/_img_manipulation.cpp.o
+
+src/math/_img_manipulation.i: src/math/_img_manipulation.cpp.i
+.PHONY : src/math/_img_manipulation.i
+
+# target to preprocess a source file
+src/math/_img_manipulation.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/math/_img_manipulation.cpp.i
+.PHONY : src/math/_img_manipulation.cpp.i
+
+src/math/_img_manipulation.s: src/math/_img_manipulation.cpp.s
+.PHONY : src/math/_img_manipulation.s
+
+# target to generate assembly for a file
+src/math/_img_manipulation.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/math/_img_manipulation.cpp.s
+.PHONY : src/math/_img_manipulation.cpp.s
+
+src/ui/_build_ui.o: src/ui/_build_ui.cpp.o
+.PHONY : src/ui/_build_ui.o
+
+# target to build an object file
+src/ui/_build_ui.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/ui/_build_ui.cpp.o
+.PHONY : src/ui/_build_ui.cpp.o
+
+src/ui/_build_ui.i: src/ui/_build_ui.cpp.i
+.PHONY : src/ui/_build_ui.i
+
+# target to preprocess a source file
+src/ui/_build_ui.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/ui/_build_ui.cpp.i
+.PHONY : src/ui/_build_ui.cpp.i
+
+src/ui/_build_ui.s: src/ui/_build_ui.cpp.s
+.PHONY : src/ui/_build_ui.s
+
+# target to generate assembly for a file
+src/ui/_build_ui.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/ui/_build_ui.cpp.s
+.PHONY : src/ui/_build_ui.cpp.s
+
+src/ui/_gtk_ops.o: src/ui/_gtk_ops.cpp.o
+.PHONY : src/ui/_gtk_ops.o
+
+# target to build an object file
+src/ui/_gtk_ops.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/ui/_gtk_ops.cpp.o
+.PHONY : src/ui/_gtk_ops.cpp.o
+
+src/ui/_gtk_ops.i: src/ui/_gtk_ops.cpp.i
+.PHONY : src/ui/_gtk_ops.i
+
+# target to preprocess a source file
+src/ui/_gtk_ops.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/ui/_gtk_ops.cpp.i
+.PHONY : src/ui/_gtk_ops.cpp.i
+
+src/ui/_gtk_ops.s: src/ui/_gtk_ops.cpp.s
+.PHONY : src/ui/_gtk_ops.s
+
+# target to generate assembly for a file
+src/ui/_gtk_ops.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/ui/_gtk_ops.cpp.s
+.PHONY : src/ui/_gtk_ops.cpp.s
 
 # Help Target
 help:
@@ -210,10 +295,20 @@ help:
 	@echo "... install/strip"
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
+	@echo "... code"
 	@echo "... panorama"
-	@echo "... main.o"
-	@echo "... main.i"
-	@echo "... main.s"
+	@echo "... src/main.o"
+	@echo "... src/main.i"
+	@echo "... src/main.s"
+	@echo "... src/math/_img_manipulation.o"
+	@echo "... src/math/_img_manipulation.i"
+	@echo "... src/math/_img_manipulation.s"
+	@echo "... src/ui/_build_ui.o"
+	@echo "... src/ui/_build_ui.i"
+	@echo "... src/ui/_build_ui.s"
+	@echo "... src/ui/_gtk_ops.o"
+	@echo "... src/ui/_gtk_ops.i"
+	@echo "... src/ui/_gtk_ops.s"
 .PHONY : help
 
 

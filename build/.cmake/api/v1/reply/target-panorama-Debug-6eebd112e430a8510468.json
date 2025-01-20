@@ -27,37 +27,37 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 14,
+				"line" : 30,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 18,
+				"line" : 37,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 15,
+				"line" : 35,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 16,
+				"line" : 32,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 0,
-				"line" : 9,
+				"line" : 11,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 0,
-				"line" : 8,
+				"line" : 17,
 				"parent" : 0
 			}
 		]
@@ -155,6 +155,14 @@
 				},
 				{
 					"backtrace" : 6,
+					"path" : "/home/sd_bert/projects/Panorama/src/math"
+				},
+				{
+					"backtrace" : 6,
+					"path" : "/home/sd_bert/projects/Panorama/src/ui"
+				},
+				{
+					"backtrace" : 5,
 					"isSystem" : true,
 					"path" : "/usr/include/opencv4"
 				}
@@ -164,6 +172,13 @@
 			[
 				0
 			]
+		}
+	],
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 3,
+			"id" : "code::@6890427a1f51a3e7e1df"
 		}
 	],
 	"id" : "panorama::@6890427a1f51a3e7e1df",
@@ -195,67 +210,7 @@
 			},
 			{
 				"backtrace" : 3,
-				"fragment" : "-lgtk-3",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 3,
-				"fragment" : "-lgdk-3",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 3,
-				"fragment" : "-lz",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 3,
-				"fragment" : "-lpangocairo-1.0",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 3,
-				"fragment" : "-lpango-1.0",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 3,
-				"fragment" : "-lharfbuzz",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 3,
-				"fragment" : "-latk-1.0",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 3,
-				"fragment" : "-lcairo-gobject",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 3,
-				"fragment" : "-lcairo",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 3,
-				"fragment" : "-lgdk_pixbuf-2.0",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 3,
-				"fragment" : "-lgio-2.0",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 3,
-				"fragment" : "-lgobject-2.0",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 3,
-				"fragment" : "-lglib-2.0",
+				"fragment" : "libcode.a",
 				"role" : "libraries"
 			},
 			{
@@ -400,7 +355,17 @@
 			},
 			{
 				"backtrace" : 4,
+				"fragment" : "/usr/lib/x86_64-linux-gnu/libopencv_phase_unwrapping.so.4.6.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libopencv_superres.so.4.6.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "/usr/lib/x86_64-linux-gnu/libopencv_optflow.so.4.6.0",
 				"role" : "libraries"
 			},
 			{
@@ -411,31 +376,6 @@
 			{
 				"backtrace" : 4,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libopencv_tracking.so.4.6.0",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 4,
-				"fragment" : "/usr/lib/x86_64-linux-gnu/libopencv_videostab.so.4.6.0",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 4,
-				"fragment" : "/usr/lib/x86_64-linux-gnu/libopencv_viz.so.4.6.0",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 4,
-				"fragment" : "/usr/lib/x86_64-linux-gnu/libopencv_wechat_qrcode.so.4.6.0",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 4,
-				"fragment" : "/usr/lib/x86_64-linux-gnu/libopencv_xobjdetect.so.4.6.0",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 4,
-				"fragment" : "/usr/lib/x86_64-linux-gnu/libopencv_xphoto.so.4.6.0",
 				"role" : "libraries"
 			},
 			{
@@ -465,12 +405,22 @@
 			},
 			{
 				"backtrace" : 4,
-				"fragment" : "/usr/lib/x86_64-linux-gnu/libopencv_phase_unwrapping.so.4.6.0",
+				"fragment" : "/usr/lib/x86_64-linux-gnu/libopencv_videostab.so.4.6.0",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 4,
-				"fragment" : "/usr/lib/x86_64-linux-gnu/libopencv_optflow.so.4.6.0",
+				"fragment" : "/usr/lib/x86_64-linux-gnu/libopencv_videoio.so.4.6.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "/usr/lib/x86_64-linux-gnu/libopencv_viz.so.4.6.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "/usr/lib/x86_64-linux-gnu/libopencv_wechat_qrcode.so.4.6.0",
 				"role" : "libraries"
 			},
 			{
@@ -485,7 +435,7 @@
 			},
 			{
 				"backtrace" : 4,
-				"fragment" : "/usr/lib/x86_64-linux-gnu/libopencv_videoio.so.4.6.0",
+				"fragment" : "/usr/lib/x86_64-linux-gnu/libopencv_xobjdetect.so.4.6.0",
 				"role" : "libraries"
 			},
 			{
@@ -520,6 +470,11 @@
 			},
 			{
 				"backtrace" : 4,
+				"fragment" : "/usr/lib/x86_64-linux-gnu/libopencv_xphoto.so.4.6.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libopencv_photo.so.4.6.0",
 				"role" : "libraries"
 			},
@@ -531,6 +486,71 @@
 			{
 				"backtrace" : 4,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libopencv_core.so.4.6.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-lgtk-3",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-lgdk-3",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-lz",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-lpangocairo-1.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-lpango-1.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-lharfbuzz",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-latk-1.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-lcairo-gobject",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-lcairo",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-lgdk_pixbuf-2.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-lgio-2.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-lgobject-2.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-lglib-2.0",
 				"role" : "libraries"
 			}
 		],
@@ -558,7 +578,7 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "main.cpp",
+			"path" : "src/main.cpp",
 			"sourceGroupIndex" : 0
 		}
 	],
