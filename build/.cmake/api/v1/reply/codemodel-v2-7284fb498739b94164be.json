@@ -7,7 +7,7 @@
 				{
 					"build" : ".",
 					"hasInstallRule" : true,
-					"jsonFile" : "directory-.-Debug-8f5005861b829ce7d341.json",
+					"jsonFile" : "directory-.-Debug-20fe4f2c04553da420d0.json",
 					"minimumCMakeVersion" : 
 					{
 						"string" : "3.0.2"
@@ -16,7 +16,8 @@
 					"source" : ".",
 					"targetIndexes" : 
 					[
-						0
+						0,
+						1
 					]
 				}
 			],
@@ -31,7 +32,8 @@
 					"name" : "panorama",
 					"targetIndexes" : 
 					[
-						0
+						0,
+						1
 					]
 				}
 			],
@@ -39,8 +41,15 @@
 			[
 				{
 					"directoryIndex" : 0,
+					"id" : "code::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-code-Debug-ebd2595dedf0ce165a06.json",
+					"name" : "code",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
 					"id" : "panorama::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-panorama-Debug-b1e60ca19b1daacbe816.json",
+					"jsonFile" : "target-panorama-Debug-6eebd112e430a8510468.json",
 					"name" : "panorama",
 					"projectIndex" : 0
 				}

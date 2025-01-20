@@ -8,7 +8,9 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/sd_bert/projects/Panorama/src/main.cpp" "CMakeFiles/panorama.dir/src/main.cpp.o" "gcc" "CMakeFiles/panorama.dir/src/main.cpp.o.d"
+  "/home/sd_bert/projects/Panorama/src/math/_img_manipulation.cpp" "CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o" "gcc" "CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o.d"
+  "/home/sd_bert/projects/Panorama/src/ui/_build_ui.cpp" "CMakeFiles/code.dir/src/ui/_build_ui.cpp.o" "gcc" "CMakeFiles/code.dir/src/ui/_build_ui.cpp.o.d"
+  "/home/sd_bert/projects/Panorama/src/ui/_gtk_ops.cpp" "CMakeFiles/code.dir/src/ui/_gtk_ops.cpp.o" "gcc" "CMakeFiles/code.dir/src/ui/_gtk_ops.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.
