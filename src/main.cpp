@@ -3,15 +3,16 @@
 #include <vector>
 #include <opencv2/opencv.hpp>
 #include <string>
-#include "_build_ui.h"
+#include "_gtk_vars.h"
+#include "_main_windows.h"
 
-
+struct main_window_ main_window;
 
 int main(int argc, char **argv) {
 
-        image_paths ipts;
-        ui::build_window(argc,argv);
-        ui::connect_signals(&ipts);
+
+        build_window(argc,argv,&main_window);
+
 
         gtk_main();
 
