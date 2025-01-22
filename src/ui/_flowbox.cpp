@@ -9,20 +9,12 @@ GtkTargetEntry targetentries[] =
 };
 
 namespace fbox{
-/*
-void drag_ind_set(GtkWidget *widget,GdkDragContext *context,gpointer user_data){
-    GtkWidget* fbox_child = gtk_widget_get_parent (widget);
-
-    DRAG_IND = gtk_flow_box_child_get_index (GTK_FLOW_BOX_CHILD(fbox_child));
-    std::cout <<"asd";
-
-}
-*/
 
 
-gboolean flowbox_item_clicked(GtkWidget* self,GdkEventButton event,gpointer _){
+gboolean flowbox_item_clicked(GtkWidget* self,GdkEventButton *event,gpointer _){
 
-        GtkWidget* fbox_child = gtk_widget_get_parent (self);
+
+    GtkWidget* fbox_child = gtk_widget_get_parent (self);
 
         if (gtk_flow_box_child_is_selected (GTK_FLOW_BOX_CHILD(fbox_child))){
             gtk_flow_box_unselect_child(GTK_FLOW_BOX(gtk_widget_get_parent (fbox_child)),GTK_FLOW_BOX_CHILD(fbox_child));

@@ -1002,12 +1002,20 @@ CMakeFiles/panorama.dir/src/main.cpp.o: \
  /usr/include/opencv4/opencv2/video.hpp \
  /usr/include/opencv4/opencv2/video/tracking.hpp \
  /usr/include/opencv4/opencv2/video/background_segm.hpp \
+ /home/sd_bert/projects/Panorama/src/classes/_panorama.h \
+ /home/sd_bert/projects/Panorama/src/math/_maths.h \
+ /usr/include/c++/13/numeric /usr/include/c++/13/bits/stl_numeric.h \
+ /usr/include/c++/13/pstl/glue_numeric_defs.h \
+ /home/sd_bert/projects/Panorama/src/math/_img_manipulation.h \
+ /usr/include/c++/13/fstream \
+ /usr/include/x86_64-linux-gnu/c++/13/bits/basic_file.h \
+ /usr/include/x86_64-linux-gnu/c++/13/bits/c++io.h \
+ /usr/include/c++/13/bits/fstream.tcc \
  /home/sd_bert/projects/Panorama/src/ui/_gtk_vars.h \
  /home/sd_bert/projects/Panorama/src/ui/_main_windows.h \
  /home/sd_bert/projects/Panorama/src/ui/_gtk_vars.h \
  /home/sd_bert/projects/Panorama/src/ui/_flowbox.h \
  /home/sd_bert/projects/Panorama/src/ui/_gtk_ops.h \
- /home/sd_bert/projects/Panorama/src/math/_img_manipulation.h \
  /usr/include/c++/13/filesystem /usr/include/c++/13/bits/fs_fwd.h \
  /usr/include/c++/13/bits/fs_path.h /usr/include/c++/13/codecvt \
  /usr/include/c++/13/bits/fs_dir.h /usr/include/c++/13/bits/fs_ops.h \

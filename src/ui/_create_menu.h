@@ -10,6 +10,8 @@ void create_menu_bar(GtkWidget *add_to,struct menu_bar_ *menu_bar,struct main_wi
 
 void connect_signals(struct main_window_ *main_window);
 
+gboolean cut(GtkMenuItem* *widget,struct main_window_ *main_window);
+
 }
 #endif
 
