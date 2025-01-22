@@ -4,9 +4,12 @@
 CMakeFiles/panorama.dir/src/main.cpp.o
  /home/sd_bert/projects/Panorama/src/main.cpp
  /home/sd_bert/projects/Panorama/src/math/_img_manipulation.h
- /home/sd_bert/projects/Panorama/src/ui/_build_ui.h
+ /home/sd_bert/projects/Panorama/src/ui/_create_menu.h
+ /home/sd_bert/projects/Panorama/src/ui/_flowbox.h
  /home/sd_bert/projects/Panorama/src/ui/_gtk_ops.h
  /home/sd_bert/projects/Panorama/src/ui/_gtk_vars.h
+ /home/sd_bert/projects/Panorama/src/ui/_main_windows.h
+ /home/sd_bert/projects/Panorama/src/ui/_toolbar.h
  /usr/include/alloca.h
  /usr/include/asm-generic/errno-base.h
  /usr/include/asm-generic/errno.h

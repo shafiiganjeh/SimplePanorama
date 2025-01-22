@@ -3,9 +3,12 @@
 
 CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main.cpp \
   /home/sd_bert/projects/Panorama/src/math/_img_manipulation.h \
-  /home/sd_bert/projects/Panorama/src/ui/_build_ui.h \
+  /home/sd_bert/projects/Panorama/src/ui/_create_menu.h \
+  /home/sd_bert/projects/Panorama/src/ui/_flowbox.h \
   /home/sd_bert/projects/Panorama/src/ui/_gtk_ops.h \
   /home/sd_bert/projects/Panorama/src/ui/_gtk_vars.h \
+  /home/sd_bert/projects/Panorama/src/ui/_main_windows.h \
+  /home/sd_bert/projects/Panorama/src/ui/_toolbar.h \
   /usr/include/alloca.h \
   /usr/include/asm-generic/errno-base.h \
   /usr/include/asm-generic/errno.h \
@@ -1124,9 +1127,7 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/lib/gcc/x86_64-linux-gnu/13/include/stdarg.h:
 
-/usr/include/gtk-3.0/gdk/gdkmain.h:
-
-/usr/include/gtk-3.0/gdk/gdkpango.h:
+/usr/lib/gcc/x86_64-linux-gnu/13/include/limits.h:
 
 /usr/include/gtk-3.0/gdk/gdkframeclock.h:
 
@@ -1290,10 +1291,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/glib-2.0/gio/gmenuexporter.h:
 
-/usr/include/glib-2.0/gio/gsrvtarget.h:
-
-/usr/include/atk-1.0/atk/atk-enum-types.h:
-
 /usr/include/glib-2.0/gio/gsocketconnectable.h:
 
 /usr/include/gtk-3.0/gtk/deprecated/gtkimagemenuitem.h:
@@ -1326,8 +1323,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/x86_64-linux-gnu/gnu/stubs-64.h:
 
-/usr/include/glib-2.0/gio/gresolver.h:
-
 /usr/include/glib-2.0/gio/gproxyaddressenumerator.h:
 
 /usr/include/c++/13/bits/stl_algo.h:
@@ -1352,6 +1347,12 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/glib-2.0/gio/gmemoryoutputstream.h:
 
+/usr/include/gtk-3.0/gdk/gdkapplaunchcontext.h:
+
+/usr/include/opencv4/opencv2/core/async.hpp:
+
+/usr/include/glib-2.0/gio/gmemorymonitor.h:
+
 /usr/include/glib-2.0/gio/gliststore.h:
 
 /usr/include/c++/13/bits/vector.tcc:
@@ -1366,9 +1367,9 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/opencv4/opencv2/flann/nn_index.h:
 
-/usr/include/c++/13/new:
-
 /usr/include/atk-1.0/atk/atkcomponent.h:
+
+/usr/include/c++/13/new:
 
 /usr/include/gtk-3.0/gtk/gtk.h:
 
@@ -1408,11 +1409,11 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/glib-2.0/gio/gfileenumerator.h:
 
+/usr/include/c++/13/bits/atomic_lockfree_defines.h:
+
 /usr/include/gtk-3.0/gtk/gtktreemodel.h:
 
 /usr/include/c++/13/bits/stl_heap.h:
-
-/usr/include/c++/13/bits/atomic_lockfree_defines.h:
 
 /usr/include/gtk-3.0/gtk/gtkenums.h:
 
@@ -1490,8 +1491,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/glib-2.0/gio/gdataoutputstream.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/13/include/limits.h:
-
 /usr/include/glib-2.0/gio/gdatagrambased.h:
 
 /usr/include/atk-1.0/atk/atkrelationset.h:
@@ -1542,13 +1541,19 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/glib-2.0/glib/gerror.h:
 
-/usr/include/gtk-3.0/gdk/gdkdnd.h:
+/usr/include/glib-2.0/gio/gactiongroupexporter.h:
 
-/usr/include/glib-2.0/gio/gdbusobjectskeleton.h:
+/usr/include/x86_64-linux-gnu/bits/signum-arch.h:
 
-/usr/include/c++/13/bits/functexcept.h:
+/home/sd_bert/projects/Panorama/src/ui/_flowbox.h:
 
-/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-enum-types.h:
+/usr/include/glib-2.0/gio/ginetaddressmask.h:
+
+/usr/include/glib-2.0/glib/deprecated/gallocator.h:
+
+/usr/include/atk-1.0/atk/atkstreamablecontent.h:
+
+/usr/include/glib-2.0/gio/gactiongroup.h:
 
 /usr/include/glib-2.0/gio/gsocketconnection.h:
 
@@ -1586,16 +1591,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/c++/13/bits/uses_allocator_args.h:
 
-/usr/include/c++/13/bits/stl_function.h:
-
-/usr/include/glib-2.0/gio/gpowerprofilemonitor.h:
-
-/usr/include/glib-2.0/gio/gvolumemonitor.h:
-
-/usr/include/x86_64-linux-gnu/bits/xopen_lim.h:
-
-/usr/include/c++/13/tr1/beta_function.tcc:
-
 /usr/include/glib-2.0/gobject/gtypeplugin.h:
 
 /usr/include/glib-2.0/gobject/gmarshal.h:
@@ -1603,8 +1598,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/atk-1.0/atk/atkvalue.h:
 
 /usr/include/c++/13/bits/locale_facets_nonio.tcc:
-
-/usr/include/opencv4/opencv2/stitching/detail/warpers_inl.hpp:
 
 /usr/include/glib-2.0/gio/gsocketaddress.h:
 
@@ -1633,6 +1626,14 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/glib-2.0/glib/gquark.h:
 
 /usr/include/errno.h:
+
+/usr/include/gtk-3.0/gdk/gdkdnd.h:
+
+/usr/include/glib-2.0/gio/gdbusobjectskeleton.h:
+
+/usr/include/c++/13/bits/functexcept.h:
+
+/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-enum-types.h:
 
 /usr/include/glib-2.0/glib.h:
 
@@ -1708,6 +1709,20 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/c++/13/bits/hashtable_policy.h:
 
+/usr/include/c++/13/tr1/poly_laguerre.tcc:
+
+/usr/include/c++/13/tr1/special_function_util.h:
+
+/usr/include/gtk-3.0/gtk/gtkmenu.h:
+
+/usr/include/c++/13/bits/shared_ptr_base.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h:
+
+/usr/include/glib-2.0/glib/gdataset.h:
+
+/usr/include/c++/13/exception:
+
 /usr/include/glib-2.0/glib/gstrvbuilder.h:
 
 /usr/include/glib-2.0/gio/gloadableicon.h:
@@ -1723,8 +1738,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/gtk-3.0/gdk/gdkproperty.h:
 
 /usr/include/atk-1.0/atk/atkhypertext.h:
-
-/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-loader.h:
 
 /usr/include/c++/13/ext/aligned_buffer.h:
 
@@ -1764,9 +1777,19 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/gtk-3.0/gtk/gtktypes.h:
 
-/home/sd_bert/projects/Panorama/src/ui/_gtk_vars.h:
+/usr/include/glib-2.0/gio/gtlsserverconnection.h:
 
-/usr/include/c++/13/iosfwd:
+/usr/include/x86_64-linux-gnu/bits/pthreadtypes.h:
+
+/usr/include/glib-2.0/gio/gtlsconnection.h:
+
+/usr/include/gtk-3.0/gtk/gtktypebuiltins.h:
+
+/usr/include/glib-2.0/gio/gsimplepermission.h:
+
+/usr/include/glib-2.0/gio/gdebugcontrollerdbus.h:
+
+/usr/include/gtk-3.0/gtk/gtkshortcutsshortcut.h:
 
 /usr/include/c++/13/ctime:
 
@@ -1792,41 +1815,93 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/gtk-3.0/gtk/gtkstack.h:
 
+/usr/include/glib-2.0/glib/gkeyfile.h:
+
+/usr/include/gtk-3.0/gtk/gtktextattributes.h:
+
+/usr/include/atk-1.0/atk/atknoopobjectfactory.h:
+
+/usr/include/gtk-3.0/gtk/gtkfilechooser.h:
+
+/usr/include/c++/13/locale:
+
+/usr/include/x86_64-linux-gnu/bits/getopt_posix.h:
+
+/usr/include/atk-1.0/atk/atknoopobject.h:
+
+/home/sd_bert/projects/Panorama/src/ui/_gtk_vars.h:
+
+/usr/include/c++/13/iosfwd:
+
+/usr/include/glib-2.0/gio/gsrvtarget.h:
+
+/usr/include/atk-1.0/atk/atk-enum-types.h:
+
+/home/sd_bert/projects/Panorama/src/ui/_main_windows.h:
+
+/usr/include/gtk-3.0/gtk/deprecated/gtkvscrollbar.h:
+
+/usr/include/gtk-3.0/gtk/gtkdnd.h:
+
+/usr/include/c++/13/ostream:
+
+/usr/include/c++/13/bits/list.tcc:
+
+/usr/include/features-time64.h:
+
+/usr/include/c++/13/type_traits:
+
+/usr/include/x86_64-linux-gnu/bits/types/locale_t.h:
+
+/usr/include/c++/13/cfloat:
+
+/usr/include/ctype.h:
+
+/usr/include/c++/13/bits/fs_dir.h:
+
+/usr/include/c++/13/bits/basic_ios.tcc:
+
+/usr/include/gtk-3.0/gdk/gdkframetimings.h:
+
+/usr/include/glib-2.0/gio/gmemoryinputstream.h:
+
+/usr/include/glib-2.0/gio/gpollableoutputstream.h:
+
+/usr/include/features.h:
+
+/usr/include/c++/13/string:
+
 /usr/include/atk-1.0/atk/atkimage.h:
 
 /usr/include/glib-2.0/gobject/gvalue.h:
 
 /usr/include/glib-2.0/glib/gshell.h:
 
-/usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h:
+/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-loader.h:
 
-/usr/include/c++/13/bits/shared_ptr_base.h:
+/home/sd_bert/projects/Panorama/src/ui/_create_menu.h:
 
-/usr/include/glib-2.0/gio/ginetaddressmask.h:
-
-/usr/include/glib-2.0/glib/deprecated/gallocator.h:
-
-/usr/include/atk-1.0/atk/atkstreamablecontent.h:
-
-/usr/include/glib-2.0/gio/gactiongroup.h:
-
-/usr/include/glib-2.0/gio/gtlsserverconnection.h:
-
-/usr/include/x86_64-linux-gnu/bits/pthreadtypes.h:
-
-/usr/include/glib-2.0/gio/gtlsconnection.h:
-
-/usr/include/gtk-3.0/gtk/gtktypebuiltins.h:
-
-/usr/include/glib-2.0/gio/gsimplepermission.h:
-
-/usr/include/glib-2.0/gio/gdebugcontrollerdbus.h:
-
-/usr/include/gtk-3.0/gtk/gtkshortcutsshortcut.h:
+/usr/include/x86_64-linux-gnu/bits/pthread_stack_min-dynamic.h:
 
 /usr/include/c++/13/bits/enable_special_members.h:
 
 /usr/include/gtk-3.0/gtk/gtkcellview.h:
+
+/usr/include/glib-2.0/gio/gresolver.h:
+
+/usr/include/glib-2.0/glib/gmem.h:
+
+/usr/include/atk-1.0/atk/atkhyperlink.h:
+
+/usr/include/glib-2.0/gio/gremoteactiongroup.h:
+
+/usr/include/c++/13/bits/locale_classes.h:
+
+/usr/include/glib-2.0/gio/gaction.h:
+
+/usr/include/gtk-3.0/gtk/gtkfilefilter.h:
+
+/usr/include/gtk-3.0/gtk/gtkappchooserdialog.h:
 
 /usr/include/c++/13/bits/stl_multiset.h:
 
@@ -1842,21 +1917,11 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/gtk-3.0/gtk/gtkradiotoolbutton.h:
 
+/usr/include/opencv4/opencv2/core/affine.hpp:
+
+/usr/include/assert.h:
+
 /usr/include/c++/13/backward/auto_ptr.h:
-
-/usr/include/glib-2.0/glib/gkeyfile.h:
-
-/usr/include/gtk-3.0/gtk/gtktextattributes.h:
-
-/usr/include/atk-1.0/atk/atknoopobjectfactory.h:
-
-/usr/include/gtk-3.0/gtk/gtkfilechooser.h:
-
-/usr/include/c++/13/locale:
-
-/usr/include/x86_64-linux-gnu/bits/getopt_posix.h:
-
-/usr/include/atk-1.0/atk/atknoopobject.h:
 
 /usr/include/asm-generic/errno.h:
 
@@ -1898,49 +1963,33 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/glib-2.0/gio/gzlibdecompressor.h:
 
-/usr/include/glib-2.0/gio/gemblemedicon.h:
+/usr/include/c++/13/pstl/execution_defs.h:
 
-/usr/include/c++/13/bits/algorithmfwd.h:
-
-/usr/include/gtk-3.0/gtk/deprecated/gtkarrow.h:
-
-/usr/include/glib-2.0/glib/gmem.h:
-
-/usr/include/atk-1.0/atk/atkhyperlink.h:
-
-/usr/include/glib-2.0/gio/gremoteactiongroup.h:
-
-/usr/include/c++/13/bits/locale_classes.h:
-
-/usr/include/glib-2.0/gio/gaction.h:
-
-/usr/include/gtk-3.0/gtk/gtkfilefilter.h:
-
-/usr/include/gtk-3.0/gtk/gtkappchooserdialog.h:
-
-/usr/include/atk-1.0/atk/atkstateset.h:
-
-/usr/include/c++/13/functional:
+/usr/include/c++/13/bits/stl_algobase.h:
 
 /usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-autocleanups.h:
 
 /usr/include/pango-1.0/pango/pango-utils.h:
 
-/usr/include/gtk-3.0/gdk/gdkapplaunchcontext.h:
+/usr/include/atk-1.0/atk/atkstateset.h:
 
-/usr/include/opencv4/opencv2/core/async.hpp:
+/usr/include/c++/13/functional:
 
-/usr/include/glib-2.0/gio/gmemorymonitor.h:
+/usr/include/c++/13/bits/stl_function.h:
 
-/usr/include/assert.h:
+/usr/include/glib-2.0/gio/gpowerprofilemonitor.h:
 
-/usr/include/opencv4/opencv2/core/affine.hpp:
+/usr/include/glib-2.0/gio/gvolumemonitor.h:
 
-/home/sd_bert/projects/Panorama/src/ui/_build_ui.h:
+/usr/include/x86_64-linux-gnu/bits/xopen_lim.h:
 
-/usr/include/gtk-3.0/gtk/gtkheaderbar.h:
+/usr/include/c++/13/tr1/beta_function.tcc:
 
-/usr/include/harfbuzz/hb-deprecated.h:
+/usr/include/glib-2.0/gio/gemblemedicon.h:
+
+/usr/include/c++/13/bits/algorithmfwd.h:
+
+/usr/include/gtk-3.0/gtk/deprecated/gtkarrow.h:
 
 /usr/include/c++/13/bits/alloc_traits.h:
 
@@ -1953,36 +2002,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/gtk-3.0/gtk/gtkcolorchooser.h:
 
 /usr/include/c++/13/ext/numeric_traits.h:
-
-/usr/include/c++/13/bits/list.tcc:
-
-/usr/include/features-time64.h:
-
-/usr/include/c++/13/type_traits:
-
-/usr/include/x86_64-linux-gnu/bits/types/locale_t.h:
-
-/usr/include/c++/13/cfloat:
-
-/usr/include/ctype.h:
-
-/usr/include/glib-2.0/gio/gmemoryinputstream.h:
-
-/usr/include/glib-2.0/gio/gpollableoutputstream.h:
-
-/usr/include/features.h:
-
-/usr/include/c++/13/string:
-
-/usr/include/c++/13/bits/fs_dir.h:
-
-/usr/include/c++/13/bits/basic_ios.tcc:
-
-/usr/include/gtk-3.0/gdk/gdkframetimings.h:
-
-/usr/include/c++/13/bits/stl_algobase.h:
-
-/usr/include/c++/13/pstl/execution_defs.h:
 
 /usr/include/glib-2.0/gio/gvfs.h:
 
@@ -2028,21 +2047,23 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/atk-1.0/atk/atkrange.h:
 
+/usr/include/c++/13/bits/fs_path.h:
+
+/usr/include/glib-2.0/glib/gmarkup.h:
+
+/usr/include/atk-1.0/atk/atkselection.h:
+
+/usr/include/c++/13/codecvt:
+
+/usr/include/glib-2.0/gio/gunixcredentialsmessage.h:
+
+/usr/include/atk-1.0/atk/atkhyperlinkimpl.h:
+
+/usr/include/gtk-3.0/gtk/gtkmenutoolbutton.h:
+
 /usr/include/c++/13/bits/align.h:
 
-/usr/include/glib-2.0/glib/gdataset.h:
-
-/usr/include/c++/13/exception:
-
-/usr/include/gtk-3.0/gdk/gdkkeysyms.h:
-
-/usr/include/c++/13/bits/basic_string.h:
-
-/usr/include/c++/13/tr1/poly_laguerre.tcc:
-
-/usr/include/c++/13/tr1/special_function_util.h:
-
-/usr/include/gtk-3.0/gtk/gtkmenu.h:
+/usr/include/opencv4/opencv2/stitching/detail/warpers_inl.hpp:
 
 /usr/include/c++/13/bits/stl_iterator_base_types.h:
 
@@ -2098,10 +2119,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/gtk-3.0/gtk/gtktreesortable.h:
 
-/usr/include/gtk-3.0/gtk/deprecated/gtkvscale.h:
-
-/usr/include/x86_64-linux-gnu/bits/getopt_core.h:
-
 /usr/include/c++/13/bits/exception_ptr.h:
 
 /usr/include/c++/13/bits/specfun.h:
@@ -2117,10 +2134,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/endian.h:
 
 /usr/include/gtk-3.0/gtk/deprecated/gtkhscale.h:
-
-/usr/include/gtk-3.0/gtk/gtkdnd.h:
-
-/usr/include/c++/13/ostream:
 
 /usr/include/glib-2.0/gio/gvolume.h:
 
@@ -2198,18 +2211,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/c++/13/cmath:
 
-/usr/include/c++/13/codecvt:
-
-/usr/include/glib-2.0/glib/gmarkup.h:
-
-/usr/include/atk-1.0/atk/atkselection.h:
-
-/usr/include/glib-2.0/gio/gunixcredentialsmessage.h:
-
-/usr/include/atk-1.0/atk/atkhyperlinkimpl.h:
-
-/usr/include/gtk-3.0/gtk/gtkmenutoolbutton.h:
-
 /usr/include/glib-2.0/gio/gtlsbackend.h:
 
 /usr/include/gtk-3.0/gtk/gtktoolpalette.h:
@@ -2245,10 +2246,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/pango-1.0/pango/pango-markup.h:
 
 /usr/include/x86_64-linux-gnu/c++/13/bits/gthr.h:
-
-/usr/include/glib-2.0/gio/gactiongroupexporter.h:
-
-/usr/include/x86_64-linux-gnu/bits/signum-arch.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/13/include/mm_malloc.h:
 
@@ -2322,12 +2319,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/x86_64-linux-gnu/c++/13/bits/ctype_inline.h:
 
-/usr/include/gtk-3.0/gdk/gdkmonitor.h:
-
-/usr/include/glib-2.0/glib/gfileutils.h:
-
-/usr/include/glib-2.0/gobject/gparam.h:
-
 /usr/include/pango-1.0/pango/pango-glyph-item.h:
 
 /usr/include/c++/13/bits/shared_ptr_atomic.h:
@@ -2335,12 +2326,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/glib-2.0/gio/gdtlsclientconnection.h:
 
 /usr/include/c++/13/stdlib.h:
-
-/usr/include/x86_64-linux-gnu/bits/uio_lim.h:
-
-/usr/include/c++/13/ext/alloc_traits.h:
-
-/usr/include/opencv4/opencv2/ml.hpp:
 
 /usr/include/opencv4/opencv2/flann/kdtree_single_index.h:
 
@@ -2418,7 +2403,29 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/gtk-3.0/gtk/gtktoolitem.h:
 
-/usr/include/c++/13/bits/fs_path.h:
+/usr/include/c++/13/bits/basic_string.h:
+
+/usr/include/gtk-3.0/gdk/gdkkeysyms.h:
+
+/usr/include/gtk-3.0/gdk/gdkpango.h:
+
+/usr/include/x86_64-linux-gnu/bits/getopt_core.h:
+
+/usr/include/gtk-3.0/gtk/deprecated/gtkvscale.h:
+
+/usr/include/gtk-3.0/gdk/gdkmain.h:
+
+/usr/include/glib-2.0/glib/gfileutils.h:
+
+/usr/include/glib-2.0/gobject/gparam.h:
+
+/usr/include/gtk-3.0/gdk/gdkmonitor.h:
+
+/usr/include/c++/13/ext/alloc_traits.h:
+
+/usr/include/opencv4/opencv2/ml.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/uio_lim.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/mbstate_t.h:
 
@@ -2527,8 +2534,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/gtk-3.0/gtk/deprecated/gtkvbbox.h:
 
 /usr/include/gtk-3.0/gtk/deprecated/gtkvbox.h:
-
-/usr/include/gtk-3.0/gtk/deprecated/gtkvscrollbar.h:
 
 /usr/include/gtk-3.0/gtk/deprecated/gtkvseparator.h:
 
@@ -2680,6 +2685,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/gtk-3.0/gtk/gtkexpander.h:
 
+/home/sd_bert/projects/Panorama/src/ui/_toolbar.h:
+
 /usr/include/gtk-3.0/gtk/gtkfilechooserdialog.h:
 
 /usr/include/c++/13/bits/stl_map.h:
@@ -2713,6 +2720,10 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/gtk-3.0/gtk/gtkgestureswipe.h:
 
 /usr/include/gtk-3.0/gtk/gtkglarea.h:
+
+/usr/include/gtk-3.0/gtk/gtkheaderbar.h:
+
+/usr/include/harfbuzz/hb-deprecated.h:
 
 /usr/include/c++/13/sstream:
 
@@ -3146,9 +3157,9 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/pango-1.0/pango/pango-font.h:
 
-/usr/include/c++/13/bits/stl_bvector.h:
-
 /usr/include/c++/13/bits/parse_numbers.h:
+
+/usr/include/c++/13/bits/stl_bvector.h:
 
 /usr/include/x86_64-linux-gnu/bits/mathcalls-narrow.h:
 
@@ -3229,8 +3240,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/c++/13/climits:
 
 /usr/include/x86_64-linux-gnu/bits/posix2_lim.h:
-
-/usr/include/x86_64-linux-gnu/bits/pthread_stack_min-dynamic.h:
 
 /usr/include/x86_64-linux-gnu/bits/pthreadtypes-arch.h:
 

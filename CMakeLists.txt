@@ -18,9 +18,15 @@ include_directories(        ${CMAKE_SOURCE_DIR}/src/math
                             ${CMAKE_SOURCE_DIR}/src/ui)
 
 add_library(code
+    ${CMAKE_SOURCE_DIR}/src/ui/_toolbar.h
+    ${CMAKE_SOURCE_DIR}/src/ui/_toolbar.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/_create_menu.h
+    ${CMAKE_SOURCE_DIR}/src/ui/_create_menu.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/_flowbox.h
+    ${CMAKE_SOURCE_DIR}/src/ui/_flowbox.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/_main_windows.h
+    ${CMAKE_SOURCE_DIR}/src/ui/_main_windows.cpp
     ${CMAKE_SOURCE_DIR}/src/ui/_gtk_vars.h
-    ${CMAKE_SOURCE_DIR}/src/ui/_build_ui.cpp
-    ${CMAKE_SOURCE_DIR}/src/ui/_build_ui.h
     ${CMAKE_SOURCE_DIR}/src/ui/_gtk_ops.cpp
     ${CMAKE_SOURCE_DIR}/src/ui/_gtk_ops.h
     ${CMAKE_SOURCE_DIR}/src/math/_img_manipulation.cpp

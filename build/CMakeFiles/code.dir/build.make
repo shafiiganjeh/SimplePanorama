@@ -69,24 +69,66 @@ include CMakeFiles/code.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/code.dir/flags.make
 
-CMakeFiles/code.dir/src/ui/_build_ui.cpp.o: CMakeFiles/code.dir/flags.make
-CMakeFiles/code.dir/src/ui/_build_ui.cpp.o: /home/sd_bert/projects/Panorama/src/ui/_build_ui.cpp
-CMakeFiles/code.dir/src/ui/_build_ui.cpp.o: CMakeFiles/code.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/sd_bert/projects/Panorama/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/code.dir/src/ui/_build_ui.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/code.dir/src/ui/_build_ui.cpp.o -MF CMakeFiles/code.dir/src/ui/_build_ui.cpp.o.d -o CMakeFiles/code.dir/src/ui/_build_ui.cpp.o -c /home/sd_bert/projects/Panorama/src/ui/_build_ui.cpp
+CMakeFiles/code.dir/src/ui/_toolbar.cpp.o: CMakeFiles/code.dir/flags.make
+CMakeFiles/code.dir/src/ui/_toolbar.cpp.o: /home/sd_bert/projects/Panorama/src/ui/_toolbar.cpp
+CMakeFiles/code.dir/src/ui/_toolbar.cpp.o: CMakeFiles/code.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/sd_bert/projects/Panorama/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/code.dir/src/ui/_toolbar.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/code.dir/src/ui/_toolbar.cpp.o -MF CMakeFiles/code.dir/src/ui/_toolbar.cpp.o.d -o CMakeFiles/code.dir/src/ui/_toolbar.cpp.o -c /home/sd_bert/projects/Panorama/src/ui/_toolbar.cpp
 
-CMakeFiles/code.dir/src/ui/_build_ui.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/code.dir/src/ui/_build_ui.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/sd_bert/projects/Panorama/src/ui/_build_ui.cpp > CMakeFiles/code.dir/src/ui/_build_ui.cpp.i
+CMakeFiles/code.dir/src/ui/_toolbar.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/code.dir/src/ui/_toolbar.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/sd_bert/projects/Panorama/src/ui/_toolbar.cpp > CMakeFiles/code.dir/src/ui/_toolbar.cpp.i
 
-CMakeFiles/code.dir/src/ui/_build_ui.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/code.dir/src/ui/_build_ui.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/sd_bert/projects/Panorama/src/ui/_build_ui.cpp -o CMakeFiles/code.dir/src/ui/_build_ui.cpp.s
+CMakeFiles/code.dir/src/ui/_toolbar.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/code.dir/src/ui/_toolbar.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/sd_bert/projects/Panorama/src/ui/_toolbar.cpp -o CMakeFiles/code.dir/src/ui/_toolbar.cpp.s
+
+CMakeFiles/code.dir/src/ui/_create_menu.cpp.o: CMakeFiles/code.dir/flags.make
+CMakeFiles/code.dir/src/ui/_create_menu.cpp.o: /home/sd_bert/projects/Panorama/src/ui/_create_menu.cpp
+CMakeFiles/code.dir/src/ui/_create_menu.cpp.o: CMakeFiles/code.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/sd_bert/projects/Panorama/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/code.dir/src/ui/_create_menu.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/code.dir/src/ui/_create_menu.cpp.o -MF CMakeFiles/code.dir/src/ui/_create_menu.cpp.o.d -o CMakeFiles/code.dir/src/ui/_create_menu.cpp.o -c /home/sd_bert/projects/Panorama/src/ui/_create_menu.cpp
+
+CMakeFiles/code.dir/src/ui/_create_menu.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/code.dir/src/ui/_create_menu.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/sd_bert/projects/Panorama/src/ui/_create_menu.cpp > CMakeFiles/code.dir/src/ui/_create_menu.cpp.i
+
+CMakeFiles/code.dir/src/ui/_create_menu.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/code.dir/src/ui/_create_menu.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/sd_bert/projects/Panorama/src/ui/_create_menu.cpp -o CMakeFiles/code.dir/src/ui/_create_menu.cpp.s
+
+CMakeFiles/code.dir/src/ui/_flowbox.cpp.o: CMakeFiles/code.dir/flags.make
+CMakeFiles/code.dir/src/ui/_flowbox.cpp.o: /home/sd_bert/projects/Panorama/src/ui/_flowbox.cpp
+CMakeFiles/code.dir/src/ui/_flowbox.cpp.o: CMakeFiles/code.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/sd_bert/projects/Panorama/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/code.dir/src/ui/_flowbox.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/code.dir/src/ui/_flowbox.cpp.o -MF CMakeFiles/code.dir/src/ui/_flowbox.cpp.o.d -o CMakeFiles/code.dir/src/ui/_flowbox.cpp.o -c /home/sd_bert/projects/Panorama/src/ui/_flowbox.cpp
+
+CMakeFiles/code.dir/src/ui/_flowbox.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/code.dir/src/ui/_flowbox.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/sd_bert/projects/Panorama/src/ui/_flowbox.cpp > CMakeFiles/code.dir/src/ui/_flowbox.cpp.i
+
+CMakeFiles/code.dir/src/ui/_flowbox.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/code.dir/src/ui/_flowbox.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/sd_bert/projects/Panorama/src/ui/_flowbox.cpp -o CMakeFiles/code.dir/src/ui/_flowbox.cpp.s
+
+CMakeFiles/code.dir/src/ui/_main_windows.cpp.o: CMakeFiles/code.dir/flags.make
+CMakeFiles/code.dir/src/ui/_main_windows.cpp.o: /home/sd_bert/projects/Panorama/src/ui/_main_windows.cpp
+CMakeFiles/code.dir/src/ui/_main_windows.cpp.o: CMakeFiles/code.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/sd_bert/projects/Panorama/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/code.dir/src/ui/_main_windows.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/code.dir/src/ui/_main_windows.cpp.o -MF CMakeFiles/code.dir/src/ui/_main_windows.cpp.o.d -o CMakeFiles/code.dir/src/ui/_main_windows.cpp.o -c /home/sd_bert/projects/Panorama/src/ui/_main_windows.cpp
+
+CMakeFiles/code.dir/src/ui/_main_windows.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/code.dir/src/ui/_main_windows.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/sd_bert/projects/Panorama/src/ui/_main_windows.cpp > CMakeFiles/code.dir/src/ui/_main_windows.cpp.i
+
+CMakeFiles/code.dir/src/ui/_main_windows.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/code.dir/src/ui/_main_windows.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/sd_bert/projects/Panorama/src/ui/_main_windows.cpp -o CMakeFiles/code.dir/src/ui/_main_windows.cpp.s
 
 CMakeFiles/code.dir/src/ui/_gtk_ops.cpp.o: CMakeFiles/code.dir/flags.make
 CMakeFiles/code.dir/src/ui/_gtk_ops.cpp.o: /home/sd_bert/projects/Panorama/src/ui/_gtk_ops.cpp
 CMakeFiles/code.dir/src/ui/_gtk_ops.cpp.o: CMakeFiles/code.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/sd_bert/projects/Panorama/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/code.dir/src/ui/_gtk_ops.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/sd_bert/projects/Panorama/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/code.dir/src/ui/_gtk_ops.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/code.dir/src/ui/_gtk_ops.cpp.o -MF CMakeFiles/code.dir/src/ui/_gtk_ops.cpp.o.d -o CMakeFiles/code.dir/src/ui/_gtk_ops.cpp.o -c /home/sd_bert/projects/Panorama/src/ui/_gtk_ops.cpp
 
 CMakeFiles/code.dir/src/ui/_gtk_ops.cpp.i: cmake_force
@@ -100,7 +142,7 @@ CMakeFiles/code.dir/src/ui/_gtk_ops.cpp.s: cmake_force
 CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o: CMakeFiles/code.dir/flags.make
 CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o: /home/sd_bert/projects/Panorama/src/math/_img_manipulation.cpp
 CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o: CMakeFiles/code.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/sd_bert/projects/Panorama/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/sd_bert/projects/Panorama/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o -MF CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o.d -o CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o -c /home/sd_bert/projects/Panorama/src/math/_img_manipulation.cpp
 
 CMakeFiles/code.dir/src/math/_img_manipulation.cpp.i: cmake_force
@@ -113,19 +155,25 @@ CMakeFiles/code.dir/src/math/_img_manipulation.cpp.s: cmake_force
 
 # Object files for target code
 code_OBJECTS = \
-"CMakeFiles/code.dir/src/ui/_build_ui.cpp.o" \
+"CMakeFiles/code.dir/src/ui/_toolbar.cpp.o" \
+"CMakeFiles/code.dir/src/ui/_create_menu.cpp.o" \
+"CMakeFiles/code.dir/src/ui/_flowbox.cpp.o" \
+"CMakeFiles/code.dir/src/ui/_main_windows.cpp.o" \
 "CMakeFiles/code.dir/src/ui/_gtk_ops.cpp.o" \
 "CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o"
 
 # External object files for target code
 code_EXTERNAL_OBJECTS =
 
-libcode.a: CMakeFiles/code.dir/src/ui/_build_ui.cpp.o
+libcode.a: CMakeFiles/code.dir/src/ui/_toolbar.cpp.o
+libcode.a: CMakeFiles/code.dir/src/ui/_create_menu.cpp.o
+libcode.a: CMakeFiles/code.dir/src/ui/_flowbox.cpp.o
+libcode.a: CMakeFiles/code.dir/src/ui/_main_windows.cpp.o
 libcode.a: CMakeFiles/code.dir/src/ui/_gtk_ops.cpp.o
 libcode.a: CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o
 libcode.a: CMakeFiles/code.dir/build.make
 libcode.a: CMakeFiles/code.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/sd_bert/projects/Panorama/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX static library libcode.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/sd_bert/projects/Panorama/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX static library libcode.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/code.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/code.dir/link.txt --verbose=$(VERBOSE)
 

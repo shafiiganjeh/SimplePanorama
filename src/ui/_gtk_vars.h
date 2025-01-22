@@ -46,18 +46,32 @@ struct menu_bar_{
    GtkWidget *bar_edit_unselect;
    GtkWidget *bar_edit_order;
 
-
-   GtkWidget *toolbar;
 };
 
-struct {
+struct toolbar_{
+    GtkWidget *toolbar_main;
+
+    GtkToolItem *toolbar_main_cut;
+    GtkWidget *toolbar_main_cut_img;
+
+    GtkToolItem *toolbar_main_rewind;
+    GtkToolItem *toolbar_main_create;
+};
+
+
+struct main_window_{
     GtkWidget *window;
     GtkWidget *box;
     GtkWidget *img_dragdrop;
     GtkWidget *img_dragdrop_frame;
     struct flowbox_ flowbox;
     struct menu_bar_ menu_bar;
-} gtk_var;
+    struct toolbar_ toolbar;
+
+    struct image_paths ipts;
+};
+
+
 
 
 #endif

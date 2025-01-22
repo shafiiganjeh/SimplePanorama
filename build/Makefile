@@ -235,29 +235,53 @@ src/math/_img_manipulation.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/math/_img_manipulation.cpp.s
 .PHONY : src/math/_img_manipulation.cpp.s
 
-src/ui/_build_ui.o: src/ui/_build_ui.cpp.o
-.PHONY : src/ui/_build_ui.o
+src/ui/_create_menu.o: src/ui/_create_menu.cpp.o
+.PHONY : src/ui/_create_menu.o
 
 # target to build an object file
-src/ui/_build_ui.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/ui/_build_ui.cpp.o
-.PHONY : src/ui/_build_ui.cpp.o
+src/ui/_create_menu.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/ui/_create_menu.cpp.o
+.PHONY : src/ui/_create_menu.cpp.o
 
-src/ui/_build_ui.i: src/ui/_build_ui.cpp.i
-.PHONY : src/ui/_build_ui.i
+src/ui/_create_menu.i: src/ui/_create_menu.cpp.i
+.PHONY : src/ui/_create_menu.i
 
 # target to preprocess a source file
-src/ui/_build_ui.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/ui/_build_ui.cpp.i
-.PHONY : src/ui/_build_ui.cpp.i
+src/ui/_create_menu.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/ui/_create_menu.cpp.i
+.PHONY : src/ui/_create_menu.cpp.i
 
-src/ui/_build_ui.s: src/ui/_build_ui.cpp.s
-.PHONY : src/ui/_build_ui.s
+src/ui/_create_menu.s: src/ui/_create_menu.cpp.s
+.PHONY : src/ui/_create_menu.s
 
 # target to generate assembly for a file
-src/ui/_build_ui.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/ui/_build_ui.cpp.s
-.PHONY : src/ui/_build_ui.cpp.s
+src/ui/_create_menu.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/ui/_create_menu.cpp.s
+.PHONY : src/ui/_create_menu.cpp.s
+
+src/ui/_flowbox.o: src/ui/_flowbox.cpp.o
+.PHONY : src/ui/_flowbox.o
+
+# target to build an object file
+src/ui/_flowbox.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/ui/_flowbox.cpp.o
+.PHONY : src/ui/_flowbox.cpp.o
+
+src/ui/_flowbox.i: src/ui/_flowbox.cpp.i
+.PHONY : src/ui/_flowbox.i
+
+# target to preprocess a source file
+src/ui/_flowbox.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/ui/_flowbox.cpp.i
+.PHONY : src/ui/_flowbox.cpp.i
+
+src/ui/_flowbox.s: src/ui/_flowbox.cpp.s
+.PHONY : src/ui/_flowbox.s
+
+# target to generate assembly for a file
+src/ui/_flowbox.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/ui/_flowbox.cpp.s
+.PHONY : src/ui/_flowbox.cpp.s
 
 src/ui/_gtk_ops.o: src/ui/_gtk_ops.cpp.o
 .PHONY : src/ui/_gtk_ops.o
@@ -283,6 +307,54 @@ src/ui/_gtk_ops.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/ui/_gtk_ops.cpp.s
 .PHONY : src/ui/_gtk_ops.cpp.s
 
+src/ui/_main_windows.o: src/ui/_main_windows.cpp.o
+.PHONY : src/ui/_main_windows.o
+
+# target to build an object file
+src/ui/_main_windows.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/ui/_main_windows.cpp.o
+.PHONY : src/ui/_main_windows.cpp.o
+
+src/ui/_main_windows.i: src/ui/_main_windows.cpp.i
+.PHONY : src/ui/_main_windows.i
+
+# target to preprocess a source file
+src/ui/_main_windows.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/ui/_main_windows.cpp.i
+.PHONY : src/ui/_main_windows.cpp.i
+
+src/ui/_main_windows.s: src/ui/_main_windows.cpp.s
+.PHONY : src/ui/_main_windows.s
+
+# target to generate assembly for a file
+src/ui/_main_windows.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/ui/_main_windows.cpp.s
+.PHONY : src/ui/_main_windows.cpp.s
+
+src/ui/_toolbar.o: src/ui/_toolbar.cpp.o
+.PHONY : src/ui/_toolbar.o
+
+# target to build an object file
+src/ui/_toolbar.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/ui/_toolbar.cpp.o
+.PHONY : src/ui/_toolbar.cpp.o
+
+src/ui/_toolbar.i: src/ui/_toolbar.cpp.i
+.PHONY : src/ui/_toolbar.i
+
+# target to preprocess a source file
+src/ui/_toolbar.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/ui/_toolbar.cpp.i
+.PHONY : src/ui/_toolbar.cpp.i
+
+src/ui/_toolbar.s: src/ui/_toolbar.cpp.s
+.PHONY : src/ui/_toolbar.s
+
+# target to generate assembly for a file
+src/ui/_toolbar.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/ui/_toolbar.cpp.s
+.PHONY : src/ui/_toolbar.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -303,12 +375,21 @@ help:
 	@echo "... src/math/_img_manipulation.o"
 	@echo "... src/math/_img_manipulation.i"
 	@echo "... src/math/_img_manipulation.s"
-	@echo "... src/ui/_build_ui.o"
-	@echo "... src/ui/_build_ui.i"
-	@echo "... src/ui/_build_ui.s"
+	@echo "... src/ui/_create_menu.o"
+	@echo "... src/ui/_create_menu.i"
+	@echo "... src/ui/_create_menu.s"
+	@echo "... src/ui/_flowbox.o"
+	@echo "... src/ui/_flowbox.i"
+	@echo "... src/ui/_flowbox.s"
 	@echo "... src/ui/_gtk_ops.o"
 	@echo "... src/ui/_gtk_ops.i"
 	@echo "... src/ui/_gtk_ops.s"
+	@echo "... src/ui/_main_windows.o"
+	@echo "... src/ui/_main_windows.i"
+	@echo "... src/ui/_main_windows.s"
+	@echo "... src/ui/_toolbar.o"
+	@echo "... src/ui/_toolbar.i"
+	@echo "... src/ui/_toolbar.s"
 .PHONY : help
 
 

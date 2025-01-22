@@ -83,12 +83,12 @@ clean: CMakeFiles/panorama.dir/clean
 CMakeFiles/code.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/sd_bert/projects/Panorama/build/CMakeFiles --progress-num=1,2,3,4 "Built target code"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/sd_bert/projects/Panorama/build/CMakeFiles --progress-num=1,2,3,4,5,6,7 "Built target code"
 .PHONY : CMakeFiles/code.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/code.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/sd_bert/projects/Panorama/build/CMakeFiles 4
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/sd_bert/projects/Panorama/build/CMakeFiles 7
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/code.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sd_bert/projects/Panorama/build/CMakeFiles 0
 .PHONY : CMakeFiles/code.dir/rule
@@ -109,12 +109,12 @@ CMakeFiles/code.dir/clean:
 CMakeFiles/panorama.dir/all: CMakeFiles/code.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/panorama.dir/build.make CMakeFiles/panorama.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/panorama.dir/build.make CMakeFiles/panorama.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/sd_bert/projects/Panorama/build/CMakeFiles --progress-num=5,6 "Built target panorama"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/sd_bert/projects/Panorama/build/CMakeFiles --progress-num=8,9 "Built target panorama"
 .PHONY : CMakeFiles/panorama.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/panorama.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/sd_bert/projects/Panorama/build/CMakeFiles 6
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/sd_bert/projects/Panorama/build/CMakeFiles 9
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/panorama.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/sd_bert/projects/Panorama/build/CMakeFiles 0
 .PHONY : CMakeFiles/panorama.dir/rule
