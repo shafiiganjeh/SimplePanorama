@@ -78,6 +78,27 @@ std::vector<std::string> get_path_from_Selection_data(struct image_paths* file_p
         }
         return path_list;
 }
+
+void cut_operation(GtkFlowBoxChild *child,struct main_window_ *main_window){
+
+        GList *children = gtk_container_get_children(GTK_CONTAINER(child));
+        gpointer widget = g_list_nth_data (children,0);
+
+        int ind = gops::findStringIndex((main_window->ipts.f_list),gtk_widget_get_name (GTK_WIDGET( widget)));
+        if (ind >= 0){
+              gtk_widget_destroy(GTK_WIDGET(child));
+              main_window->ipts.f_list.erase(main_window->ipts.f_list.begin() + ind);
+              main_window->ipts.img_data.erase(main_window->ipts.img_data.begin() + ind);
+              gtk_widget_show_all(main_window->flowbox.flowbox_main);
+        }
+        else{
+               std::cout<< gtk_widget_get_name (GTK_WIDGET( widget))<<" not found";
+        }
+
+        g_list_free(g_steal_pointer (&children));
+}
+
+
 }
 
 

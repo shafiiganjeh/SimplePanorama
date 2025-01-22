@@ -10,6 +10,7 @@ namespace tbar{
 void create_toolbar(GtkWidget *add_to,struct toolbar_ *toolbar,struct main_window_ *main_window);
 
 
+
 }
 
 #endif

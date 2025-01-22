@@ -187,6 +187,30 @@ panorama/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/panorama.dir/build.make CMakeFiles/panorama.dir/build
 .PHONY : panorama/fast
 
+src/classes/_panorama.o: src/classes/_panorama.cpp.o
+.PHONY : src/classes/_panorama.o
+
+# target to build an object file
+src/classes/_panorama.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/classes/_panorama.cpp.o
+.PHONY : src/classes/_panorama.cpp.o
+
+src/classes/_panorama.i: src/classes/_panorama.cpp.i
+.PHONY : src/classes/_panorama.i
+
+# target to preprocess a source file
+src/classes/_panorama.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/classes/_panorama.cpp.i
+.PHONY : src/classes/_panorama.cpp.i
+
+src/classes/_panorama.s: src/classes/_panorama.cpp.s
+.PHONY : src/classes/_panorama.s
+
+# target to generate assembly for a file
+src/classes/_panorama.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/classes/_panorama.cpp.s
+.PHONY : src/classes/_panorama.cpp.s
+
 src/main.o: src/main.cpp.o
 .PHONY : src/main.o
 
@@ -234,6 +258,30 @@ src/math/_img_manipulation.s: src/math/_img_manipulation.cpp.s
 src/math/_img_manipulation.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/math/_img_manipulation.cpp.s
 .PHONY : src/math/_img_manipulation.cpp.s
+
+src/math/_maths.o: src/math/_maths.cpp.o
+.PHONY : src/math/_maths.o
+
+# target to build an object file
+src/math/_maths.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/math/_maths.cpp.o
+.PHONY : src/math/_maths.cpp.o
+
+src/math/_maths.i: src/math/_maths.cpp.i
+.PHONY : src/math/_maths.i
+
+# target to preprocess a source file
+src/math/_maths.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/math/_maths.cpp.i
+.PHONY : src/math/_maths.cpp.i
+
+src/math/_maths.s: src/math/_maths.cpp.s
+.PHONY : src/math/_maths.s
+
+# target to generate assembly for a file
+src/math/_maths.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/math/_maths.cpp.s
+.PHONY : src/math/_maths.cpp.s
 
 src/ui/_create_menu.o: src/ui/_create_menu.cpp.o
 .PHONY : src/ui/_create_menu.o
@@ -369,12 +417,18 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... code"
 	@echo "... panorama"
+	@echo "... src/classes/_panorama.o"
+	@echo "... src/classes/_panorama.i"
+	@echo "... src/classes/_panorama.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
 	@echo "... src/math/_img_manipulation.o"
 	@echo "... src/math/_img_manipulation.i"
 	@echo "... src/math/_img_manipulation.s"
+	@echo "... src/math/_maths.o"
+	@echo "... src/math/_maths.i"
+	@echo "... src/math/_maths.s"
 	@echo "... src/ui/_create_menu.o"
 	@echo "... src/ui/_create_menu.i"
 	@echo "... src/ui/_create_menu.s"

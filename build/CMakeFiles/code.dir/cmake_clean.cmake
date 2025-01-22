@@ -1,6 +1,10 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/code.dir/src/classes/_panorama.cpp.o"
+  "CMakeFiles/code.dir/src/classes/_panorama.cpp.o.d"
   "CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o"
   "CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o.d"
+  "CMakeFiles/code.dir/src/math/_maths.cpp.o"
+  "CMakeFiles/code.dir/src/math/_maths.cpp.o.d"
   "CMakeFiles/code.dir/src/ui/_create_menu.cpp.o"
   "CMakeFiles/code.dir/src/ui/_create_menu.cpp.o.d"
   "CMakeFiles/code.dir/src/ui/_flowbox.cpp.o"

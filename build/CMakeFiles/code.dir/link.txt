@@ -1,2 +1,2 @@
-/usr/bin/ar qc libcode.a CMakeFiles/code.dir/src/ui/_toolbar.cpp.o CMakeFiles/code.dir/src/ui/_create_menu.cpp.o CMakeFiles/code.dir/src/ui/_flowbox.cpp.o CMakeFiles/code.dir/src/ui/_main_windows.cpp.o CMakeFiles/code.dir/src/ui/_gtk_ops.cpp.o CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o
+/usr/bin/ar qc libcode.a CMakeFiles/code.dir/src/classes/_panorama.cpp.o CMakeFiles/code.dir/src/ui/_toolbar.cpp.o CMakeFiles/code.dir/src/ui/_create_menu.cpp.o CMakeFiles/code.dir/src/ui/_flowbox.cpp.o CMakeFiles/code.dir/src/ui/_main_windows.cpp.o CMakeFiles/code.dir/src/ui/_gtk_ops.cpp.o CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o CMakeFiles/code.dir/src/math/_maths.cpp.o
 /usr/bin/ranlib libcode.a

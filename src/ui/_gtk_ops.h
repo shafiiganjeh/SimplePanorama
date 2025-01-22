@@ -20,6 +20,8 @@ std::vector<std::string> get_path_from_Selection_data(struct image_paths* file_p
 
 void set_css_style(GtkCssProvider *provider,GtkWidget *widget);
 
+void cut_operation(GtkFlowBoxChild *child,struct main_window_ *main_window);
+
 }
 
 #endif
