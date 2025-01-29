@@ -19,6 +19,8 @@ include_directories(        ${CMAKE_SOURCE_DIR}/src/math
                             ${CMAKE_SOURCE_DIR}/src/classes)
 
 add_library(code
+    ${CMAKE_SOURCE_DIR}/src/classes/_image.h
+    ${CMAKE_SOURCE_DIR}/src/classes/_image.cpp
     ${CMAKE_SOURCE_DIR}/src/classes/_panorama.h
     ${CMAKE_SOURCE_DIR}/src/classes/_panorama.cpp
     ${CMAKE_SOURCE_DIR}/src/ui/_toolbar.h
