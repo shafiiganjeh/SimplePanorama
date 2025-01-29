@@ -64,26 +64,43 @@ namespace imgm {
             return image;
     }
 
-    images::images(std::vector<std::string> files):f_list(files){};
+    cv::Mat stitch(const cv::Mat &base, const cv::Mat &attach,const cv::Matx33f &H){
+            // compute corners
 
+            std::vector<cv::Vec2f> cor;
 
-    void images::load_images(std::vector<std::string> f_list){
+            cor.push_back(cv::Vec2f(0,0));
+            cor.push_back(cv::Vec2f(0,attach.rows));
+            cor.push_back(cv::Vec2f(attach.cols,0));
+            cor.push_back(cv::Vec2f(attach.cols,attach.rows));
 
+            cv::perspectiveTransform(cor, cor, H);
 
-            for(auto& elem : f_list) {
+            float xstart = std::min( std::min( cor[0][0], cor[1][0]), (float)0);
+            float xend   = std::max( std::max( cor[2][0], cor[3][0]), (float)base.cols);
+            float ystart = std::min( std::min( cor[0][1], cor[2][1]), (float)0);
+            float yend   = std::max( std::max( cor[1][1], cor[3][1]), (float)base.rows);
 
-                img_data.push_back( file_to_cv(elem) );
+            // create translation matrix
+            cv::Matx33f T = cv::Matx33f::zeros();
+            T(0, 0) = 1;
+            T(1, 1) = 1;
+            T(2, 2) = 1;
+            T(0, 2) = -xstart;
+            T(1, 2) = -ystart;
 
-            }
-    }
+            T = T * H;
+            // warp second image
+            cv::Mat panorama;
+            cv::warpPerspective(attach, panorama, T, cv::Size(xend - xstart + 1, yend - ystart + 1), cv::INTER_LINEAR);
 
-    void images::clear_images(){
+            // copy base image panorama
+            cv::Mat roi(panorama, cv::Rect(-xstart,-ystart,base.cols, base.rows));
+            base.copyTo(roi, base);
 
-        std::vector<cv::Mat> empty;
+            return panorama;
+}
 
-        img_data = empty;
-
-    }
 
 }
 

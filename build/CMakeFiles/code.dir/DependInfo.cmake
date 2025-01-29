@@ -8,6 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/home/sd_bert/projects/Panorama/src/classes/_image.cpp" "CMakeFiles/code.dir/src/classes/_image.cpp.o" "gcc" "CMakeFiles/code.dir/src/classes/_image.cpp.o.d"
   "/home/sd_bert/projects/Panorama/src/classes/_panorama.cpp" "CMakeFiles/code.dir/src/classes/_panorama.cpp.o" "gcc" "CMakeFiles/code.dir/src/classes/_panorama.cpp.o.d"
   "/home/sd_bert/projects/Panorama/src/math/_img_manipulation.cpp" "CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o" "gcc" "CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o.d"
   "/home/sd_bert/projects/Panorama/src/math/_maths.cpp" "CMakeFiles/code.dir/src/math/_maths.cpp.o" "gcc" "CMakeFiles/code.dir/src/math/_maths.cpp.o.d"

@@ -1,4 +1,6 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/code.dir/src/classes/_image.cpp.o"
+  "CMakeFiles/code.dir/src/classes/_image.cpp.o.d"
   "CMakeFiles/code.dir/src/classes/_panorama.cpp.o"
   "CMakeFiles/code.dir/src/classes/_panorama.cpp.o.d"
   "CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o"

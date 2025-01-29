@@ -187,6 +187,30 @@ panorama/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/panorama.dir/build.make CMakeFiles/panorama.dir/build
 .PHONY : panorama/fast
 
+src/classes/_image.o: src/classes/_image.cpp.o
+.PHONY : src/classes/_image.o
+
+# target to build an object file
+src/classes/_image.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/classes/_image.cpp.o
+.PHONY : src/classes/_image.cpp.o
+
+src/classes/_image.i: src/classes/_image.cpp.i
+.PHONY : src/classes/_image.i
+
+# target to preprocess a source file
+src/classes/_image.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/classes/_image.cpp.i
+.PHONY : src/classes/_image.cpp.i
+
+src/classes/_image.s: src/classes/_image.cpp.s
+.PHONY : src/classes/_image.s
+
+# target to generate assembly for a file
+src/classes/_image.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/classes/_image.cpp.s
+.PHONY : src/classes/_image.cpp.s
+
 src/classes/_panorama.o: src/classes/_panorama.cpp.o
 .PHONY : src/classes/_panorama.o
 
@@ -417,6 +441,9 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... code"
 	@echo "... panorama"
+	@echo "... src/classes/_image.o"
+	@echo "... src/classes/_image.i"
+	@echo "... src/classes/_image.s"
 	@echo "... src/classes/_panorama.o"
 	@echo "... src/classes/_panorama.i"
 	@echo "... src/classes/_panorama.s"

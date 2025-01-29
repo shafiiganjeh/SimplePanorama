@@ -3,6 +3,7 @@
 
 CMakeFiles/panorama.dir/src/main.cpp.o
  /home/sd_bert/projects/Panorama/src/main.cpp
+ /home/sd_bert/projects/Panorama/src/classes/_image.h
  /home/sd_bert/projects/Panorama/src/classes/_panorama.h
  /home/sd_bert/projects/Panorama/src/math/_img_manipulation.h
  /home/sd_bert/projects/Panorama/src/math/_maths.h
@@ -116,6 +117,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o
  /usr/include/c++/13/bits/predefined_ops.h
  /usr/include/c++/13/bits/ptr_traits.h
  /usr/include/c++/13/bits/quoted_string.h
+ /usr/include/c++/13/bits/random.h
+ /usr/include/c++/13/bits/random.tcc
  /usr/include/c++/13/bits/range_access.h
  /usr/include/c++/13/bits/refwrap.h
  /usr/include/c++/13/bits/requires_hosted.h
@@ -217,6 +220,7 @@ CMakeFiles/panorama.dir/src/main.cpp.o
  /usr/include/c++/13/pstl/glue_numeric_defs.h
  /usr/include/c++/13/pstl/pstl_config.h
  /usr/include/c++/13/queue
+ /usr/include/c++/13/random
  /usr/include/c++/13/ratio
  /usr/include/c++/13/set
  /usr/include/c++/13/sstream
@@ -1109,6 +1113,7 @@ CMakeFiles/panorama.dir/src/main.cpp.o
  /usr/include/x86_64-linux-gnu/c++/13/bits/gthr-default.h
  /usr/include/x86_64-linux-gnu/c++/13/bits/gthr.h
  /usr/include/x86_64-linux-gnu/c++/13/bits/messages_members.h
+ /usr/include/x86_64-linux-gnu/c++/13/bits/opt_random.h
  /usr/include/x86_64-linux-gnu/c++/13/bits/os_defines.h
  /usr/include/x86_64-linux-gnu/c++/13/bits/time_members.h
  /usr/include/x86_64-linux-gnu/gnu/stubs-64.h

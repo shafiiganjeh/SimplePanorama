@@ -5,7 +5,7 @@
 #include "_panorama.h"
 
 namespace pan{
-
+/*
     void panorama::init(std::vector<std::string> files,unsigned int mode){
 
         order_mode = mode;
@@ -19,11 +19,20 @@ namespace pan{
         f_list = files;
 
     }
+*/
+
+    void panorama::extract_keypoints(std::vector<cv::Mat> img_data){
+
+        cv::Mat greyMat;
+
+        for (const auto & img_matrix : img_data){
+
+            cv::cvtColor(img_matrix, greyMat, cv::COLOR_BGR2GRAY);
 
 
+        }
 
-
-
+    }
 
 }
 #endif
