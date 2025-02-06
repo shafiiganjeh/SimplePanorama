@@ -123,6 +123,19 @@ cv::Vec3f eucl2hom_point_2D(const cv::Vec2f& p){
 }
 
 
+cv::Vec2f hom2eucl_point_2D(const cv::Vec3f& p){
+        if(p[3] == 0){
+            throw std::invalid_argument("cannot convert.");
+        }
+
+        cv::Vec2f v;
+        v[0]=p[0]/p[3];
+        v[1]=p[1]/p[3];
+
+        return v;
+}
+
+
 cv::Mat_<float> getDesignMatrix_homography2D(const std::vector<cv::Vec3f> &conditioned_base, const std::vector<cv::Vec3f> &conditioned_attach){
 
    cv::Mat v = cv::Mat_<float>::zeros(conditioned_base.size()*2*9,1);
@@ -303,12 +316,12 @@ float N_outliers(const struct keypoints &kp1,const struct keypoints &kp2,std::ve
 
         }
 
-    return (float)out;
+        return (float)out;
 }
 
-float match_quality(const struct keypoints &kp1,const cv::Mat img1,const struct keypoints &kp2,const cv::Mat img2){
+float graph_thread::match_quality(const struct keypoints &kp1,const cv::Mat img1,const struct keypoints &kp2,const cv::Mat img2,int row,int col){
 
-        std::vector<float> T12 = {(float)img1.cols/400,(float)img1.rows/400};
+        std::vector<float> T12 = {(float)img1.cols/350,(float)img1.rows/350};
 
         std::vector<cv::DMatch> match12 = match_keypoints(kp1,kp2);
 
@@ -320,7 +333,9 @@ float match_quality(const struct keypoints &kp1,const cv::Mat img1,const struct 
         std::vector<cv::Point2f> obj;
         std::vector<cv::Point2f> scene;
 
-        cv::Matx33f H12 = find_homography(kp1,kp2,match12,100,4);
+        cv::Matx33f H12 = find_homography(kp1,kp2,match12,1000,4);
+        hom_mat[row][col] = H12;
+        hom_mat[col][row] = H12.inv();
 
         int out = N_outliers(kp1,kp2,match12,H12,T12);
 
@@ -328,6 +343,281 @@ float match_quality(const struct keypoints &kp1,const cv::Mat img1,const struct 
 
 }
 
+
+std::vector<maths::keypoints> extrace_kp_vector(const std::vector<cv::Mat> & imgs,std::vector<int> idx){
+
+    std::vector<maths::keypoints> kp;
+    for(const int& s : idx) {
+
+        kp.push_back(maths::extract_keypoints(imgs[s]));
+
+    }
+
+    return kp;
+}
+
+
+void graph_thread::set_mat(const std::vector<cv::Mat> & imgs,std::vector<maths::keypoints> key_p){
+
+        adj = cv::Mat::zeros(imgs.size(), imgs.size(), CV_64F);
+        kpmat = key_p;
+        hom_mat.resize(imgs.size(), std::vector<cv::Matx33f>(imgs.size()));
+
+}
+
+cv::Mat graph_thread::return_adj_mat(){
+
+            return adj + adj.t();
+
+}
+
+std::vector<std::vector< cv::Matx33f >> graph_thread::return_Hom_mat(){
+
+    return hom_mat;
+
+}
+
+
+void graph_thread::cal_adj(const std::vector<cv::Mat> & imgs,const std::vector<std::vector<int>> idx){
+
+    for(const std::vector<int> & i : idx){
+
+        if (i[0] == i[1]){
+
+            adj.at<double>(i[0],i[1]) = 0;
+
+        }else{
+            double q = match_quality(kpmat[i[0]],imgs[i[0]],kpmat[i[1]],imgs[i[1]],i[0],i[1]);
+            if(q >= .5){
+
+                adj.at<double>(i[0],i[1]) = q;
+
+            }else{adj.at<double>(i[0],i[1]) = 0;}
+
+        }
+
+    }
+
+}
+
+template <typename T>
+std::vector<std::vector<T>> splitVector(const std::vector<T>& vec, int n) {
+        std::vector<std::vector<T>> result;
+
+        // Return an empty set of vectors if n is non-positive or vector is empty
+        if (n <= 0 || vec.empty()) {
+            return result;
+        }
+
+        if (n > vec.size()) {
+            throw std::invalid_argument("n should be less than vector size.");
+        }
+
+        // Calculate the size of each part
+        int basic_part_size = vec.size() / n;
+        int remainder = vec.size() % n;
+
+        // Start index for slicing
+        int start_index = 0;
+
+        for (int i = 0; i < n; ++i) {
+            int current_part_size = basic_part_size + (i < remainder ? 1 : 0);  // Add 1 if i is less than remainder
+            std::vector<T> part(vec.begin() + start_index, vec.begin() + start_index + current_part_size);
+            result.push_back(part);
+            start_index += current_part_size;
+        }
+
+        return result;
+}
+void _(){
+    int n;
+    std::vector<int> idx;
+    std::vector<std::vector<int>> split_id = splitVector(idx, n);
+}
+
+thread graph_thread::get_threads(int n){
+
+        int size = adj.rows;
+        std::vector<std::vector<int>> calcs;
+
+        for (int i = 0;i < size;i++){
+
+            for (int j = i;j < size;j++){
+
+                calcs.push_back({i,j});
+
+            }
+        }
+
+        thread TR = splitVector(calcs, n);
+        return TR;
+
+}
+
+
+cv::Matx33f get_translation(const cv::Mat &base, const cv::Mat &attach,const cv::Matx33f &H){
+
+            std::vector<cv::Vec2f> cor;
+
+            cor.push_back(cv::Vec2f(0,0));
+            cor.push_back(cv::Vec2f(0,attach.rows));
+            cor.push_back(cv::Vec2f(attach.cols,0));
+            cor.push_back(cv::Vec2f(attach.cols,attach.rows));
+
+            cv::perspectiveTransform(cor, cor, H);
+
+            float xstart = std::min( std::min( cor[0][0], cor[1][0]), (float)0);
+            float xend   = std::max( std::max( cor[2][0], cor[3][0]), (float)base.cols);
+            float ystart = std::min( std::min( cor[0][1], cor[2][1]), (float)0);
+            float yend   = std::max( std::max( cor[1][1], cor[3][1]), (float)base.rows);
+
+            // create translation matrix
+            cv::Matx33f T = cv::Matx33f::zeros();
+            T(0, 0) = 1;
+            T(1, 1) = 1;
+            T(2, 2) = 1;
+            T(0, 2) = -xstart;
+            T(1, 2) = -ystart;
+
+            return T;
+}
+
+std::map<int, std::pair<int,double>> path_table(const cv::Mat& adj,const std::vector<std::pair<int, std::vector<int>>> &nodes,int start){
+    int f_node = start;
+
+    cv::Mat path_lenght = cv::Mat::ones(adj.rows, adj.cols, CV_64F);
+    path_lenght = path_lenght - path_lenght.mul(adj);
+
+    std::map<int, std::pair<int,double>> table;
+    std::unordered_set<int> visited;
+    std::unordered_set<int> to_visit;
+
+    std::vector<int> search;
+
+    for (std::pair<int, std::vector<int>> n : nodes){
+
+        table[n.first] = std::pair<int,double>(-1,10000);
+        search.push_back(n.first);
+
+    }
+
+    table[f_node] = std::pair<int,double>(-1,0);
+    //visited.insert(f_node);
+
+    while (visited.size() < nodes.size()){
+        visited.insert(f_node);
+
+        auto it = find(search.begin(), search.end(), f_node);
+        int index = it - search.begin();
+        //std::cout << index <<"\n";
+
+        for (const int &n : nodes[index].second){
+
+            if (0 == visited.count(n)){
+
+                double path_val = adj.at<double>(n,nodes[index].first) + table[f_node].second;
+                if(path_val < table[n].second){table[n] = std::pair<int,double>(nodes[index].first,path_val);}
+                to_visit.insert(n);
+
+            }
+
+        }
+
+        double sm = 10000;
+        int next;
+        for (const int &n : to_visit){
+            double path_val = table[n].second;
+
+            if(path_val < sm){
+
+                sm = path_val;
+                next = n;
+
+            }
+
+        }
+
+        f_node = next;
+        if(to_visit.size() > 0){
+            to_visit.erase(to_visit.find(next));
+        }
+
+    }
+
+    return table;
+}
+
+
+
+std::vector<std::pair<int, std::vector<int>>> bfs_ordered_with_neighbors(const cv::Mat& adj, int i) {
+
+    std::vector<std::pair<int, std::vector<int>>> result;
+    int n = adj.cols;
+    if (n == 0 || i < 0 || i >= n) {
+        return result;
+    }
+
+    std::vector<bool> visited(n, false);
+    std::queue<int> q;
+
+    visited[i] = true;
+    q.push(i);
+    std::vector<int> traversal_order;
+
+    // BFS
+    while (!q.empty()) {
+        int u = q.front();
+        q.pop();
+        traversal_order.push_back(u);
+
+        for (int v = 0; v < n; ++v) {
+            if (adj.at<double>(u,v) > 0 && !visited[v]) {
+                visited[v] = true;
+                q.push(v);
+            }
+        }
+    }
+
+    // Collect neighbors for each node in BFS
+    for (int u : traversal_order) {
+        std::vector<int> neighbors;
+        for (int v = 0; v < n; ++v) {
+            if (adj.at<double>(u,v) > 0) {
+                neighbors.push_back(v);
+            }
+        }
+        result.emplace_back(u, neighbors);
+    }
+
+    return result;
+}
+
+
+std::vector<int> dfs(cv::Mat& graph, int source) {
+    int m = graph.rows;
+    std::vector<bool> visited(m, false);
+    std::stack<int> s;
+    s.push(source);
+    std::vector<int> connected_vertices;
+
+    while (!s.empty()) {
+        int vertex = s.top();
+        s.pop();
+
+        if (!visited[vertex]) {
+            visited[vertex] = true;
+            connected_vertices.push_back(vertex);
+
+            for (int i = m - 1; i >= 0; --i) {
+                if (graph.at<double>(vertex,i) && !visited[i]) {
+                    s.push(i);
+                }
+            }
+        }
+    }
+
+    return connected_vertices;
+}
 
 
 }

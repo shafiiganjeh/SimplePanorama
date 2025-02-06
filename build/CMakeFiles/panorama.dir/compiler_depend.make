@@ -4,6 +4,7 @@
 CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main.cpp \
   /home/sd_bert/projects/Panorama/src/classes/_image.h \
   /home/sd_bert/projects/Panorama/src/classes/_panorama.h \
+  /home/sd_bert/projects/Panorama/src/math/_bundle_adjust.h \
   /home/sd_bert/projects/Panorama/src/math/_img_manipulation.h \
   /home/sd_bert/projects/Panorama/src/math/_maths.h \
   /home/sd_bert/projects/Panorama/src/ui/_create_menu.h \
@@ -53,6 +54,7 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
   /usr/include/atk-1.0/atk/atkwindow.h \
   /usr/include/c++/13/algorithm \
   /usr/include/c++/13/array \
+  /usr/include/c++/13/atomic \
   /usr/include/c++/13/backward/auto_ptr.h \
   /usr/include/c++/13/backward/binders.h \
   /usr/include/c++/13/bit \
@@ -62,6 +64,7 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
   /usr/include/c++/13/bits/allocated_ptr.h \
   /usr/include/c++/13/bits/allocator.h \
   /usr/include/c++/13/bits/atomic_base.h \
+  /usr/include/c++/13/bits/atomic_futex.h \
   /usr/include/c++/13/bits/atomic_lockfree_defines.h \
   /usr/include/c++/13/bits/basic_ios.h \
   /usr/include/c++/13/bits/basic_ios.tcc \
@@ -129,6 +132,7 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
   /usr/include/c++/13/bits/std_abs.h \
   /usr/include/c++/13/bits/std_function.h \
   /usr/include/c++/13/bits/std_mutex.h \
+  /usr/include/c++/13/bits/std_thread.h \
   /usr/include/c++/13/bits/stl_algo.h \
   /usr/include/c++/13/bits/stl_algobase.h \
   /usr/include/c++/13/bits/stl_bvector.h \
@@ -149,6 +153,7 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
   /usr/include/c++/13/bits/stl_raw_storage_iter.h \
   /usr/include/c++/13/bits/stl_relops.h \
   /usr/include/c++/13/bits/stl_set.h \
+  /usr/include/c++/13/bits/stl_stack.h \
   /usr/include/c++/13/bits/stl_tempbuf.h \
   /usr/include/c++/13/bits/stl_tree.h \
   /usr/include/c++/13/bits/stl_uninitialized.h \
@@ -157,14 +162,17 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
   /usr/include/c++/13/bits/streambuf_iterator.h \
   /usr/include/c++/13/bits/string_view.tcc \
   /usr/include/c++/13/bits/stringfwd.h \
+  /usr/include/c++/13/bits/this_thread_sleep.h \
   /usr/include/c++/13/bits/uniform_int_dist.h \
   /usr/include/c++/13/bits/unique_lock.h \
   /usr/include/c++/13/bits/unique_ptr.h \
   /usr/include/c++/13/bits/unordered_map.h \
+  /usr/include/c++/13/bits/unordered_set.h \
   /usr/include/c++/13/bits/uses_allocator.h \
   /usr/include/c++/13/bits/uses_allocator_args.h \
   /usr/include/c++/13/bits/utility.h \
   /usr/include/c++/13/bits/vector.tcc \
+  /usr/include/c++/13/cassert \
   /usr/include/c++/13/cctype \
   /usr/include/c++/13/cerrno \
   /usr/include/c++/13/cfloat \
@@ -175,6 +183,7 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
   /usr/include/c++/13/codecvt \
   /usr/include/c++/13/compare \
   /usr/include/c++/13/complex \
+  /usr/include/c++/13/condition_variable \
   /usr/include/c++/13/cstddef \
   /usr/include/c++/13/cstdint \
   /usr/include/c++/13/cstdio \
@@ -197,6 +206,7 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
   /usr/include/c++/13/filesystem \
   /usr/include/c++/13/fstream \
   /usr/include/c++/13/functional \
+  /usr/include/c++/13/future \
   /usr/include/c++/13/initializer_list \
   /usr/include/c++/13/iomanip \
   /usr/include/c++/13/ios \
@@ -223,12 +233,14 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
   /usr/include/c++/13/ratio \
   /usr/include/c++/13/set \
   /usr/include/c++/13/sstream \
+  /usr/include/c++/13/stack \
   /usr/include/c++/13/stdexcept \
   /usr/include/c++/13/stdlib.h \
   /usr/include/c++/13/streambuf \
   /usr/include/c++/13/string \
   /usr/include/c++/13/string_view \
   /usr/include/c++/13/system_error \
+  /usr/include/c++/13/thread \
   /usr/include/c++/13/tr1/bessel_function.tcc \
   /usr/include/c++/13/tr1/beta_function.tcc \
   /usr/include/c++/13/tr1/ell_integral.tcc \
@@ -245,6 +257,7 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
   /usr/include/c++/13/type_traits \
   /usr/include/c++/13/typeinfo \
   /usr/include/c++/13/unordered_map \
+  /usr/include/c++/13/unordered_set \
   /usr/include/c++/13/utility \
   /usr/include/c++/13/vector \
   /usr/include/cairo/cairo-deprecated.h \
@@ -1132,14 +1145,437 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
   /usr/lib/gcc/x86_64-linux-gnu/13/include/stdint.h \
   /usr/lib/gcc/x86_64-linux-gnu/13/include/syslimits.h \
   /usr/lib/gcc/x86_64-linux-gnu/13/include/xmmintrin.h \
-  /usr/lib/x86_64-linux-gnu/glib-2.0/include/glibconfig.h
+  /usr/lib/x86_64-linux-gnu/glib-2.0/include/glibconfig.h \
+  /usr/local/include/eigen3/Eigen/Cholesky \
+  /usr/local/include/eigen3/Eigen/Core \
+  /usr/local/include/eigen3/Eigen/Dense \
+  /usr/local/include/eigen3/Eigen/Eigenvalues \
+  /usr/local/include/eigen3/Eigen/Geometry \
+  /usr/local/include/eigen3/Eigen/Householder \
+  /usr/local/include/eigen3/Eigen/Jacobi \
+  /usr/local/include/eigen3/Eigen/LU \
+  /usr/local/include/eigen3/Eigen/QR \
+  /usr/local/include/eigen3/Eigen/SVD \
+  /usr/local/include/eigen3/Eigen/src/Cholesky/LDLT.h \
+  /usr/local/include/eigen3/Eigen/src/Cholesky/LLT.h \
+  /usr/local/include/eigen3/Eigen/src/Core/ArithmeticSequence.h \
+  /usr/local/include/eigen3/Eigen/src/Core/Array.h \
+  /usr/local/include/eigen3/Eigen/src/Core/ArrayBase.h \
+  /usr/local/include/eigen3/Eigen/src/Core/ArrayWrapper.h \
+  /usr/local/include/eigen3/Eigen/src/Core/Assign.h \
+  /usr/local/include/eigen3/Eigen/src/Core/AssignEvaluator.h \
+  /usr/local/include/eigen3/Eigen/src/Core/BandMatrix.h \
+  /usr/local/include/eigen3/Eigen/src/Core/Block.h \
+  /usr/local/include/eigen3/Eigen/src/Core/BooleanRedux.h \
+  /usr/local/include/eigen3/Eigen/src/Core/CommaInitializer.h \
+  /usr/local/include/eigen3/Eigen/src/Core/ConditionEstimator.h \
+  /usr/local/include/eigen3/Eigen/src/Core/CoreEvaluators.h \
+  /usr/local/include/eigen3/Eigen/src/Core/CoreIterators.h \
+  /usr/local/include/eigen3/Eigen/src/Core/CwiseBinaryOp.h \
+  /usr/local/include/eigen3/Eigen/src/Core/CwiseNullaryOp.h \
+  /usr/local/include/eigen3/Eigen/src/Core/CwiseTernaryOp.h \
+  /usr/local/include/eigen3/Eigen/src/Core/CwiseUnaryOp.h \
+  /usr/local/include/eigen3/Eigen/src/Core/CwiseUnaryView.h \
+  /usr/local/include/eigen3/Eigen/src/Core/DenseBase.h \
+  /usr/local/include/eigen3/Eigen/src/Core/DenseCoeffsBase.h \
+  /usr/local/include/eigen3/Eigen/src/Core/DenseStorage.h \
+  /usr/local/include/eigen3/Eigen/src/Core/Diagonal.h \
+  /usr/local/include/eigen3/Eigen/src/Core/DiagonalMatrix.h \
+  /usr/local/include/eigen3/Eigen/src/Core/DiagonalProduct.h \
+  /usr/local/include/eigen3/Eigen/src/Core/Dot.h \
+  /usr/local/include/eigen3/Eigen/src/Core/EigenBase.h \
+  /usr/local/include/eigen3/Eigen/src/Core/Fuzzy.h \
+  /usr/local/include/eigen3/Eigen/src/Core/GeneralProduct.h \
+  /usr/local/include/eigen3/Eigen/src/Core/GenericPacketMath.h \
+  /usr/local/include/eigen3/Eigen/src/Core/GlobalFunctions.h \
+  /usr/local/include/eigen3/Eigen/src/Core/IO.h \
+  /usr/local/include/eigen3/Eigen/src/Core/IndexedView.h \
+  /usr/local/include/eigen3/Eigen/src/Core/Inverse.h \
+  /usr/local/include/eigen3/Eigen/src/Core/Map.h \
+  /usr/local/include/eigen3/Eigen/src/Core/MapBase.h \
+  /usr/local/include/eigen3/Eigen/src/Core/MathFunctions.h \
+  /usr/local/include/eigen3/Eigen/src/Core/MathFunctionsImpl.h \
+  /usr/local/include/eigen3/Eigen/src/Core/Matrix.h \
+  /usr/local/include/eigen3/Eigen/src/Core/MatrixBase.h \
+  /usr/local/include/eigen3/Eigen/src/Core/NestByValue.h \
+  /usr/local/include/eigen3/Eigen/src/Core/NoAlias.h \
+  /usr/local/include/eigen3/Eigen/src/Core/NumTraits.h \
+  /usr/local/include/eigen3/Eigen/src/Core/PartialReduxEvaluator.h \
+  /usr/local/include/eigen3/Eigen/src/Core/PermutationMatrix.h \
+  /usr/local/include/eigen3/Eigen/src/Core/PlainObjectBase.h \
+  /usr/local/include/eigen3/Eigen/src/Core/Product.h \
+  /usr/local/include/eigen3/Eigen/src/Core/ProductEvaluators.h \
+  /usr/local/include/eigen3/Eigen/src/Core/Random.h \
+  /usr/local/include/eigen3/Eigen/src/Core/Redux.h \
+  /usr/local/include/eigen3/Eigen/src/Core/Ref.h \
+  /usr/local/include/eigen3/Eigen/src/Core/Replicate.h \
+  /usr/local/include/eigen3/Eigen/src/Core/Reshaped.h \
+  /usr/local/include/eigen3/Eigen/src/Core/ReturnByValue.h \
+  /usr/local/include/eigen3/Eigen/src/Core/Reverse.h \
+  /usr/local/include/eigen3/Eigen/src/Core/Select.h \
+  /usr/local/include/eigen3/Eigen/src/Core/SelfAdjointView.h \
+  /usr/local/include/eigen3/Eigen/src/Core/SelfCwiseBinaryOp.h \
+  /usr/local/include/eigen3/Eigen/src/Core/Solve.h \
+  /usr/local/include/eigen3/Eigen/src/Core/SolveTriangular.h \
+  /usr/local/include/eigen3/Eigen/src/Core/SolverBase.h \
+  /usr/local/include/eigen3/Eigen/src/Core/StableNorm.h \
+  /usr/local/include/eigen3/Eigen/src/Core/StlIterators.h \
+  /usr/local/include/eigen3/Eigen/src/Core/Stride.h \
+  /usr/local/include/eigen3/Eigen/src/Core/Swap.h \
+  /usr/local/include/eigen3/Eigen/src/Core/Transpose.h \
+  /usr/local/include/eigen3/Eigen/src/Core/Transpositions.h \
+  /usr/local/include/eigen3/Eigen/src/Core/TriangularMatrix.h \
+  /usr/local/include/eigen3/Eigen/src/Core/VectorBlock.h \
+  /usr/local/include/eigen3/Eigen/src/Core/VectorwiseOp.h \
+  /usr/local/include/eigen3/Eigen/src/Core/Visitor.h \
+  /usr/local/include/eigen3/Eigen/src/Core/arch/Default/BFloat16.h \
+  /usr/local/include/eigen3/Eigen/src/Core/arch/Default/ConjHelper.h \
+  /usr/local/include/eigen3/Eigen/src/Core/arch/Default/GenericPacketMathFunctions.h \
+  /usr/local/include/eigen3/Eigen/src/Core/arch/Default/GenericPacketMathFunctionsFwd.h \
+  /usr/local/include/eigen3/Eigen/src/Core/arch/Default/Half.h \
+  /usr/local/include/eigen3/Eigen/src/Core/arch/Default/Settings.h \
+  /usr/local/include/eigen3/Eigen/src/Core/arch/Default/TypeCasting.h \
+  /usr/local/include/eigen3/Eigen/src/Core/arch/SSE/Complex.h \
+  /usr/local/include/eigen3/Eigen/src/Core/arch/SSE/MathFunctions.h \
+  /usr/local/include/eigen3/Eigen/src/Core/arch/SSE/PacketMath.h \
+  /usr/local/include/eigen3/Eigen/src/Core/arch/SSE/TypeCasting.h \
+  /usr/local/include/eigen3/Eigen/src/Core/functors/AssignmentFunctors.h \
+  /usr/local/include/eigen3/Eigen/src/Core/functors/BinaryFunctors.h \
+  /usr/local/include/eigen3/Eigen/src/Core/functors/NullaryFunctors.h \
+  /usr/local/include/eigen3/Eigen/src/Core/functors/StlFunctors.h \
+  /usr/local/include/eigen3/Eigen/src/Core/functors/TernaryFunctors.h \
+  /usr/local/include/eigen3/Eigen/src/Core/functors/UnaryFunctors.h \
+  /usr/local/include/eigen3/Eigen/src/Core/products/GeneralBlockPanelKernel.h \
+  /usr/local/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrix.h \
+  /usr/local/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrixTriangular.h \
+  /usr/local/include/eigen3/Eigen/src/Core/products/GeneralMatrixVector.h \
+  /usr/local/include/eigen3/Eigen/src/Core/products/Parallelizer.h \
+  /usr/local/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixMatrix.h \
+  /usr/local/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixVector.h \
+  /usr/local/include/eigen3/Eigen/src/Core/products/SelfadjointProduct.h \
+  /usr/local/include/eigen3/Eigen/src/Core/products/SelfadjointRank2Update.h \
+  /usr/local/include/eigen3/Eigen/src/Core/products/TriangularMatrixMatrix.h \
+  /usr/local/include/eigen3/Eigen/src/Core/products/TriangularMatrixVector.h \
+  /usr/local/include/eigen3/Eigen/src/Core/products/TriangularSolverMatrix.h \
+  /usr/local/include/eigen3/Eigen/src/Core/products/TriangularSolverVector.h \
+  /usr/local/include/eigen3/Eigen/src/Core/util/BlasUtil.h \
+  /usr/local/include/eigen3/Eigen/src/Core/util/ConfigureVectorization.h \
+  /usr/local/include/eigen3/Eigen/src/Core/util/Constants.h \
+  /usr/local/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h \
+  /usr/local/include/eigen3/Eigen/src/Core/util/ForwardDeclarations.h \
+  /usr/local/include/eigen3/Eigen/src/Core/util/IndexedViewHelper.h \
+  /usr/local/include/eigen3/Eigen/src/Core/util/IntegralConstant.h \
+  /usr/local/include/eigen3/Eigen/src/Core/util/MKL_support.h \
+  /usr/local/include/eigen3/Eigen/src/Core/util/Macros.h \
+  /usr/local/include/eigen3/Eigen/src/Core/util/Memory.h \
+  /usr/local/include/eigen3/Eigen/src/Core/util/Meta.h \
+  /usr/local/include/eigen3/Eigen/src/Core/util/ReenableStupidWarnings.h \
+  /usr/local/include/eigen3/Eigen/src/Core/util/ReshapedHelper.h \
+  /usr/local/include/eigen3/Eigen/src/Core/util/StaticAssert.h \
+  /usr/local/include/eigen3/Eigen/src/Core/util/SymbolicIndex.h \
+  /usr/local/include/eigen3/Eigen/src/Core/util/XprHelper.h \
+  /usr/local/include/eigen3/Eigen/src/Eigenvalues/ComplexEigenSolver.h \
+  /usr/local/include/eigen3/Eigen/src/Eigenvalues/ComplexSchur.h \
+  /usr/local/include/eigen3/Eigen/src/Eigenvalues/EigenSolver.h \
+  /usr/local/include/eigen3/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h \
+  /usr/local/include/eigen3/Eigen/src/Eigenvalues/GeneralizedSelfAdjointEigenSolver.h \
+  /usr/local/include/eigen3/Eigen/src/Eigenvalues/HessenbergDecomposition.h \
+  /usr/local/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h \
+  /usr/local/include/eigen3/Eigen/src/Eigenvalues/RealQZ.h \
+  /usr/local/include/eigen3/Eigen/src/Eigenvalues/RealSchur.h \
+  /usr/local/include/eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h \
+  /usr/local/include/eigen3/Eigen/src/Eigenvalues/Tridiagonalization.h \
+  /usr/local/include/eigen3/Eigen/src/Geometry/AlignedBox.h \
+  /usr/local/include/eigen3/Eigen/src/Geometry/AngleAxis.h \
+  /usr/local/include/eigen3/Eigen/src/Geometry/EulerAngles.h \
+  /usr/local/include/eigen3/Eigen/src/Geometry/Homogeneous.h \
+  /usr/local/include/eigen3/Eigen/src/Geometry/Hyperplane.h \
+  /usr/local/include/eigen3/Eigen/src/Geometry/OrthoMethods.h \
+  /usr/local/include/eigen3/Eigen/src/Geometry/ParametrizedLine.h \
+  /usr/local/include/eigen3/Eigen/src/Geometry/Quaternion.h \
+  /usr/local/include/eigen3/Eigen/src/Geometry/Rotation2D.h \
+  /usr/local/include/eigen3/Eigen/src/Geometry/RotationBase.h \
+  /usr/local/include/eigen3/Eigen/src/Geometry/Scaling.h \
+  /usr/local/include/eigen3/Eigen/src/Geometry/Transform.h \
+  /usr/local/include/eigen3/Eigen/src/Geometry/Translation.h \
+  /usr/local/include/eigen3/Eigen/src/Geometry/Umeyama.h \
+  /usr/local/include/eigen3/Eigen/src/Geometry/arch/Geometry_SIMD.h \
+  /usr/local/include/eigen3/Eigen/src/Householder/BlockHouseholder.h \
+  /usr/local/include/eigen3/Eigen/src/Householder/Householder.h \
+  /usr/local/include/eigen3/Eigen/src/Householder/HouseholderSequence.h \
+  /usr/local/include/eigen3/Eigen/src/Jacobi/Jacobi.h \
+  /usr/local/include/eigen3/Eigen/src/LU/Determinant.h \
+  /usr/local/include/eigen3/Eigen/src/LU/FullPivLU.h \
+  /usr/local/include/eigen3/Eigen/src/LU/InverseImpl.h \
+  /usr/local/include/eigen3/Eigen/src/LU/PartialPivLU.h \
+  /usr/local/include/eigen3/Eigen/src/LU/arch/InverseSize4.h \
+  /usr/local/include/eigen3/Eigen/src/QR/ColPivHouseholderQR.h \
+  /usr/local/include/eigen3/Eigen/src/QR/CompleteOrthogonalDecomposition.h \
+  /usr/local/include/eigen3/Eigen/src/QR/FullPivHouseholderQR.h \
+  /usr/local/include/eigen3/Eigen/src/QR/HouseholderQR.h \
+  /usr/local/include/eigen3/Eigen/src/SVD/BDCSVD.h \
+  /usr/local/include/eigen3/Eigen/src/SVD/JacobiSVD.h \
+  /usr/local/include/eigen3/Eigen/src/SVD/SVDBase.h \
+  /usr/local/include/eigen3/Eigen/src/SVD/UpperBidiagonalization.h \
+  /usr/local/include/eigen3/Eigen/src/misc/Image.h \
+  /usr/local/include/eigen3/Eigen/src/misc/Kernel.h \
+  /usr/local/include/eigen3/Eigen/src/misc/RealSvd2x2.h \
+  /usr/local/include/eigen3/Eigen/src/plugins/ArrayCwiseBinaryOps.h \
+  /usr/local/include/eigen3/Eigen/src/plugins/ArrayCwiseUnaryOps.h \
+  /usr/local/include/eigen3/Eigen/src/plugins/BlockMethods.h \
+  /usr/local/include/eigen3/Eigen/src/plugins/CommonCwiseBinaryOps.h \
+  /usr/local/include/eigen3/Eigen/src/plugins/CommonCwiseUnaryOps.h \
+  /usr/local/include/eigen3/Eigen/src/plugins/IndexedViewMethods.h \
+  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseBinaryOps.h \
+  /usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseUnaryOps.h \
+  /usr/local/include/eigen3/Eigen/src/plugins/ReshapedMethods.h
 
+
+/usr/local/include/eigen3/Eigen/src/plugins/ReshapedMethods.h:
+
+/usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseUnaryOps.h:
+
+/usr/local/include/eigen3/Eigen/src/plugins/IndexedViewMethods.h:
+
+/usr/local/include/eigen3/Eigen/src/plugins/CommonCwiseUnaryOps.h:
+
+/usr/local/include/eigen3/Eigen/src/plugins/ArrayCwiseUnaryOps.h:
+
+/usr/local/include/eigen3/Eigen/src/plugins/ArrayCwiseBinaryOps.h:
+
+/usr/local/include/eigen3/Eigen/src/misc/RealSvd2x2.h:
+
+/usr/local/include/eigen3/Eigen/src/SVD/UpperBidiagonalization.h:
+
+/usr/local/include/eigen3/Eigen/src/SVD/JacobiSVD.h:
+
+/usr/local/include/eigen3/Eigen/src/SVD/BDCSVD.h:
+
+/usr/local/include/eigen3/Eigen/src/QR/HouseholderQR.h:
+
+/usr/local/include/eigen3/Eigen/src/QR/FullPivHouseholderQR.h:
+
+/usr/local/include/eigen3/Eigen/src/LU/PartialPivLU.h:
+
+/usr/local/include/eigen3/Eigen/src/LU/InverseImpl.h:
+
+/usr/local/include/eigen3/Eigen/src/LU/FullPivLU.h:
+
+/usr/local/include/eigen3/Eigen/src/LU/Determinant.h:
+
+/usr/local/include/eigen3/Eigen/src/Householder/HouseholderSequence.h:
+
+/usr/local/include/eigen3/Eigen/src/Householder/BlockHouseholder.h:
+
+/usr/local/include/eigen3/Eigen/src/Geometry/arch/Geometry_SIMD.h:
+
+/usr/local/include/eigen3/Eigen/src/Geometry/Umeyama.h:
+
+/usr/local/include/eigen3/Eigen/src/Geometry/Translation.h:
+
+/usr/local/include/eigen3/Eigen/src/Geometry/Transform.h:
+
+/usr/local/include/eigen3/Eigen/src/Geometry/Scaling.h:
+
+/usr/local/include/eigen3/Eigen/src/Geometry/Rotation2D.h:
+
+/usr/local/include/eigen3/Eigen/src/Geometry/OrthoMethods.h:
+
+/usr/local/include/eigen3/Eigen/src/Geometry/Homogeneous.h:
+
+/usr/local/include/eigen3/Eigen/src/Geometry/EulerAngles.h:
+
+/usr/local/include/eigen3/Eigen/src/Eigenvalues/Tridiagonalization.h:
+
+/usr/local/include/eigen3/Eigen/src/Eigenvalues/RealQZ.h:
+
+/usr/local/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h:
+
+/usr/local/include/eigen3/Eigen/src/Eigenvalues/GeneralizedSelfAdjointEigenSolver.h:
+
+/usr/local/include/eigen3/Eigen/src/Eigenvalues/EigenSolver.h:
+
+/usr/local/include/eigen3/Eigen/src/Eigenvalues/ComplexSchur.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/util/SymbolicIndex.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/util/StaticAssert.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/util/Meta.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/util/Memory.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/util/Macros.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/util/MKL_support.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/util/IntegralConstant.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/util/ForwardDeclarations.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/util/Constants.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/util/ConfigureVectorization.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/util/BlasUtil.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/products/TriangularSolverVector.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/products/TriangularSolverMatrix.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/products/TriangularMatrixVector.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixVector.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixMatrix.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/products/GeneralMatrixVector.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrixTriangular.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/products/GeneralBlockPanelKernel.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/functors/UnaryFunctors.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/functors/TernaryFunctors.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/functors/StlFunctors.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/functors/NullaryFunctors.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/arch/SSE/MathFunctions.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/arch/SSE/Complex.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/arch/Default/Settings.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/arch/Default/GenericPacketMathFunctions.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/arch/Default/BFloat16.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/Visitor.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/VectorwiseOp.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/VectorBlock.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/TriangularMatrix.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/Transpositions.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/Transpose.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/Swap.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/StableNorm.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/SolverBase.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/Solve.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/Select.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/ReturnByValue.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/Ref.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/Random.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/ProductEvaluators.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/Product.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/PlainObjectBase.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/NestByValue.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/Matrix.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/MathFunctionsImpl.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/MapBase.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/Map.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/Inverse.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/products/Parallelizer.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/IndexedView.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/IO.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/GlobalFunctions.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/GenericPacketMath.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/GeneralProduct.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/EigenBase.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/Dot.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/DiagonalProduct.h:
+
+/usr/local/include/eigen3/Eigen/src/Geometry/AngleAxis.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/DiagonalMatrix.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/Diagonal.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/DenseCoeffsBase.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/DenseBase.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/CwiseUnaryView.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/CwiseNullaryOp.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/CoreEvaluators.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/ConditionEstimator.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/BooleanRedux.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/Block.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/MathFunctions.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/BandMatrix.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/AssignEvaluator.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/Assign.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/ArrayWrapper.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/ArrayBase.h:
+
+/usr/local/include/eigen3/Eigen/src/Cholesky/LLT.h:
+
+/usr/local/include/eigen3/Eigen/SVD:
+
+/usr/local/include/eigen3/Eigen/LU:
+
+/usr/local/include/eigen3/Eigen/Householder:
+
+/usr/local/include/eigen3/Eigen/Geometry:
+
+/usr/local/include/eigen3/Eigen/Eigenvalues:
+
+/usr/local/include/eigen3/Eigen/Dense:
+
+/usr/local/include/eigen3/Eigen/Core:
 
 /usr/lib/gcc/x86_64-linux-gnu/13/include/syslimits.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/13/include/stddef.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/13/include/stdarg.h:
+
+/usr/local/include/eigen3/Eigen/src/Eigenvalues/RealSchur.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/13/include/limits.h:
 
@@ -1148,8 +1584,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/x86_64-linux-gnu/sys/single_threaded.h:
 
 /usr/include/x86_64-linux-gnu/sys/select.h:
-
-/usr/include/x86_64-linux-gnu/sys/cdefs.h:
 
 /usr/include/x86_64-linux-gnu/gnu/stubs-64.h:
 
@@ -1163,9 +1597,23 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/x86_64-linux-gnu/c++/13/bits/gthr.h:
 
-/usr/include/gtk-3.0/gdk/gdkdevicepad.h:
+/usr/include/x86_64-linux-gnu/c++/13/bits/gthr-default.h:
 
-/usr/include/gtk-3.0/gdk/gdkdevice.h:
+/usr/include/x86_64-linux-gnu/c++/13/bits/ctype_inline.h:
+
+/usr/include/x86_64-linux-gnu/c++/13/bits/ctype_base.h:
+
+/usr/include/x86_64-linux-gnu/c++/13/bits/cpu_defines.h:
+
+/usr/include/x86_64-linux-gnu/c++/13/bits/c++locale.h:
+
+/usr/include/x86_64-linux-gnu/c++/13/bits/atomic_word.h:
+
+/usr/include/x86_64-linux-gnu/bits/xopen_lim.h:
+
+/usr/include/x86_64-linux-gnu/bits/wordsize.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/PartialReduxEvaluator.h:
 
 /usr/include/opencv4/opencv2/features2d.hpp:
 
@@ -1178,6 +1626,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/glib-2.0/glib/gmappedfile.h:
 
 /usr/include/glib-2.0/gobject/genums.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/SelfCwiseBinaryOp.h:
 
 /usr/include/glib-2.0/gobject/gbinding.h:
 
@@ -1199,10 +1649,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/glib-2.0/glib/gtypes.h:
 
-/usr/include/glib-2.0/gobject/gvaluearray.h:
-
-/usr/include/glib-2.0/glib/gtrashstack.h:
-
 /usr/include/atk-1.0/atk/atk-autocleanups.h:
 
 /usr/include/gtk-3.0/gtk/gtkcheckmenuitem.h:
@@ -1216,6 +1662,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/glib-2.0/glib/gsequence.h:
 
 /usr/include/glib-2.0/glib/grefstring.h:
+
+/usr/local/include/eigen3/Eigen/src/Geometry/RotationBase.h:
 
 /usr/include/c++/13/bits/stl_iterator.h:
 
@@ -1232,6 +1680,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/c++/13/bits/stl_relops.h:
 
 /usr/include/glib-2.0/glib/giochannel.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/Array.h:
 
 /usr/include/gtk-3.0/gtk/gtkcellareacontext.h:
 
@@ -1255,10 +1705,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/glib-2.0/gio/gfilemonitor.h:
 
-/usr/include/opencv4/opencv2/core/cuda.hpp:
-
-/usr/include/gtk-3.0/gdk/gdkcairo.h:
-
 /usr/include/glib-2.0/glib/gdatetime.h:
 
 /usr/include/glib-2.0/glib/gchecksum.h:
@@ -1266,8 +1712,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/glib-2.0/glib/gcharset.h:
 
 /usr/include/glib-2.0/glib/gbookmarkfile.h:
-
-/usr/include/gtk-3.0/gdk/gdk.h:
 
 /usr/include/opencv4/opencv2/dnn/version.hpp:
 
@@ -1278,6 +1722,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/glib-2.0/glib/gbacktrace.h:
 
 /usr/include/c++/13/bits/fstream.tcc:
+
+/usr/local/include/eigen3/Eigen/src/QR/ColPivHouseholderQR.h:
 
 /usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-core.h:
 
@@ -1293,15 +1739,13 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/glib-2.0/gio/ginputstream.h:
 
-/usr/include/c++/13/vector:
-
-/usr/include/glib-2.0/glib/deprecated/gcompletion.h:
-
 /usr/include/glib-2.0/gio/gzlibcompressor.h:
 
 /usr/include/glib-2.0/gio/gtlsfiledatabase.h:
 
 /usr/include/glib-2.0/gio/gtlsclientconnection.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/Reverse.h:
 
 /usr/include/x86_64-linux-gnu/bits/timesize.h:
 
@@ -1317,13 +1761,15 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/glib-2.0/gio/gsimpleiostream.h:
 
-/usr/include/c++/13/bits/ostream.tcc:
+/usr/local/include/eigen3/Eigen/src/Core/NoAlias.h:
 
-/usr/include/x86_64-linux-gnu/c++/13/bits/c++locale.h:
+/usr/include/c++/13/bits/ostream.tcc:
 
 /usr/include/glib-2.0/gio/gsimpleasyncresult.h:
 
 /usr/include/c++/13/bits/allocated_ptr.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/Redux.h:
 
 /usr/include/glib-2.0/gio/gsimpleaction.h:
 
@@ -1349,21 +1795,17 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/glib-2.0/glib/gutils.h:
 
-/usr/include/glib-2.0/gio/gnetworkmonitor.h:
+/usr/local/include/eigen3/Eigen/src/QR/CompleteOrthogonalDecomposition.h:
 
-/usr/include/c++/13/tr1/riemann_zeta.tcc:
-
-/usr/include/stdlib.h:
+/usr/local/include/eigen3/Eigen/src/Geometry/AlignedBox.h:
 
 /usr/include/opencv4/opencv2/flann/timer.h:
 
 /usr/include/glib-2.0/gio/gmemoryoutputstream.h:
 
-/usr/include/gtk-3.0/gdk/gdkapplaunchcontext.h:
-
-/usr/include/opencv4/opencv2/core/async.hpp:
-
 /usr/include/glib-2.0/gio/gmemorymonitor.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/Reshaped.h:
 
 /usr/include/glib-2.0/gio/gliststore.h:
 
@@ -1385,23 +1827,13 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/atk-1.0/atk/atkcomponent.h:
 
+/usr/local/include/eigen3/Eigen/src/Cholesky/LDLT.h:
+
 /usr/include/c++/13/new:
-
-/usr/include/gtk-3.0/gtk/gtk.h:
-
-/usr/include/glib-2.0/gio/gioenums.h:
-
-/usr/include/gtk-3.0/gtk/deprecated/gtkstyle.h:
 
 /usr/include/glib-2.0/gio/gmenumodel.h:
 
 /usr/include/glib-2.0/gio/gio-visibility.h:
-
-/usr/include/glib-2.0/gio/ginitable.h:
-
-/usr/include/c++/13/math.h:
-
-/usr/include/gtk-3.0/gtk/gtkimcontextsimple.h:
 
 /usr/include/glib-2.0/gio/ginetsocketaddress.h:
 
@@ -1411,17 +1843,17 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/gtk-3.0/gdk/gdkselection.h:
 
-/usr/lib/x86_64-linux-gnu/glib-2.0/include/glibconfig.h:
-
-/usr/include/glib-2.0/gio/gsimpleactiongroup.h:
-
 /usr/include/glib-2.0/gio/gicon.h:
 
 /usr/include/glib-2.0/gio/gfileoutputstream.h:
 
+/usr/local/include/eigen3/Eigen/src/Core/CoreIterators.h:
+
 /usr/include/glib-2.0/gio/gsimpleproxyresolver.h:
 
 /usr/include/glib-2.0/gio/gfileicon.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/CwiseBinaryOp.h:
 
 /usr/include/glib-2.0/gio/gfileenumerator.h:
 
@@ -1442,6 +1874,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/glib-2.0/glib/gtimer.h:
 
 /usr/include/x86_64-linux-gnu/bits/siginfo-consts-arch.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrix.h:
 
 /usr/include/glib-2.0/gio/gdrive.h:
 
@@ -1485,6 +1919,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/glib-2.0/glib/gslice.h:
 
+/usr/local/include/eigen3/Eigen/src/Core/SolveTriangular.h:
+
 /usr/include/glib-2.0/gio/gdbuserror.h:
 
 /usr/include/atk-1.0/atk/atkstate.h:
@@ -1497,9 +1933,19 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/glib-2.0/gio/gdbusauthobserver.h:
 
+/usr/include/c++/13/thread:
+
+/usr/include/x86_64-linux-gnu/c++/13/bits/c++allocator.h:
+
+/usr/include/harfbuzz/hb-style.h:
+
 /usr/include/x86_64-linux-gnu/bits/posix_opt.h:
 
+/usr/local/include/eigen3/Eigen/src/Geometry/ParametrizedLine.h:
+
 /usr/include/glib-2.0/gio/gdbusaddress.h:
+
+/usr/local/include/eigen3/Eigen/src/Householder/Householder.h:
 
 /usr/include/glib-2.0/gio/gunixconnection.h:
 
@@ -1543,6 +1989,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/x86_64-linux-gnu/bits/floatn.h:
 
+/usr/local/include/eigen3/Eigen/src/Core/functors/AssignmentFunctors.h:
+
 /usr/include/gtk-3.0/gtk/gtkscalebutton.h:
 
 /usr/include/glib-2.0/gio/gbytesicon.h:
@@ -1551,17 +1999,15 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/glib-2.0/gio/gasyncresult.h:
 
-/usr/include/x86_64-linux-gnu/c++/13/bits/gthr-default.h:
-
 /usr/include/glib-2.0/glib/gerror.h:
+
+/usr/local/include/eigen3/Eigen/src/plugins/MatrixCwiseBinaryOps.h:
 
 /usr/include/glib-2.0/glib/guri.h:
 
 /usr/include/c++/13/bits/stl_numeric.h:
 
 /usr/include/glib-2.0/gio/gactiongroupexporter.h:
-
-/usr/include/x86_64-linux-gnu/bits/signum-arch.h:
 
 /usr/include/glib-2.0/gio/gaction.h:
 
@@ -1583,29 +2029,65 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/gtk-3.0/gtk/gtkappchooserwidget.h:
 
-/usr/include/limits.h:
+/usr/include/features-time64.h:
 
-/usr/include/glib-2.0/gio/gthemedicon.h:
+/usr/include/c++/13/bits/list.tcc:
 
-/usr/include/c++/13/bits/postypes.h:
+/usr/include/c++/13/type_traits:
 
-/usr/include/glib-2.0/gobject/gvaluetypes.h:
+/usr/local/include/eigen3/Eigen/src/misc/Kernel.h:
 
-/usr/include/gtk-3.0/gtk/gtkorientable.h:
+/usr/include/x86_64-linux-gnu/bits/types/locale_t.h:
 
-/usr/include/glib-2.0/glib/gmacros.h:
+/usr/include/glib-2.0/glib/gquark.h:
 
-/usr/include/c++/13/bits/uses_allocator.h:
+/usr/include/errno.h:
 
-/usr/include/c++/13/bits/sstream.tcc:
+/usr/include/endian.h:
 
-/usr/include/c++/13/cwctype:
+/usr/include/gtk-3.0/gtk/deprecated/gtkhscale.h:
 
-/usr/include/c++/13/ratio:
+/usr/include/dirent.h:
+
+/usr/include/glib-2.0/glib/gconvert.h:
+
+/usr/include/glib-2.0/glib/gregex.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/CwiseTernaryOp.h:
+
+/usr/include/glib-2.0/glib/gatomic.h:
+
+/usr/include/opencv4/opencv2/core/vsx_utils.hpp:
+
+/usr/include/cairo/cairo.h:
+
+/usr/include/gtk-3.0/gtk/gtknativedialog.h:
+
+/usr/include/opencv4/opencv2/stitching/detail/motion_estimators.hpp:
+
+/usr/include/glib-2.0/gio/gcredentials.h:
+
+/usr/include/glib-2.0/gio/gtlscertificate.h:
+
+/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-simple-anim.h:
+
+/usr/include/cairo/cairo-features.h:
+
+/usr/include/gtk-3.0/gtk/gtkadjustment.h:
+
+/usr/include/glib-2.0/glib/deprecated/gcompletion.h:
+
+/usr/include/c++/13/vector:
 
 /usr/include/opencv4/opencv2/core/cv_cpu_dispatch.h:
 
+/usr/local/include/eigen3/Eigen/src/SVD/SVDBase.h:
+
 /usr/include/glib-2.0/gio/gsocket.h:
+
+/usr/include/cairo/cairo-deprecated.h:
+
+/usr/include/c++/13/bits/ptr_traits.h:
 
 /usr/include/glib-2.0/gio/gsocketlistener.h:
 
@@ -1617,11 +2099,17 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/c++/13/bits/uses_allocator_args.h:
 
-/usr/include/glib-2.0/gobject/gtypeplugin.h:
-
-/usr/include/glib-2.0/gobject/gmarshal.h:
-
 /usr/include/atk-1.0/atk/atkvalue.h:
+
+/usr/include/c++/13/bits/postypes.h:
+
+/usr/include/limits.h:
+
+/usr/include/glib-2.0/gio/gthemedicon.h:
+
+/usr/include/glib-2.0/glib/gmacros.h:
+
+/usr/include/c++/13/bits/uses_allocator.h:
 
 /usr/include/c++/13/bits/locale_facets_nonio.tcc:
 
@@ -1635,15 +2123,19 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/c++/13/bits/locale_facets.tcc:
 
-/usr/include/gtk-3.0/gtk/gtkstackswitcher.h:
-
 /usr/include/c++/13/bits/requires_hosted.h:
 
 /usr/include/gtk-3.0/gtk/deprecated/gtksymboliccolor.h:
 
 /usr/include/c++/13/bits/fs_ops.h:
 
+/usr/include/x86_64-linux-gnu/c++/13/bits/c++config.h:
+
+/usr/include/c++/13/clocale:
+
 /usr/include/c++/13/stdexcept:
+
+/usr/local/include/eigen3/Eigen/src/Core/StlIterators.h:
 
 /usr/include/glib-2.0/glib/gasyncqueue.h:
 
@@ -1651,9 +2143,11 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/glib-2.0/gio/gnetworkservice.h:
 
-/usr/include/glib-2.0/glib/gquark.h:
+/usr/include/glib-2.0/gio/gtlspassword.h:
 
-/usr/include/errno.h:
+/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-animation.h:
+
+/usr/include/c++/13/bits/functional_hash.h:
 
 /usr/include/gtk-3.0/gdk/gdkdnd.h:
 
@@ -1669,13 +2163,13 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/c++/13/bits/charconv.h:
 
-/usr/include/x86_64-linux-gnu/c++/13/bits/atomic_word.h:
-
 /usr/include/gtk-3.0/gtk/gtkpapersize.h:
 
 /usr/include/c++/13/bits/stl_pair.h:
 
 /usr/include/glib-2.0/gio/gioscheduler.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/arch/Default/ConjHelper.h:
 
 /usr/include/atk-1.0/atk/atkutil.h:
 
@@ -1687,9 +2181,13 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/opencv4/opencv2/flann/flann_base.hpp:
 
+/usr/local/include/eigen3/Eigen/src/Core/util/ReenableStupidWarnings.h:
+
 /usr/include/x86_64-linux-gnu/bits/types/__mbstate_t.h:
 
 /usr/include/c++/13/fstream:
+
+/usr/local/include/eigen3/Eigen/src/Core/arch/SSE/TypeCasting.h:
 
 /usr/include/opencv4/opencv2/flann/heap.h:
 
@@ -1699,6 +2197,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/gtk-3.0/gtk/gtktextiter.h:
 
+/usr/include/c++/13/bits/this_thread_sleep.h:
+
 /usr/include/gtk-3.0/gtk/gtkcellrendererspinner.h:
 
 /usr/include/x86_64-linux-gnu/bits/waitstatus.h:
@@ -1706,6 +2206,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/glib-2.0/gio/gproxyresolver.h:
 
 /usr/include/glib-2.0/gmodule.h:
+
+/usr/local/include/eigen3/Eigen/src/LU/arch/InverseSize4.h:
 
 /usr/include/x86_64-linux-gnu/bits/stdio_lim.h:
 
@@ -1721,13 +2223,7 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/c++/13/bits/exception_defines.h:
 
-/usr/include/gtk-3.0/gdk/deprecated/gdkcolor.h:
-
-/usr/include/c++/13/tr1/poly_laguerre.tcc:
-
-/usr/include/c++/13/tr1/special_function_util.h:
-
-/usr/include/gtk-3.0/gtk/gtkmenu.h:
+/usr/local/include/eigen3/Eigen/src/Geometry/Hyperplane.h:
 
 /usr/include/c++/13/bits/shared_ptr_base.h:
 
@@ -1743,25 +2239,35 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/c++/13/ext/aligned_buffer.h:
 
-/usr/include/harfbuzz/hb-style.h:
-
-/usr/include/x86_64-linux-gnu/c++/13/bits/c++allocator.h:
-
 /usr/include/glib-2.0/glib/gpattern.h:
 
 /usr/include/gtk-3.0/gtk/gtk-autocleanups.h:
 
 /usr/include/opencv4/opencv2/objdetect/face.hpp:
 
-/usr/include/c++/13/bits/concept_check.h:
+/usr/include/glib-2.0/gio/gnetworkmonitor.h:
 
-/usr/include/c++/13/bits/alloc_traits.h:
+/usr/include/c++/13/tr1/riemann_zeta.tcc:
+
+/usr/include/stdlib.h:
+
+/usr/include/c++/13/bits/atomic_futex.h:
+
+/usr/include/gtk-3.0/gtk/gtkmenushell.h:
+
+/usr/include/opencv4/opencv2/objdetect/detection_based_tracker.hpp:
 
 /usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-enum-types.h:
 
 /usr/include/c++/13/bits/random.h:
 
+/usr/local/include/eigen3/Eigen/src/Core/Fuzzy.h:
+
 /usr/include/x86_64-linux-gnu/bits/libm-simd-decl-stubs.h:
+
+/usr/include/c++/13/bits/concept_check.h:
+
+/usr/include/c++/13/bits/alloc_traits.h:
 
 /home/sd_bert/projects/Panorama/src/ui/_flowbox.h:
 
@@ -1771,15 +2277,13 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/glib-2.0/gio/gdtlsconnection.h:
 
+/usr/local/include/eigen3/Eigen/Cholesky:
+
 /usr/include/opencv4/opencv2/photo.hpp:
 
 /usr/include/atk-1.0/atk/atkrelationtype.h:
 
-/usr/include/glib-2.0/glib/gconvert.h:
-
-/usr/include/glib-2.0/glib/gregex.h:
-
-/usr/include/dirent.h:
+/usr/local/include/eigen3/Eigen/src/Core/CommaInitializer.h:
 
 /usr/include/glib-2.0/gio/gpermission.h:
 
@@ -1805,13 +2309,13 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/glib-2.0/gio/gsimplepermission.h:
 
+/usr/local/include/eigen3/Eigen/src/Jacobi/Jacobi.h:
+
 /usr/include/glib-2.0/gio/gdebugcontrollerdbus.h:
 
 /usr/include/gtk-3.0/gtk/gtkshortcutsshortcut.h:
 
-/usr/include/c++/13/ctime:
-
-/usr/include/gtk-3.0/gtk/gtkbuilder.h:
+/usr/include/gtk-3.0/gdk/gdkdevice.h:
 
 /usr/include/glib-2.0/gio/gdbusserver.h:
 
@@ -1833,17 +2337,43 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/gtk-3.0/gtk/gtkstack.h:
 
-/usr/include/gtk-3.0/gtk/gtktoolshell.h:
+/usr/local/include/eigen3/Eigen/src/Core/ArithmeticSequence.h:
 
-/usr/include/glib-2.0/gio/gmountoperation.h:
+/usr/include/ctype.h:
 
-/usr/include/c++/13/bits/std_function.h:
+/usr/include/c++/13/cfloat:
+
+/usr/include/c++/13/bits/enable_special_members.h:
+
+/usr/include/gtk-3.0/gtk/gtkcellview.h:
+
+/home/sd_bert/projects/Panorama/src/ui/_create_menu.h:
+
+/usr/include/x86_64-linux-gnu/bits/pthread_stack_min-dynamic.h:
+
+/usr/include/c++/13/bits/stl_multiset.h:
+
+/usr/include/atk-1.0/atk/atkmisc.h:
+
+/usr/include/opencv4/opencv2/flann/params.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/clockid_t.h:
+
+/usr/include/opencv4/opencv2/core/affine.hpp:
+
+/usr/include/assert.h:
+
+/usr/include/c++/13/backward/auto_ptr.h:
+
+/usr/include/asm-generic/errno.h:
 
 /usr/include/c++/13/bits/hashtable_policy.h:
 
 /home/sd_bert/projects/Panorama/src/ui/_gtk_vars.h:
 
 /usr/include/c++/13/iosfwd:
+
+/usr/local/include/eigen3/Eigen/src/Core/arch/Default/Half.h:
 
 /usr/include/glib-2.0/gio/gsrvtarget.h:
 
@@ -1865,45 +2395,19 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/c++/13/bits/basic_ios.tcc:
 
-/usr/include/glib-2.0/gio/gmemoryinputstream.h:
+/home/sd_bert/projects/Panorama/src/ui/_gtk_ops.h:
 
-/usr/include/glib-2.0/gio/gpollableoutputstream.h:
-
-/usr/include/features.h:
-
-/usr/include/c++/13/string:
-
-/usr/include/c++/13/bits/enable_special_members.h:
-
-/usr/include/gtk-3.0/gtk/gtkcellview.h:
-
-/home/sd_bert/projects/Panorama/src/ui/_create_menu.h:
-
-/usr/include/x86_64-linux-gnu/bits/pthread_stack_min-dynamic.h:
-
-/usr/include/c++/13/bits/stl_multiset.h:
-
-/usr/include/atk-1.0/atk/atkmisc.h:
-
-/usr/include/opencv4/opencv2/flann/params.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/clockid_t.h:
-
-/usr/include/gtk-3.0/gdk/gdkcursor.h:
-
-/usr/include/opencv4/opencv2/core/affine.hpp:
-
-/usr/include/assert.h:
-
-/usr/include/c++/13/backward/auto_ptr.h:
-
-/usr/include/asm-generic/errno.h:
+/home/sd_bert/projects/Panorama/src/math/_img_manipulation.h:
 
 /usr/include/atk-1.0/atk/atkimage.h:
 
-/usr/include/glib-2.0/gobject/gvalue.h:
-
 /usr/include/glib-2.0/glib/gshell.h:
+
+/usr/include/gtk-3.0/gtk/gtk.h:
+
+/usr/include/glib-2.0/gio/gioenums.h:
+
+/usr/include/gtk-3.0/gtk/deprecated/gtkstyle.h:
 
 /usr/include/glib-2.0/glib/gstrvbuilder.h:
 
@@ -1915,6 +2419,24 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/c++/13/bits/invoke.h:
 
+/usr/include/c++/13/tr1/poly_laguerre.tcc:
+
+/usr/include/c++/13/tr1/special_function_util.h:
+
+/usr/include/gtk-3.0/gtk/gtkmenu.h:
+
+/usr/include/glib-2.0/gio/ginitable.h:
+
+/usr/include/c++/13/math.h:
+
+/usr/include/gtk-3.0/gtk/gtkimcontextsimple.h:
+
+/usr/include/x86_64-linux-gnu/sys/cdefs.h:
+
+/usr/include/c++/13/atomic:
+
+/usr/local/include/eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h:
+
 /usr/include/glib-2.0/gio/gresolver.h:
 
 /usr/include/alloca.h:
@@ -1922,10 +2444,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/gtk-3.0/gdk/gdkdrawingcontext.h:
 
 /usr/include/glib-2.0/glib/gmem.h:
-
-/usr/include/atk-1.0/atk/atkhyperlink.h:
-
-/usr/include/glib-2.0/gio/gremoteactiongroup.h:
 
 /usr/include/glib-2.0/glib/gkeyfile.h:
 
@@ -1937,17 +2455,11 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/atk-1.0/atk/atknoopobject.h:
 
-/usr/include/c++/13/bits/list.tcc:
+/usr/include/x86_64-linux-gnu/c++/13/bits/c++io.h:
 
-/usr/include/features-time64.h:
+/usr/include/gtk-3.0/gtk/gtkshortcutsgroup.h:
 
-/usr/include/c++/13/type_traits:
-
-/usr/include/x86_64-linux-gnu/bits/types/locale_t.h:
-
-/usr/include/c++/13/cfloat:
-
-/usr/include/ctype.h:
+/usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h:
 
 /usr/include/glib-2.0/gio/gnativesocketaddress.h:
 
@@ -1977,12 +2489,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/c++/13/typeinfo:
 
-/usr/include/glib-2.0/gio/gtlspassword.h:
-
-/usr/include/c++/13/bits/functional_hash.h:
-
-/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-animation.h:
-
 /usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-autocleanups.h:
 
 /usr/include/pango-1.0/pango/pango-utils.h:
@@ -1993,11 +2499,11 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/c++/13/bits/stl_function.h:
 
+/usr/local/include/eigen3/Eigen/src/Core/products/SelfadjointProduct.h:
+
 /usr/include/glib-2.0/gio/gpowerprofilemonitor.h:
 
 /usr/include/glib-2.0/gio/gvolumemonitor.h:
-
-/usr/include/x86_64-linux-gnu/bits/xopen_lim.h:
 
 /usr/include/c++/13/tr1/beta_function.tcc:
 
@@ -2015,6 +2521,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/glib-2.0/glib/gversion.h:
 
+/usr/include/c++/13/cassert:
+
 /usr/include/gtk-3.0/gtk/gtkcolorchooser.h:
 
 /usr/include/c++/13/ext/numeric_traits.h:
@@ -2026,6 +2534,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/gtk-3.0/gtk/gtkrecentchooser.h:
 
 /usr/include/glib-2.0/gio/gioenumtypes.h:
+
+/usr/local/include/eigen3/Eigen/src/misc/Image.h:
 
 /usr/include/glib-2.0/gio/gfileattribute.h:
 
@@ -2044,6 +2554,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/x86_64-linux-gnu/bits/fp-fast.h:
 
 /usr/include/c++/13/bits/stl_queue.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/MatrixBase.h:
 
 /usr/include/glib-2.0/glib/gtree.h:
 
@@ -2069,9 +2581,13 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/c++/13/bits/predefined_ops.h:
 
-/usr/include/opencv4/opencv2/core/matx.hpp:
+/usr/include/c++/13/ctime:
 
-/usr/include/x86_64-linux-gnu/c++/13/bits/error_constants.h:
+/usr/include/gtk-3.0/gtk/gtkbuilder.h:
+
+/usr/include/c++/13/condition_variable:
+
+/usr/include/gtk-3.0/gtk/gtkrevealer.h:
 
 /usr/include/glib-2.0/gobject/gclosure.h:
 
@@ -2093,6 +2609,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/c++/13/codecvt:
 
+/usr/local/include/eigen3/Eigen/src/Core/functors/BinaryFunctors.h:
+
 /usr/include/glib-2.0/gio/gunixcredentialsmessage.h:
 
 /usr/include/atk-1.0/atk/atkhyperlinkimpl.h:
@@ -2101,11 +2619,19 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/c++/13/bits/align.h:
 
+/usr/include/c++/13/bits/sstream.tcc:
+
+/usr/include/c++/13/cwctype:
+
+/usr/include/c++/13/ratio:
+
+/usr/include/glib-2.0/gio/gmountoperation.h:
+
+/usr/include/gtk-3.0/gtk/gtktoolshell.h:
+
+/usr/include/c++/13/bits/std_function.h:
+
 /usr/include/glib-2.0/gio/gactiongroup.h:
-
-/usr/include/gtk-3.0/gtk/gtkradiotoolbutton.h:
-
-/usr/include/c++/13/cstddef:
 
 /usr/include/glib-2.0/gio/gsocketconnection.h:
 
@@ -2145,7 +2671,39 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/gtk-3.0/gtk/gtkicontheme.h:
 
+/usr/local/include/eigen3/Eigen/src/Core/CwiseUnaryOp.h:
+
 /usr/include/glib-2.0/gio/gdbusmethodinvocation.h:
+
+/usr/include/glib-2.0/gobject/gtypeplugin.h:
+
+/usr/include/glib-2.0/gobject/gmarshal.h:
+
+/usr/include/c++/13/stack:
+
+/usr/include/c++/13/bits/stl_multimap.h:
+
+/usr/include/gtk-3.0/gtk/gtkeventcontroller.h:
+
+/usr/include/glib-2.0/gio/gremoteactiongroup.h:
+
+/usr/include/atk-1.0/atk/atkhyperlink.h:
+
+/usr/include/c++/13/bits/stl_stack.h:
+
+/usr/include/c++/13/initializer_list:
+
+/usr/include/c++/13/bits/stringfwd.h:
+
+/usr/include/c++/13/cerrno:
+
+/usr/include/c++/13/bits/locale_classes.tcc:
+
+/usr/include/c++/13/bits/uniform_int_dist.h:
+
+/usr/include/glib-2.0/gio/gtask.h:
+
+/usr/include/gtk-3.0/gtk/gtkeventbox.h:
 
 /usr/include/c++/13/bits/stl_uninitialized.h:
 
@@ -2161,7 +2719,15 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/c++/13/bits/stl_vector.h:
 
+/usr/local/include/eigen3/Eigen/src/Core/arch/Default/TypeCasting.h:
+
 /usr/include/gtk-3.0/gtk/gtktreesortable.h:
+
+/usr/include/x86_64-linux-gnu/bits/signum-arch.h:
+
+/usr/include/c++/13/unordered_set:
+
+/usr/include/gtk-3.0/gtk/deprecated/gtkalignment.h:
 
 /usr/include/c++/13/bits/exception_ptr.h:
 
@@ -2171,14 +2737,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/gtk-3.0/gtk/gtkdragdest.h:
 
-/usr/include/gtk-3.0/gdk/gdkdevicemanager.h:
-
-/usr/include/opencv4/opencv2/core/mat.inl.hpp:
-
-/usr/include/endian.h:
-
-/usr/include/gtk-3.0/gtk/deprecated/gtkhscale.h:
-
 /usr/include/glib-2.0/gio/gvolume.h:
 
 /usr/include/gtk-3.0/gtk/gtkgrid.h:
@@ -2187,27 +2745,35 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/c++/13/bits/string_view.tcc:
 
-/usr/include/c++/13/bits/stringfwd.h:
-
-/usr/include/c++/13/cerrno:
-
-/usr/include/c++/13/bits/locale_classes.tcc:
-
-/usr/include/c++/13/bits/uniform_int_dist.h:
-
-/usr/include/glib-2.0/gio/gtask.h:
-
-/usr/include/gtk-3.0/gtk/gtkeventbox.h:
-
 /usr/include/c++/13/bits/unique_lock.h:
 
+/usr/lib/x86_64-linux-gnu/glib-2.0/include/glibconfig.h:
+
+/usr/include/glib-2.0/gio/gsimpleactiongroup.h:
+
+/usr/include/gtk-3.0/gtk/gtkstackswitcher.h:
+
+/usr/include/c++/13/bits/unordered_set.h:
+
+/usr/include/gtk-3.0/gtk/gtkexpander.h:
+
 /usr/include/glib-2.0/glib/gthread.h:
+
+/usr/local/include/eigen3/Eigen/src/Eigenvalues/HessenbergDecomposition.h:
 
 /usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-transform.h:
 
 /usr/include/gtk-3.0/gtk/gtktoolitem.h:
 
+/usr/include/c++/13/tr1/poly_hermite.tcc:
+
+/usr/include/x86_64-linux-gnu/bits/types/timer_t.h:
+
 /usr/include/glib-2.0/gio/gpropertyaction.h:
+
+/usr/include/glib-2.0/gio/gpollableoutputstream.h:
+
+/usr/include/glib-2.0/gio/gmemoryinputstream.h:
 
 /usr/include/c++/13/cctype:
 
@@ -2231,6 +2797,14 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/gtk-3.0/gtk/gtkpagesetup.h:
 
+/usr/include/features.h:
+
+/usr/local/include/eigen3/Eigen/src/Geometry/Quaternion.h:
+
+/usr/include/c++/13/string:
+
+/usr/include/c++/13/future:
+
 /usr/include/c++/13/istream:
 
 /usr/include/c++/13/cmath:
@@ -2248,6 +2822,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/x86_64-linux-gnu/bits/types/struct_tm.h:
 
 /usr/include/glib-2.0/glib/grcbox.h:
+
+/usr/local/include/eigen3/Eigen/src/plugins/BlockMethods.h:
 
 /usr/include/gtk-3.0/gtk/deprecated/gtkhbbox.h:
 
@@ -2279,6 +2855,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/c++/13/pstl/glue_algorithm_defs.h:
 
+/usr/local/include/eigen3/Eigen/src/Core/Stride.h:
+
 /usr/include/c++/13/ext/string_conversions.h:
 
 /usr/include/glib-2.0/gio/gsocketclient.h:
@@ -2305,7 +2883,13 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/gtk-3.0/gtk/gtkprintcontext.h:
 
-/usr/include/c++/13/initializer_list:
+/usr/include/c++/13/bits/std_thread.h:
+
+/usr/include/gtk-3.0/gtk/gtkcolorbutton.h:
+
+/usr/include/gtk-3.0/gtk/gtkgesturesingle.h:
+
+/usr/include/gtk-3.0/gtk/gtkfilechooserwidget.h:
 
 /usr/include/c++/13/ios:
 
@@ -2316,10 +2900,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/atk-1.0/atk/atkobjectfactory.h:
 
 /usr/include/glib-2.0/glib/gprimes.h:
-
-/usr/include/glib-2.0/gio/gtlscertificate.h:
-
-/usr/include/glib-2.0/gio/gcredentials.h:
 
 /usr/include/gtk-3.0/gtk/gtkactionbar.h:
 
@@ -2351,8 +2931,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/c++/13/queue:
 
-/usr/include/x86_64-linux-gnu/c++/13/bits/ctype_inline.h:
-
 /usr/include/pango-1.0/pango/pango-glyph-item.h:
 
 /usr/include/c++/13/bits/shared_ptr_atomic.h:
@@ -2361,13 +2939,13 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/c++/13/stdlib.h:
 
-/usr/include/opencv4/opencv2/flann/kdtree_single_index.h:
-
 /usr/include/cairo/cairo-version.h:
 
 /usr/include/gtk-3.0/gtk/gtkbox.h:
 
 /usr/include/gtk-3.0/gtk/gtklabel.h:
+
+/usr/include/opencv4/opencv2/flann/kdtree_single_index.h:
 
 /usr/include/c++/13/string_view:
 
@@ -2381,11 +2959,15 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/gtk-3.0/gtk/gtktreestore.h:
 
+/usr/local/include/eigen3/Eigen/QR:
+
 /usr/include/glib-2.0/glib/gtimezone.h:
 
 /usr/include/opencv4/opencv2/opencv.hpp:
 
 /usr/include/c++/13/bits/range_access.h:
+
+/usr/local/include/eigen3/Eigen/src/plugins/CommonCwiseBinaryOps.h:
 
 /usr/include/c++/13/bits/locale_facets.h:
 
@@ -2395,43 +2977,49 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/x86_64-linux-gnu/bits/types/wint_t.h:
 
-/usr/include/c++/13/tr1/poly_hermite.tcc:
-
-/usr/include/x86_64-linux-gnu/bits/types/timer_t.h:
-
 /usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf.h:
 
 /usr/include/gtk-3.0/gdk/gdkframetimings.h:
 
-/usr/include/c++/13/bits/ptr_traits.h:
+/usr/include/glib-2.0/gobject/gvalue.h:
 
-/usr/include/cairo/cairo-deprecated.h:
+/usr/include/glib-2.0/glib/gtrashstack.h:
 
-/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-simple-anim.h:
+/usr/include/glib-2.0/gobject/gvaluearray.h:
 
-/usr/include/cairo/cairo-features.h:
+/usr/include/x86_64-linux-gnu/c++/13/bits/error_constants.h:
 
-/usr/include/gtk-3.0/gtk/gtkadjustment.h:
+/usr/include/opencv4/opencv2/core/matx.hpp:
 
-/usr/include/glib-2.0/glib/gatomic.h:
+/usr/include/glib-2.0/gobject/gvaluetypes.h:
 
-/usr/include/opencv4/opencv2/core/vsx_utils.hpp:
+/usr/include/gtk-3.0/gtk/gtkorientable.h:
 
-/usr/include/cairo/cairo.h:
+/usr/include/gtk-3.0/gdk/deprecated/gdkcolor.h:
 
-/usr/include/gtk-3.0/gtk/gtknativedialog.h:
+/usr/include/gtk-3.0/gdk/gdk.h:
 
-/usr/include/x86_64-linux-gnu/c++/13/bits/c++io.h:
+/usr/include/gtk-3.0/gdk/gdkapplaunchcontext.h:
 
-/usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h:
+/usr/include/opencv4/opencv2/core/async.hpp:
 
-/usr/include/gtk-3.0/gtk/gtkshortcutsgroup.h:
+/usr/include/opencv4/opencv2/core/cuda.hpp:
 
-/usr/include/opencv4/opencv2/stitching/detail/motion_estimators.hpp:
+/usr/include/gtk-3.0/gdk/gdkcairo.h:
 
-/home/sd_bert/projects/Panorama/src/math/_img_manipulation.h:
+/usr/include/gtk-3.0/gdk/gdkcursor.h:
 
-/home/sd_bert/projects/Panorama/src/ui/_gtk_ops.h:
+/usr/include/c++/13/cstddef:
+
+/usr/include/gtk-3.0/gtk/gtkradiotoolbutton.h:
+
+/usr/include/gtk-3.0/gdk/gdkdevicemanager.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/NumTraits.h:
+
+/usr/include/opencv4/opencv2/core/mat.inl.hpp:
+
+/usr/include/gtk-3.0/gdk/gdkdevicepad.h:
 
 /usr/include/gtk-3.0/gdk/gdkdevicetool.h:
 
@@ -2466,6 +3054,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/gtk-3.0/gtk/deprecated/gtkvscale.h:
 
 /usr/include/gtk-3.0/gdk/gdkmain.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/util/XprHelper.h:
 
 /usr/include/glib-2.0/glib/gfileutils.h:
 
@@ -2519,11 +3109,11 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/pthread.h:
 
-/usr/include/gtk-3.0/gtk/deprecated/gtkalignment.h:
-
 /usr/include/c++/13/backward/binders.h:
 
 /usr/include/gtk-3.0/gtk/deprecated/gtkgradient.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/PermutationMatrix.h:
 
 /usr/include/gtk-3.0/gtk/deprecated/gtkhbox.h:
 
@@ -2546,6 +3136,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/gtk-3.0/gtk/deprecated/gtkiconfactory.h:
 
 /usr/include/gtk-3.0/gtk/deprecated/gtkmisc.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/DenseStorage.h:
 
 /usr/include/gtk-3.0/gtk/deprecated/gtkradioaction.h:
 
@@ -2577,6 +3169,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/x86_64-linux-gnu/bits/types/clock_t.h:
 
+/usr/local/include/eigen3/Eigen/src/Core/util/IndexedViewHelper.h:
+
 /usr/include/gtk-3.0/gtk/deprecated/gtkthemingengine.h:
 
 /usr/include/gtk-3.0/gtk/deprecated/gtktoggleaction.h:
@@ -2600,6 +3194,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/gtk-3.0/gdk/gdkrgba.h:
 
 /usr/include/opencv4/opencv2/flann.hpp:
+
+/usr/local/include/eigen3/Eigen/src/Core/products/SelfadjointRank2Update.h:
 
 /usr/include/gtk-3.0/gtk/gtkaccellabel.h:
 
@@ -2687,12 +3283,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/gtk-3.0/gtk/gtkcheckbutton.h:
 
-/usr/include/gtk-3.0/gtk/gtkcolorbutton.h:
-
-/usr/include/gtk-3.0/gtk/gtkgesturesingle.h:
-
-/usr/include/gtk-3.0/gtk/gtkfilechooserwidget.h:
-
 /usr/include/gtk-3.0/gtk/gtkcolorchooserdialog.h:
 
 /usr/include/glib-2.0/gio/gdbusmenumodel.h:
@@ -2727,15 +3317,9 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/gtk-3.0/gtk/gtkentrycompletion.h:
 
-/usr/include/c++/13/bits/stl_multimap.h:
-
-/usr/include/gtk-3.0/gtk/gtkeventcontroller.h:
-
 /usr/include/c++/13/bits/basic_ios.h:
 
 /usr/include/gtk-3.0/gtk/gtkeventcontrollermotion.h:
-
-/usr/include/gtk-3.0/gtk/gtkexpander.h:
 
 /home/sd_bert/projects/Panorama/src/ui/_toolbar.h:
 
@@ -2783,6 +3367,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/gtk-3.0/gtk/gtkimage.h:
 
+/home/sd_bert/projects/Panorama/src/math/_bundle_adjust.h:
+
 /usr/include/gtk-3.0/gtk/gtktextmark.h:
 
 /usr/include/gtk-3.0/gtk/gtkimcontext.h:
@@ -2825,13 +3411,11 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/gtk-3.0/gtk/gtkmenubar.h:
 
+/usr/local/include/eigen3/Eigen/src/Eigenvalues/ComplexEigenSolver.h:
+
 /usr/include/gtk-3.0/gtk/gtkmenubutton.h:
 
 /usr/include/gtk-3.0/gtk/gtkmenuitem.h:
-
-/usr/include/gtk-3.0/gtk/gtkmenushell.h:
-
-/usr/include/opencv4/opencv2/objdetect/detection_based_tracker.hpp:
 
 /usr/include/gtk-3.0/gtk/gtkmodelbutton.h:
 
@@ -2867,6 +3451,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/gtk-3.0/gtk/gtkrecentchooserdialog.h:
 
+/usr/local/include/eigen3/Eigen/src/Core/arch/SSE/PacketMath.h:
+
 /usr/include/gtk-3.0/gtk/gtkrecentchoosermenu.h:
 
 /usr/include/x86_64-linux-gnu/bits/dirent.h:
@@ -2883,11 +3469,11 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/pango-1.0/pango/pango-fontset-simple.h:
 
-/usr/include/gtk-3.0/gtk/gtkrevealer.h:
-
 /usr/include/c++/13/bits/random.tcc:
 
 /usr/include/gtk-3.0/gtk/gtkscale.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/Replicate.h:
 
 /usr/include/glib-2.0/glib/gstrfuncs.h:
 
@@ -2945,6 +3531,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/gtk-3.0/gtk/gtktooltip.h:
 
+/usr/local/include/eigen3/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h:
+
 /usr/include/gtk-3.0/gtk/gtktreednd.h:
 
 /usr/include/gtk-3.0/gtk/gtktreemodelsort.h:
@@ -2980,6 +3568,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/harfbuzz/hb-font.h:
 
 /usr/include/harfbuzz/hb-shape-plan.h:
+
+/usr/local/include/eigen3/Eigen/Jacobi:
 
 /usr/include/pango-1.0/pango/pango-enum-types.h:
 
@@ -3069,6 +3659,10 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/x86_64-linux-gnu/bits/mathcalls.h:
 
+/usr/include/x86_64-linux-gnu/c++/13/bits/basic_file.h:
+
+/usr/include/opencv4/opencv2/core/persistence.hpp:
+
 /usr/include/glib-2.0/gio/gnetworkaddress.h:
 
 /usr/include/opencv4/opencv2/flann/dist.h:
@@ -3080,10 +3674,6 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/linux/errno.h:
 
 /usr/include/opencv4/opencv2/core/utility.hpp:
-
-/usr/include/opencv4/opencv2/core/persistence.hpp:
-
-/usr/include/x86_64-linux-gnu/c++/13/bits/basic_file.h:
 
 /usr/include/pango-1.0/pango/pango-fontmap.h:
 
@@ -3103,7 +3693,11 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/opencv4/opencv2/flann/any.h:
 
+/usr/local/include/eigen3/Eigen/src/Core/arch/Default/GenericPacketMathFunctionsFwd.h:
+
 /usr/include/opencv4/opencv2/flann/config.h:
+
+/usr/local/include/eigen3/Eigen/src/Core/products/TriangularMatrixMatrix.h:
 
 /usr/include/opencv4/opencv2/flann/defines.h:
 
@@ -3178,6 +3772,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 /usr/include/glib-2.0/glib/garray.h:
 
 /usr/include/opencv4/opencv2/video.hpp:
+
+/usr/local/include/eigen3/Eigen/src/Core/util/ReshapedHelper.h:
 
 /usr/include/opencv4/opencv2/video/background_segm.hpp:
 
@@ -3355,6 +3951,8 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/x86_64-linux-gnu/bits/types/__FILE.h:
 
+/usr/local/include/eigen3/Eigen/src/Core/SelfAdjointView.h:
+
 /usr/include/x86_64-linux-gnu/bits/types/__fpos64_t.h:
 
 /usr/include/c++/13/map:
@@ -3387,14 +3985,4 @@ CMakeFiles/panorama.dir/src/main.cpp.o: /home/sd_bert/projects/Panorama/src/main
 
 /usr/include/x86_64-linux-gnu/bits/wchar.h:
 
-/usr/include/c++/13/clocale:
-
-/usr/include/x86_64-linux-gnu/c++/13/bits/c++config.h:
-
 /usr/include/x86_64-linux-gnu/bits/wctype-wchar.h:
-
-/usr/include/x86_64-linux-gnu/bits/wordsize.h:
-
-/usr/include/x86_64-linux-gnu/c++/13/bits/cpu_defines.h:
-
-/usr/include/x86_64-linux-gnu/c++/13/bits/ctype_base.h:

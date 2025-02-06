@@ -14,6 +14,11 @@ include_directories(${GTK_INCLUDE_DIRS}
 link_directories(${GTK_LIBRARY_DIRS})
 add_definitions(${GTK_CFLAGS_OTHER})
 
+find_package (Eigen3 3.4 REQUIRED NO_MODULE)
+
+
+
+
 include_directories(        ${CMAKE_SOURCE_DIR}/src/math
                             ${CMAKE_SOURCE_DIR}/src/ui
                             ${CMAKE_SOURCE_DIR}/src/classes)
@@ -38,12 +43,16 @@ add_library(code
     ${CMAKE_SOURCE_DIR}/src/math/_img_manipulation.h
     ${CMAKE_SOURCE_DIR}/src/math/_maths.h
     ${CMAKE_SOURCE_DIR}/src/math/_maths.cpp
+    ${CMAKE_SOURCE_DIR}/src/math/_bundle_adjust.h
+    ${CMAKE_SOURCE_DIR}/src/math/_bundle_adjust.cpp
 )
 
 add_executable(panorama src/main.cpp)
 
 target_link_libraries(code ${OpenCV_LIBS}
                                ${GTK_LIBRARIES})
+
+target_link_libraries(code Eigen3::Eigen)
 
 target_link_libraries(panorama code)
 

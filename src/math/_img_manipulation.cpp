@@ -101,6 +101,108 @@ namespace imgm {
             return panorama;
 }
 
+cv::Mat project(const cv::Mat& imags,float xc,float yc){
+
+    const int rows = imags.rows;
+    const int cols = imags.cols;
+    const int size = std::max(rows,cols);
+
+
+    std::vector<float> v_123(size);
+    std::iota(v_123.begin(), v_123.end(), 0);
+    std::vector<float> v_111(size,1);
+
+    Eigen::Matrix<float, 1, Eigen::Dynamic> a(Eigen::Map<Eigen::RowVectorXf> (v_123.data(),size));
+    Eigen::Matrix<float, Eigen::Dynamic, 1> b(Eigen::Map<Eigen::RowVectorXf> (v_123.data(),size));
+
+    Eigen::MatrixXf map_x(cols, rows);
+    Eigen::MatrixXf map_y(rows, cols);
+    Eigen::MatrixXf temp_x(cols, rows);
+
+    map_x = a(Eigen::all,Eigen::seq(0,cols - 1)).replicate(1,rows);
+    temp_x = a(Eigen::all,Eigen::seq(0,cols - 1)).replicate(1,rows);
+    map_y = a(Eigen::all,Eigen::seq(0,rows - 1)).replicate(cols,1);
+
+    //map_y = a.replicate(rows,1);
+
+    int f = 3000;
+/*
+    for (int i = 0 ; i<rows*cols;i++){
+
+        map_y(i) = (map_y(i)-yc)/cos((map_x(i)-xc)/f) + yc;
+        map_x(i) = tan((map_x(i)-xc)/f) * f + xc;
+
+    }
+*/
+
+    for (int i = 0 ; i<rows*cols;i++){
+
+        map_x(i) =f/(cos((map_y(i)-yc)/f)*cos((map_x(i)-xc)/f))  * ((cos((map_y(i)-yc)/f)*sin((map_x(i)-xc)/f))) + xc;
+        map_y(i)= f/(cos((map_y(i)-yc)/f)*cos((temp_x(i)-xc)/f))  * sin((map_y(i)-yc)/f) + yc;
+
+    }
+
+    cv::Mat dst(imags.size(), imags.type());
+    cv::Mat vec_x(imags.size(), CV_32FC1,map_x.data());
+    cv::Mat vec_y(imags.size(), CV_32FC1,map_y.data());
+
+//std::cout << vec_x<<"\n";
+//std::cout << vec_y<<"\n";
+
+    cv::remap(imags, dst,vec_x, vec_y, cv::INTER_LINEAR);
+
+    return dst;
+}
+
+void stitch_adj(const std::vector<cv::Mat> &imags,const std::vector<std::vector< cv::Matx33f >> &Hom,const cv::Mat& adj){
+
+    std::unordered_set<int> visited;
+    cv::Mat row_sum;
+    cv::Mat panorama;
+
+    cv::reduce(adj, row_sum, 1, cv::REDUCE_SUM, CV_64F);
+    double min=0, max=0;
+    cv::Point minLoc, maxLoc;
+    cv::minMaxLoc(row_sum, &min, &max, &minLoc, &maxLoc);
+
+    std::vector<std::pair<int, std::vector<int>>> tree = maths::bfs_ordered_with_neighbors(adj, maxLoc.y);
+    std::map<int, std::pair<int,double>> paths = maths::path_table(adj,tree ,maxLoc.y);
+    panorama = imags[maxLoc.y];
+    //panorama = project(imags[maxLoc.y],400.0,300.0);
+    cv::Mat translation = cv::Mat::eye(3,3, CV_32F);
+
+
+    for (const std::pair<int, std::vector<int>> &node : tree){
+        visited.insert(node.first);
+
+        for (const int &node_visit : node.second){
+
+            if(visited.count(node_visit) == 0){
+                cv::Mat H = cv::Mat::eye(3,3, CV_32F);
+                visited.insert(node_visit);
+
+                int node_current = node_visit;
+                while(-1 != paths[node_current].first){
+
+                    H = (Hom[paths[node_current].first][node_current])*H;
+                    node_current = paths[node_current].first;
+
+                }
+
+                H = translation*H;
+                panorama = stitch(panorama, imags[node_visit], H);
+                cv::Matx33f Tr = maths::get_translation(imags[paths[node_current].first], imags[node_current],H);
+                translation = Tr*translation;
+
+            }
+        }
+    }
+
+    cv::imshow("Image Display", panorama);
+    cv::waitKey(0);
+
+
+}
 
 }
 

@@ -23,5 +23,35 @@ parserArgumentsOpenCL=-ferror-limit=100 -fspell-checking -Wdocumentation -Wunuse
 [CustomDefinesAndIncludes][ProjectPath0][Compiler]
 Name=GCC
 
+[Launch]
+Launch Configurations=Launch Configuration 0
+
+[Launch][Launch Configuration 0]
+Configured Launch Modes=execute
+Configured Launchers=nativeAppLauncher
+Name=panorama
+Type=Native Application
+
+[Launch][Launch Configuration 0][Data]
+Arguments=
+Debugger Shell=
+Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x01\x00\x00\x00\x0b\x00\x00\x00\x00\x02\x00\x00\x00\x10\x00P\x00a\x00n\x00o\x00r\x00a\x00m\x00a\x00\x00\x00\x10\x00p\x00a\x00n\x00o\x00r\x00a\x00m\x00a)
+Dependency Action=Build
+Display Demangle Names=true
+Display Static Members=false
+EnvironmentGroup=
+Executable=file:///home/sd_bert/projects/Panorama/build/panorama
+External Terminal=konsole --noclose --workdir %workdir -e %exe
+GDB Path=
+Kill Before Executing Again=4194304
+Project Target=Panorama,panorama
+Remote GDB Config Script=
+Remote GDB Run Script=
+Remote GDB Shell Script=
+Start With=ApplicationOutput
+Use External Terminal=false
+Working Directory=file:///home/sd_bert/projects/Panorama/build
+isExecutable=true
+
 [Project]
 VersionControlSupport=kdevgit

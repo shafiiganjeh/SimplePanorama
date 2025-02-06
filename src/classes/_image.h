@@ -5,10 +5,12 @@
 
 #include <opencv2/opencv.hpp>
 #include "_img_manipulation.h"
+#include "_maths.h"
 #include <iostream>
 #include <fstream>
 
 namespace img {
+
 
     class images {
 
@@ -22,15 +24,20 @@ namespace img {
 
             std::vector<cv::Mat> get_images();
 
-            std::vector<std::string> f_list;
+            std::vector<std::string> get_f_list();
 
-        private:
+            void calculate_keypoints(int threads = 3);
 
+            std::vector<maths::keypoints> get_keypoints();
+
+            void images_to_cylinder();
 
 
         protected:
 
+            std::vector<maths::keypoints> keypnts;
             std::vector<cv::Mat> img_data;
+            std::vector<std::string> f_list;
 
     };
 
