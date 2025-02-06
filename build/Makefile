@@ -259,6 +259,30 @@ src/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/panorama.dir/build.make CMakeFiles/panorama.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
+src/math/_bundle_adjust.o: src/math/_bundle_adjust.cpp.o
+.PHONY : src/math/_bundle_adjust.o
+
+# target to build an object file
+src/math/_bundle_adjust.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/math/_bundle_adjust.cpp.o
+.PHONY : src/math/_bundle_adjust.cpp.o
+
+src/math/_bundle_adjust.i: src/math/_bundle_adjust.cpp.i
+.PHONY : src/math/_bundle_adjust.i
+
+# target to preprocess a source file
+src/math/_bundle_adjust.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/math/_bundle_adjust.cpp.i
+.PHONY : src/math/_bundle_adjust.cpp.i
+
+src/math/_bundle_adjust.s: src/math/_bundle_adjust.cpp.s
+.PHONY : src/math/_bundle_adjust.s
+
+# target to generate assembly for a file
+src/math/_bundle_adjust.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/math/_bundle_adjust.cpp.s
+.PHONY : src/math/_bundle_adjust.cpp.s
+
 src/math/_img_manipulation.o: src/math/_img_manipulation.cpp.o
 .PHONY : src/math/_img_manipulation.o
 
@@ -450,6 +474,9 @@ help:
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
+	@echo "... src/math/_bundle_adjust.o"
+	@echo "... src/math/_bundle_adjust.i"
+	@echo "... src/math/_bundle_adjust.s"
 	@echo "... src/math/_img_manipulation.o"
 	@echo "... src/math/_img_manipulation.i"
 	@echo "... src/math/_img_manipulation.s"
