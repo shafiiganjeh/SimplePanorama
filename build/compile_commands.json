@@ -61,6 +61,12 @@
 },
 {
   "directory": "/home/sd_bert/projects/Panorama/build",
+  "command": "/usr/bin/c++  -I/usr/include/gtk-3.0 -I/usr/include/pango-1.0 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/harfbuzz -I/usr/include/freetype2 -I/usr/include/libpng16 -I/usr/include/libmount -I/usr/include/blkid -I/usr/include/fribidi -I/usr/include/cairo -I/usr/include/pixman-1 -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/webp -I/usr/include/gio-unix-2.0 -I/usr/include/atk-1.0 -I/usr/include/at-spi2-atk/2.0 -I/usr/include/at-spi-2.0 -I/usr/include/dbus-1.0 -I/usr/lib/x86_64-linux-gnu/dbus-1.0/include -I/home/sd_bert/projects/Panorama/src/math -I/home/sd_bert/projects/Panorama/src/ui -I/home/sd_bert/projects/Panorama/src/classes -isystem /usr/include/opencv4 -isystem /usr/local/include/eigen3 -g   -pthread -o CMakeFiles/code.dir/src/math/_gain_compensation.cpp.o -c /home/sd_bert/projects/Panorama/src/math/_gain_compensation.cpp",
+  "file": "/home/sd_bert/projects/Panorama/src/math/_gain_compensation.cpp",
+  "output": "CMakeFiles/code.dir/src/math/_gain_compensation.cpp.o"
+},
+{
+  "directory": "/home/sd_bert/projects/Panorama/build",
   "command": "/usr/bin/c++  -I/usr/include/gtk-3.0 -I/usr/include/pango-1.0 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/harfbuzz -I/usr/include/freetype2 -I/usr/include/libpng16 -I/usr/include/libmount -I/usr/include/blkid -I/usr/include/fribidi -I/usr/include/cairo -I/usr/include/pixman-1 -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/webp -I/usr/include/gio-unix-2.0 -I/usr/include/atk-1.0 -I/usr/include/at-spi2-atk/2.0 -I/usr/include/at-spi-2.0 -I/usr/include/dbus-1.0 -I/usr/lib/x86_64-linux-gnu/dbus-1.0/include -I/home/sd_bert/projects/Panorama/src/math -I/home/sd_bert/projects/Panorama/src/ui -I/home/sd_bert/projects/Panorama/src/classes -isystem /usr/include/opencv4 -isystem /usr/local/include/eigen3 -g   -pthread -o CMakeFiles/panorama.dir/src/main.cpp.o -c /home/sd_bert/projects/Panorama/src/main.cpp",
   "file": "/home/sd_bert/projects/Panorama/src/main.cpp",
   "output": "CMakeFiles/panorama.dir/src/main.cpp.o"

@@ -20,7 +20,7 @@ namespace imgm {
 
     void stitch_adj(const std::vector<cv::Mat> &imags,const std::vector<std::vector< cv::Matx33f >> &Hom,const cv::Mat& adj);
 
-    cv::Mat project(const cv::Mat& imags,float xc,float yc);
+    cv::Mat project(const cv::Mat& imags,float xc,float yc,float f);
 
 }
 #endif

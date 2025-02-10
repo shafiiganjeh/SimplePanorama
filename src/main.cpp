@@ -9,59 +9,13 @@
 #include "_main_windows.h"
 #include "_bundle_adjust.h"
 #include <Eigen/Dense>
-
-
+#include "_gain_compensation.h"
 
 namespace fs = std::filesystem;
 /*
 //struct main_window_ main_window;
 */
 
-
-
-
-cv::Mat project(cv::Mat& imags,int &xc,int &yc){
-
-    const int rows = imags.rows;
-    const int cols = imags.cols;
-    const int size = std::max(rows,cols);
-
-
-    std::vector<float> v_123(size);
-    std::iota(v_123.begin(), v_123.end(), 0);
-    std::vector<float> v_111(size,1);
-
-    Eigen::Matrix<float, 1, Eigen::Dynamic> a(Eigen::Map<Eigen::RowVectorXf> (v_123.data(),size));
-    Eigen::Matrix<float, Eigen::Dynamic, 1> b(Eigen::Map<Eigen::RowVectorXf> (v_123.data(),size));
-
-    Eigen::MatrixXf map_x(cols, rows);
-    Eigen::MatrixXf map_y(rows, cols);
-
-    map_x = a(Eigen::all,Eigen::seq(0,cols - 1)).replicate(1,rows);
-    map_y = a(Eigen::all,Eigen::seq(0,rows - 1)).replicate(cols,1);
-
-    //map_y = a.replicate(rows,1);
-
-    int f = 500;
-
-    for (int i = 0 ; i<rows*cols;i++){
-
-        map_y(i) = (map_y(i)-yc)/cos((map_x(i)-xc)/f) + yc;
-        map_x(i) = tan((map_x(i)-xc)/f) * f + xc;
-
-    }
-
-    cv::Mat dst(imags.size(), imags.type());
-    cv::Mat vec_x(imags.size(), CV_32FC1,map_x.data());
-    cv::Mat vec_y(imags.size(), CV_32FC1,map_y.data());
-
-//std::cout << vec_x<<"\n";
-//std::cout << vec_y<<"\n";
-
-    cv::remap(imags, dst,vec_x, vec_y, cv::INTER_LINEAR);
-
-    return dst;
-}
 
 
 int main(int argc, char **argv) {
@@ -79,8 +33,9 @@ int main(int argc, char **argv) {
 
             img::images test(path_list);
             test.load_images();
-            test.images_to_cylinder();
+            //test.images_to_cylinder(850.0);
             test.calculate_keypoints();
+
 
             std::vector<maths::keypoints> key_p = test.get_keypoints();
 
@@ -90,8 +45,6 @@ int main(int argc, char **argv) {
 
             //cv::Mat tetetst = imgm::project(imags[0],400,150);
 
-            //cv::imshow("Image Display", tetetst);
-            //cv::waitKey(0);
 
 
             std::cout << "preprocessing done"<<"\n";
@@ -113,6 +66,22 @@ int main(int argc, char **argv) {
             cv::Mat adj = t1.return_adj_mat();
             std::vector<std::vector< cv::Matx33f >> hom_mat = t1.return_Hom_mat();
             //std::cout<< t1.return_mat() <<"\n";
+
+            std::vector<float> G;
+            G =  gain::gain_compensation(imags,adj,hom_mat);
+
+            for (int i = 0;i<imags.size();i++){
+
+
+               imags[i] = imags[i] * G[i];
+
+            }
+
+
+            std::cout <<adj<<"\n";
+            float foc = maths::focal_from_hom(hom_mat,adj);
+            std::cout<<"focal is: "<< foc <<"\n";
+
 
             cv::Mat path_lenght = cv::Mat::ones(adj.rows, adj.cols, CV_64F);
             path_lenght = path_lenght - path_lenght.mul(adj);

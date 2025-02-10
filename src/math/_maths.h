@@ -22,6 +22,14 @@ namespace maths {
         cv::Mat descriptor;
     };
 
+    struct translation{
+        cv::Matx33f T;
+        float xstart;
+        float xend;
+        float ystart;
+        float yend;
+    };
+
     enum GeometryType {
     GEOM_TYPE_POINT,
     GEOM_TYPE_LINE,
@@ -57,13 +65,15 @@ namespace maths {
 
     std::vector<maths::keypoints> extrace_kp_vector(const std::vector<cv::Mat> & imgs,std::vector<int> idx);
 
-    cv::Matx33f  get_translation(const cv::Mat &base, const cv::Mat &attach,const cv::Matx33f &H);
+    struct translation get_translation(const cv::Mat &base, const cv::Mat &attach,const cv::Matx33f &H);
 
     std::map<int, std::pair<int,double>> path_table(const cv::Mat& adj,const std::vector<std::pair<int, std::vector<int>>> &nodes,int start);
 
     std::vector<int> dfs(cv::Mat& graph, int source);
 
     std::vector<std::pair<int, std::vector<int>>> bfs_ordered_with_neighbors(const cv::Mat& adj, int i);
+
+    float focal_from_hom(const std::vector<std::vector< cv::Matx33f >> & H_mat,const cv::Mat &adj);
 
     template <typename T>
     std::vector<std::vector<T>> splitVector(const std::vector<T>& vec, int n);
@@ -85,8 +95,6 @@ namespace maths {
         static inline cv::Mat adj;
         static inline std::vector<std::vector< cv::Matx33f >> hom_mat;
         static inline std::vector<maths::keypoints> kpmat;
-
-
 
 };
 

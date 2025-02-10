@@ -5,6 +5,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/code.dir/src/classes/_panorama.cpp.o.d"
   "CMakeFiles/code.dir/src/math/_bundle_adjust.cpp.o"
   "CMakeFiles/code.dir/src/math/_bundle_adjust.cpp.o.d"
+  "CMakeFiles/code.dir/src/math/_gain_compensation.cpp.o"
+  "CMakeFiles/code.dir/src/math/_gain_compensation.cpp.o.d"
   "CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o"
   "CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o.d"
   "CMakeFiles/code.dir/src/math/_maths.cpp.o"

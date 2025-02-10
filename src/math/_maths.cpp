@@ -455,9 +455,10 @@ thread graph_thread::get_threads(int n){
 }
 
 
-cv::Matx33f get_translation(const cv::Mat &base, const cv::Mat &attach,const cv::Matx33f &H){
+struct translation get_translation(const cv::Mat &base, const cv::Mat &attach,const cv::Matx33f &H){
 
             std::vector<cv::Vec2f> cor;
+            translation Tr;
 
             cor.push_back(cv::Vec2f(0,0));
             cor.push_back(cv::Vec2f(0,attach.rows));
@@ -466,20 +467,22 @@ cv::Matx33f get_translation(const cv::Mat &base, const cv::Mat &attach,const cv:
 
             cv::perspectiveTransform(cor, cor, H);
 
-            float xstart = std::min( std::min( cor[0][0], cor[1][0]), (float)0);
-            float xend   = std::max( std::max( cor[2][0], cor[3][0]), (float)base.cols);
-            float ystart = std::min( std::min( cor[0][1], cor[2][1]), (float)0);
-            float yend   = std::max( std::max( cor[1][1], cor[3][1]), (float)base.rows);
+            Tr.xstart = std::min( std::min( cor[0][0], cor[1][0]), (float)0);
+            Tr.xend   = std::max( std::max( cor[2][0], cor[3][0]), (float)base.cols);
+            Tr.ystart = std::min( std::min( cor[0][1], cor[2][1]), (float)0);
+            Tr.yend   = std::max( std::max( cor[1][1], cor[3][1]), (float)base.rows);
 
             // create translation matrix
             cv::Matx33f T = cv::Matx33f::zeros();
             T(0, 0) = 1;
             T(1, 1) = 1;
             T(2, 2) = 1;
-            T(0, 2) = -xstart;
-            T(1, 2) = -ystart;
+            T(0, 2) = -Tr.xstart;
+            T(1, 2) = -Tr.ystart;
 
-            return T;
+            Tr.T = T;
+
+            return Tr;
 }
 
 std::map<int, std::pair<int,double>> path_table(const cv::Mat& adj,const std::vector<std::pair<int, std::vector<int>>> &nodes,int start){
@@ -617,6 +620,70 @@ std::vector<int> dfs(cv::Mat& graph, int source) {
     }
 
     return connected_vertices;
+}
+
+
+
+float focal_from_hom(const std::vector<std::vector< cv::Matx33f >> & H_mat,const cv::Mat &adj){
+
+    float d1, d2;
+    float v1, v2;
+
+    float f1,f0;
+    std::vector<float> all_focals;
+
+    bool f1_ok,f0_ok;
+
+
+    for (int i = 0;i < H_mat.size();i++){
+
+        for (int j = i;j < H_mat.size();j++){
+
+            if ((.5 <= adj.at<double>(i,j)) and (i != j) ){
+                const cv::Matx33f& H = H_mat[i][j];
+
+                f1_ok = true;
+                d1 = H(2,0) * H(2,1);
+                d2 = (H(2,1) - H(2,0)) * (H(2,1) + H(2,0));
+
+                v1 = -(H(0,0) * H(0,1) + H(1,0) * H(1,1)) / d1;
+                v2 = (H(0,0) * H(0,0) + H(1,0) * H(1,0) - H(0,1) * H(0,1) - H(1,1) * H(1,1)) / d2;
+
+                if (v1 < v2) std::swap(v1, v2);
+                if (v1 > 0 && v2 > 0) f1 = std::sqrt(std::abs(d1) > std::abs(d2) ? v1 : v2);
+                else if (v1 > 0) f1 = std::sqrt(v1);
+                else f1_ok = false;
+
+
+                f0_ok = true;
+                d1 = H(0,0) * H(1,0) + H(0,1) * H(1,1);
+                d2 = H(0,0) * H(0,0) + H(1,0) * H(1,0) - H(0,1) * H(0,1) - H(1,1) * H(1,1);
+
+                v1 = -H(0,2) * H(1,2) / d1;
+                v2 = (H(1,2) * H(1,2) - H(0,2) * H(0,2)) / d2;
+
+                if (v1 < v2) std::swap(v1, v2);
+                if (v1 > 0 && v2 > 0) f0 = std::sqrt(std::abs(d1) > std::abs(d2) ? v1 : v2);
+                else if (v1 > 0) f0 = std::sqrt(v1);
+                else f0_ok = false;
+
+                if (f0_ok && f1_ok){
+                    all_focals.push_back(std::sqrt(f0 * f1));
+                std::cout<< "focal : "<<std::sqrt(f0 * f1)<<"\n";}
+                else{
+                    std::cout << "something went wrong on image-par: "<<i<<" and "<<j<<"\n";
+                }
+            }
+        }
+    }
+
+    float sum = std::accumulate(all_focals.begin(), all_focals.end(), 0.0);
+    float mean = sum / all_focals.size();
+    if (mean != mean){
+        return 8000;
+    }
+
+    return mean;
 }
 
 

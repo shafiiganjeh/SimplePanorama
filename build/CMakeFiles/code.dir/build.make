@@ -209,6 +209,20 @@ CMakeFiles/code.dir/src/math/_bundle_adjust.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/code.dir/src/math/_bundle_adjust.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/sd_bert/projects/Panorama/src/math/_bundle_adjust.cpp -o CMakeFiles/code.dir/src/math/_bundle_adjust.cpp.s
 
+CMakeFiles/code.dir/src/math/_gain_compensation.cpp.o: CMakeFiles/code.dir/flags.make
+CMakeFiles/code.dir/src/math/_gain_compensation.cpp.o: /home/sd_bert/projects/Panorama/src/math/_gain_compensation.cpp
+CMakeFiles/code.dir/src/math/_gain_compensation.cpp.o: CMakeFiles/code.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/sd_bert/projects/Panorama/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/code.dir/src/math/_gain_compensation.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/code.dir/src/math/_gain_compensation.cpp.o -MF CMakeFiles/code.dir/src/math/_gain_compensation.cpp.o.d -o CMakeFiles/code.dir/src/math/_gain_compensation.cpp.o -c /home/sd_bert/projects/Panorama/src/math/_gain_compensation.cpp
+
+CMakeFiles/code.dir/src/math/_gain_compensation.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/code.dir/src/math/_gain_compensation.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/sd_bert/projects/Panorama/src/math/_gain_compensation.cpp > CMakeFiles/code.dir/src/math/_gain_compensation.cpp.i
+
+CMakeFiles/code.dir/src/math/_gain_compensation.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/code.dir/src/math/_gain_compensation.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/sd_bert/projects/Panorama/src/math/_gain_compensation.cpp -o CMakeFiles/code.dir/src/math/_gain_compensation.cpp.s
+
 # Object files for target code
 code_OBJECTS = \
 "CMakeFiles/code.dir/src/classes/_image.cpp.o" \
@@ -220,7 +234,8 @@ code_OBJECTS = \
 "CMakeFiles/code.dir/src/ui/_gtk_ops.cpp.o" \
 "CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o" \
 "CMakeFiles/code.dir/src/math/_maths.cpp.o" \
-"CMakeFiles/code.dir/src/math/_bundle_adjust.cpp.o"
+"CMakeFiles/code.dir/src/math/_bundle_adjust.cpp.o" \
+"CMakeFiles/code.dir/src/math/_gain_compensation.cpp.o"
 
 # External object files for target code
 code_EXTERNAL_OBJECTS =
@@ -235,9 +250,10 @@ libcode.a: CMakeFiles/code.dir/src/ui/_gtk_ops.cpp.o
 libcode.a: CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o
 libcode.a: CMakeFiles/code.dir/src/math/_maths.cpp.o
 libcode.a: CMakeFiles/code.dir/src/math/_bundle_adjust.cpp.o
+libcode.a: CMakeFiles/code.dir/src/math/_gain_compensation.cpp.o
 libcode.a: CMakeFiles/code.dir/build.make
 libcode.a: CMakeFiles/code.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/sd_bert/projects/Panorama/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Linking CXX static library libcode.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/sd_bert/projects/Panorama/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Linking CXX static library libcode.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/code.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/code.dir/link.txt --verbose=$(VERBOSE)
 

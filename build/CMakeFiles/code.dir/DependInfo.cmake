@@ -11,6 +11,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/sd_bert/projects/Panorama/src/classes/_image.cpp" "CMakeFiles/code.dir/src/classes/_image.cpp.o" "gcc" "CMakeFiles/code.dir/src/classes/_image.cpp.o.d"
   "/home/sd_bert/projects/Panorama/src/classes/_panorama.cpp" "CMakeFiles/code.dir/src/classes/_panorama.cpp.o" "gcc" "CMakeFiles/code.dir/src/classes/_panorama.cpp.o.d"
   "/home/sd_bert/projects/Panorama/src/math/_bundle_adjust.cpp" "CMakeFiles/code.dir/src/math/_bundle_adjust.cpp.o" "gcc" "CMakeFiles/code.dir/src/math/_bundle_adjust.cpp.o.d"
+  "/home/sd_bert/projects/Panorama/src/math/_gain_compensation.cpp" "CMakeFiles/code.dir/src/math/_gain_compensation.cpp.o" "gcc" "CMakeFiles/code.dir/src/math/_gain_compensation.cpp.o.d"
   "/home/sd_bert/projects/Panorama/src/math/_img_manipulation.cpp" "CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o" "gcc" "CMakeFiles/code.dir/src/math/_img_manipulation.cpp.o.d"
   "/home/sd_bert/projects/Panorama/src/math/_maths.cpp" "CMakeFiles/code.dir/src/math/_maths.cpp.o" "gcc" "CMakeFiles/code.dir/src/math/_maths.cpp.o.d"
   "/home/sd_bert/projects/Panorama/src/ui/_create_menu.cpp" "CMakeFiles/code.dir/src/ui/_create_menu.cpp.o" "gcc" "CMakeFiles/code.dir/src/ui/_create_menu.cpp.o.d"

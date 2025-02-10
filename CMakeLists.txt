@@ -45,6 +45,8 @@ add_library(code
     ${CMAKE_SOURCE_DIR}/src/math/_maths.cpp
     ${CMAKE_SOURCE_DIR}/src/math/_bundle_adjust.h
     ${CMAKE_SOURCE_DIR}/src/math/_bundle_adjust.cpp
+    ${CMAKE_SOURCE_DIR}/src/math/_gain_compensation.h
+    ${CMAKE_SOURCE_DIR}/src/math/_gain_compensation.cpp
 )
 
 add_executable(panorama src/main.cpp)
