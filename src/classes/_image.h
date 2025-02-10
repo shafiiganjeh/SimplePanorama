@@ -5,6 +5,7 @@
 
 #include <opencv2/opencv.hpp>
 #include "_img_manipulation.h"
+#include "_gain_compensation.h"
 #include "_maths.h"
 #include <iostream>
 #include <fstream>
@@ -30,7 +31,9 @@ namespace img {
 
             std::vector<maths::keypoints> get_keypoints();
 
-            void images_to_cylinder();
+            void images_to_cylinder(float f);
+
+            void gain_compensation(std::vector<cv::Mat> &imags,const cv::Mat& adj,std::vector<std::vector< cv::Matx33f >>& Hom_mat);
 
 
         protected:

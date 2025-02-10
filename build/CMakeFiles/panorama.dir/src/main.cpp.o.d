@@ -1214,6 +1214,7 @@ CMakeFiles/panorama.dir/src/main.cpp.o: \
  /usr/local/include/eigen3/Eigen/src/Eigenvalues/RealQZ.h \
  /usr/local/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h \
  /home/sd_bert/projects/Panorama/src/classes/_image.h \
+ /home/sd_bert/projects/Panorama/src/math/_gain_compensation.h \
  /home/sd_bert/projects/Panorama/src/classes/_image.h \
  /home/sd_bert/projects/Panorama/src/ui/_gtk_vars.h \
  /home/sd_bert/projects/Panorama/src/ui/_main_windows.h \

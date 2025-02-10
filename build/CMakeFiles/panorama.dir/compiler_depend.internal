@@ -6,6 +6,7 @@ CMakeFiles/panorama.dir/src/main.cpp.o
  /home/sd_bert/projects/Panorama/src/classes/_image.h
  /home/sd_bert/projects/Panorama/src/classes/_panorama.h
  /home/sd_bert/projects/Panorama/src/math/_bundle_adjust.h
+ /home/sd_bert/projects/Panorama/src/math/_gain_compensation.h
  /home/sd_bert/projects/Panorama/src/math/_img_manipulation.h
  /home/sd_bert/projects/Panorama/src/math/_maths.h
  /home/sd_bert/projects/Panorama/src/ui/_create_menu.h

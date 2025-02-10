@@ -562,4 +562,5 @@ CMakeFiles/code.dir/src/classes/_image.cpp.o: \
  /usr/local/include/eigen3/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h \
  /usr/local/include/eigen3/Eigen/src/Eigenvalues/RealQZ.h \
  /usr/local/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h \
+ /home/sd_bert/projects/Panorama/src/math/_gain_compensation.h \
  /home/sd_bert/projects/Panorama/src/math/_maths.h

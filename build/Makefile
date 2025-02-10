@@ -283,6 +283,30 @@ src/math/_bundle_adjust.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/math/_bundle_adjust.cpp.s
 .PHONY : src/math/_bundle_adjust.cpp.s
 
+src/math/_gain_compensation.o: src/math/_gain_compensation.cpp.o
+.PHONY : src/math/_gain_compensation.o
+
+# target to build an object file
+src/math/_gain_compensation.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/math/_gain_compensation.cpp.o
+.PHONY : src/math/_gain_compensation.cpp.o
+
+src/math/_gain_compensation.i: src/math/_gain_compensation.cpp.i
+.PHONY : src/math/_gain_compensation.i
+
+# target to preprocess a source file
+src/math/_gain_compensation.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/math/_gain_compensation.cpp.i
+.PHONY : src/math/_gain_compensation.cpp.i
+
+src/math/_gain_compensation.s: src/math/_gain_compensation.cpp.s
+.PHONY : src/math/_gain_compensation.s
+
+# target to generate assembly for a file
+src/math/_gain_compensation.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/code.dir/build.make CMakeFiles/code.dir/src/math/_gain_compensation.cpp.s
+.PHONY : src/math/_gain_compensation.cpp.s
+
 src/math/_img_manipulation.o: src/math/_img_manipulation.cpp.o
 .PHONY : src/math/_img_manipulation.o
 
@@ -477,6 +501,9 @@ help:
 	@echo "... src/math/_bundle_adjust.o"
 	@echo "... src/math/_bundle_adjust.i"
 	@echo "... src/math/_bundle_adjust.s"
+	@echo "... src/math/_gain_compensation.o"
+	@echo "... src/math/_gain_compensation.i"
+	@echo "... src/math/_gain_compensation.s"
 	@echo "... src/math/_img_manipulation.o"
 	@echo "... src/math/_img_manipulation.i"
 	@echo "... src/math/_img_manipulation.s"
