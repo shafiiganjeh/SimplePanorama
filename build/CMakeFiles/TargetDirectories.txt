@@ -1,8 +1,0 @@
-/home/sd_bert/projects/Panorama/build/CMakeFiles/code.dir
-/home/sd_bert/projects/Panorama/build/CMakeFiles/panorama.dir
-/home/sd_bert/projects/Panorama/build/CMakeFiles/edit_cache.dir
-/home/sd_bert/projects/Panorama/build/CMakeFiles/rebuild_cache.dir
-/home/sd_bert/projects/Panorama/build/CMakeFiles/list_install_components.dir
-/home/sd_bert/projects/Panorama/build/CMakeFiles/install.dir
-/home/sd_bert/projects/Panorama/build/CMakeFiles/install/local.dir
-/home/sd_bert/projects/Panorama/build/CMakeFiles/install/strip.dir

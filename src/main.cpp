@@ -10,13 +10,22 @@
 #include "_bundle_adjust.h"
 #include <Eigen/Dense>
 #include "_gain_compensation.h"
+#include "_blending.h"
 
 namespace fs = std::filesystem;
 /*
 //struct main_window_ main_window;
 */
 
+void write_to_eigen(Eigen::VectorXf &v, cv::Vec2f &cv_v,int n,int st){
 
+    for(int i = 0;i < n;i++){
+
+        v[st+i] = cv_v[i];
+
+    }
+
+}
 
 int main(int argc, char **argv) {
 
@@ -33,7 +42,7 @@ int main(int argc, char **argv) {
 
             img::images test(path_list);
             test.load_images();
-            //test.images_to_cylinder(850.0);
+            //test.images_to_cylinder(950.0);
             test.calculate_keypoints();
 
 
@@ -44,6 +53,7 @@ int main(int argc, char **argv) {
             std::vector<cv::Mat> imags = test.get_images();
 
             //cv::Mat tetetst = imgm::project(imags[0],400,150);
+
 
 
 
@@ -65,10 +75,45 @@ int main(int argc, char **argv) {
 
             cv::Mat adj = t1.return_adj_mat();
             std::vector<std::vector< cv::Matx33f >> hom_mat = t1.return_Hom_mat();
-            //std::cout<< t1.return_mat() <<"\n";
+            std::vector<std::vector<std::vector<cv::DMatch>>> matchMat = t1.return_match_mat();
 
             std::vector<float> G;
             G =  gain::gain_compensation(imags,adj,hom_mat);
+
+            std::cout <<adj<<"\n";
+            //float foc = maths::focal_from_hom(hom_mat,adj);
+            //std::cout<<"focal is: "<< foc <<"\n";
+
+            cv::Vec3f q = maths::eucl2hom_point_2D(key_p[0].keypoint[matchMat[0][1][0].queryIdx].pt);
+            cv::Vec3f t = maths::eucl2hom_point_2D(key_p[1].keypoint[matchMat[0][1][0].trainIdx].pt);
+            std::vector<cv::Vec3f> tv(1);
+            tv[0] = t;
+
+            std::cout<<"kp q: " << q <<"\n";
+            std::cout<<"kp t: " << t <<"\n";
+
+            std::vector<cv::Vec3f> r =  maths::applyH_2D(tv, hom_mat[0][1], maths::GEOM_TYPE_POINT);
+            std::cout<<"kp t: " << r[0] <<"\n";
+
+
+
+            //std::cout<<"n matches: " << matchMat[0][1][0].queryIdx <<"\n";
+
+            class bund::E_func cl_test(key_p,matchMat,adj);
+
+            std::vector<Eigen::VectorXf> m_vec = cl_test.get_measurements();
+            Eigen::MatrixXf v(3,3);
+            int a = 3;
+
+            v << a,2,3,4,5,6,7,8,a;
+
+            std::cout<<"mvec: " << v <<"\n";
+
+
+
+/*
+
+
 
             for (int i = 0;i<imags.size();i++){
 
@@ -76,11 +121,6 @@ int main(int argc, char **argv) {
                imags[i] = imags[i] * G[i];
 
             }
-
-
-            std::cout <<adj<<"\n";
-            float foc = maths::focal_from_hom(hom_mat,adj);
-            std::cout<<"focal is: "<< foc <<"\n";
 
 
             cv::Mat path_lenght = cv::Mat::ones(adj.rows, adj.cols, CV_64F);
@@ -96,7 +136,7 @@ int main(int argc, char **argv) {
             std::cout<<"max"<< maxLoc.y <<"\n";
 
 
-            std::vector<std::pair<int, std::vector<int>>> tesst = maths::bfs_ordered_with_neighbors(adj, maxLoc.y);
+            std::vector<std::pair<int, std::vector<int>>> tesst = maths::bfs_ordered_with_neighbors(path_lenght, maxLoc.y);
 
 
             for (int j = 0;j<tesst.size();j++){
@@ -107,7 +147,7 @@ int main(int argc, char **argv) {
                 std::cout<<"\n";
             }
 
-            std::map<int, std::pair<int,double>> table = maths::path_table(adj,tesst,maxLoc.y);
+            std::map<int, std::pair<int,double>> table = maths::path_table(path_lenght,tesst,maxLoc.y);
 
             for (auto const& [key, val] : table)
             {
@@ -117,7 +157,71 @@ int main(int argc, char **argv) {
                         << std::endl;
             }
 
-            imgm::stitch_adj(imags,hom_mat ,adj);
+            imgm::pan_img_transform Tr(adj);
+            Tr = imgm::calc_stitch_from_adj(imags,hom_mat ,adj);
+            blnd::simple_blend(Tr,imags);
+
+
+            int height = Tr.translation[Tr.stitch_order[Tr.stitch_order.size()-1]].yend - Tr.translation[Tr.stitch_order[Tr.stitch_order.size()-1]].ystart + 1;
+            int wide = Tr.translation[Tr.stitch_order[Tr.stitch_order.size()-1]].xend - Tr.translation[Tr.stitch_order[Tr.stitch_order.size()-1]].xstart + 1;
+
+            cv::Mat panorama = cv::Mat::zeros(height,wide,imags[0].type());
+
+
+            for (int i = 0;i <Tr.stitch_order.size();i++){
+                cv::Mat tmp = cv::Mat::zeros(height,wide,imags[0].type());
+                cv::warpPerspective(imags[Tr.stitch_order[i]], tmp, Tr.img2pan[Tr.stitch_order[i]], panorama.size());
+
+                panorama.copyTo(panorama, tmp);
+
+            }
+
+            cv::imshow("Image Display",panorama);
+            cv::waitKey(0);
+
+
+
+           // blnd::simple_blend(tes,imags);
+
+
+
+            cv::Mat panorama = imags[tes.stitch_order[0]];
+
+            std::vector<cv::Vec3f> pt;
+            pt.push_back({400,300,1});
+
+            for (int i = 1; i < tes.stitch_order.size();i++){
+                std::cout<<"stohigh: "<< tes.translation[tes.stitch_order[i]].yend - tes.translation[tes.stitch_order[i]].ystart + 1<<"\n";
+                //std::cout<<"stowide: "<< yend - ystart + 1<<"\n";
+                panorama = imgm::stitch(panorama, imags[tes.stitch_order[i]], tes.img2pan[tes.stitch_order[i]],pt);
+
+            }
+
+
+
+            cv::imshow("Image Display", panorama);
+            cv::waitKey(0);
+
+
+            std::vector<cv::Vec3f> poin;
+
+            poin.push_back({169.532,159.708,1});
+            poin = maths::applyH_2D(poin,  tes.pan2img[2], maths::GEOM_TYPE_POINT);
+
+            //std::cout<<poin[0];
+            //cv::Point2f a(poin[0][0]/poin[0][2], poin[1][0]/poin[0][2]);
+
+            poin[0] = poin[0]/poin[0][2];
+            std::cout << poin[0]<<"\n";
+            cv::Point2f at(poin[0][0], poin[0][1]);
+//imags[2]
+//panorama
+            cv::circle(imags[2],at,20,CV_RGB(50, 50,122),10);
+
+            cv::imshow("Image Display", imags[2]);
+            cv::waitKey(0);
+
+
 
 
 /*
