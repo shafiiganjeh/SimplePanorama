@@ -22,7 +22,7 @@ namespace maths {
     }
 
 
-    std::vector<cv::DMatch> match_keypoints(const struct keypoints &kp1,const struct keypoints &kp2){
+    std::pair<std::vector<cv::DMatch>, std::vector<cv::DMatch>> match_keypoints(const struct keypoints &kp1,const struct keypoints &kp2){
 
         cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
         std::vector< std::vector<cv::DMatch> > knn_matches;
@@ -31,12 +31,14 @@ namespace maths {
         matcher->knnMatch( kp1.descriptor, kp2.descriptor, knn_matches, 2 );
 
         const float ratio_thresh = 0.7f;
-        std::vector<cv::DMatch> good_matches;
+        std::pair<std::vector<cv::DMatch>, std::vector<cv::DMatch>> good_matches;
+
         for (size_t i = 0; i < knn_matches.size(); i++)
         {
             if (knn_matches[i][0].distance < ratio_thresh * knn_matches[i][1].distance)
             {
-                good_matches.push_back(knn_matches[i][0]);
+                good_matches.first.push_back(knn_matches[i][0]);
+                good_matches.second.push_back(knn_matches[i][1]);
             }
         }
 
@@ -319,13 +321,19 @@ float N_outliers(const struct keypoints &kp1,const struct keypoints &kp2,std::ve
         return (float)out;
 }
 
+
 float graph_thread::match_quality(const struct keypoints &kp1,const cv::Mat img1,const struct keypoints &kp2,const cv::Mat img2,int row,int col){
 
         std::vector<float> T12 = {(float)img1.cols/350,(float)img1.rows/350};
 
-        std::vector<cv::DMatch> match12 = match_keypoints(kp1,kp2);
+        std::pair<std::vector<cv::DMatch>, std::vector<cv::DMatch>> match12 = match_keypoints(kp1,kp2);
 
-        if (match12.size() < 16){
+        match_mat[row][col].resize(match12.first.size());
+        match_mat[row][col] = match12.first;
+        match_mat[col][row].resize(match12.second.size());
+        match_mat[col][row] = match12.second;
+
+        if (match12.first.size() < 16){
 
             return 0;
         }
@@ -333,13 +341,13 @@ float graph_thread::match_quality(const struct keypoints &kp1,const cv::Mat img1
         std::vector<cv::Point2f> obj;
         std::vector<cv::Point2f> scene;
 
-        cv::Matx33f H12 = find_homography(kp1,kp2,match12,1000,4);
+        cv::Matx33f H12 = find_homography(kp1,kp2,match12.first,1000,4);
         hom_mat[row][col] = H12;
         hom_mat[col][row] = H12.inv();
 
-        int out = N_outliers(kp1,kp2,match12,H12,T12);
+        int out = N_outliers(kp1,kp2,match12.first,H12,T12);
 
-        return 1-out/((float)match12.size());
+        return 1-out/((float)match12.first.size());
 
 }
 
@@ -359,9 +367,16 @@ std::vector<maths::keypoints> extrace_kp_vector(const std::vector<cv::Mat> & img
 
 void graph_thread::set_mat(const std::vector<cv::Mat> & imgs,std::vector<maths::keypoints> key_p){
 
+        adj.create(imgs.size(), imgs.size(), CV_64F);
         adj = cv::Mat::zeros(imgs.size(), imgs.size(), CV_64F);
+
+        kpmat.resize(key_p.size());
         kpmat = key_p;
+
         hom_mat.resize(imgs.size(), std::vector<cv::Matx33f>(imgs.size()));
+
+        match_mat.resize(imgs.size(), std::vector<std::vector<cv::DMatch>>(imgs.size()));
+
 
 }
 
@@ -370,6 +385,14 @@ cv::Mat graph_thread::return_adj_mat(){
             return adj + adj.t();
 
 }
+
+
+std::vector<std::vector<std::vector<cv::DMatch>>> graph_thread::return_match_mat(){
+
+    return match_mat;
+
+}
+
 
 std::vector<std::vector< cv::Matx33f >> graph_thread::return_Hom_mat(){
 
@@ -481,6 +504,7 @@ struct translation get_translation(const cv::Mat &base, const cv::Mat &attach,co
             T(1, 2) = -Tr.ystart;
 
             Tr.T = T;
+
 
             return Tr;
 }

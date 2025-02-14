@@ -39,7 +39,7 @@ namespace maths {
 
     struct keypoints extract_keypoints(const cv::Mat &img,int nfeatures = 0,int nOctaveLayers = 3,double contrastThreshold = 0.04,double edgeThreshold = 10,double sigma = 1.6);
 
-    std::vector<cv::DMatch> match_keypoints(const struct keypoints &kp1,const struct keypoints &kp2);
+    std::pair<std::vector<cv::DMatch>, std::vector<cv::DMatch>> match_keypoints(const struct keypoints &kp1,const struct keypoints &kp2);
 
     cv::Matx33f Normalize2D(const std::vector<cv::Vec3f> &points);
 
@@ -85,6 +85,7 @@ namespace maths {
         static void set_mat(const std::vector<cv::Mat> & imgs,std::vector<maths::keypoints> key_p);
         static cv::Mat return_adj_mat();
         static std::vector<std::vector< cv::Matx33f >> return_Hom_mat();
+        static std::vector<std::vector<std::vector<cv::DMatch>>> return_match_mat();
         static thread get_threads(int n = 1);
 
         void cal_adj(const std::vector<cv::Mat> & imgs,const std::vector<std::vector<int>> idx);
@@ -94,6 +95,7 @@ namespace maths {
         float match_quality(const struct keypoints &kp1,const cv::Mat img1,const struct keypoints &kp2,const cv::Mat img2,int row,int col);
         static inline cv::Mat adj;
         static inline std::vector<std::vector< cv::Matx33f >> hom_mat;
+        static inline std::vector<std::vector<std::vector<cv::DMatch>>> match_mat;
         static inline std::vector<maths::keypoints> kpmat;
 
 };
