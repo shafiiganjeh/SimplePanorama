@@ -7,25 +7,161 @@
 #include "_image.h"
 #include "_gtk_vars.h"
 #include "_main_windows.h"
-#include "_bundle_adjust.h"
+#include "_bundle_adjust_tools.h"
 #include <Eigen/Dense>
 #include "_gain_compensation.h"
 #include "_blending.h"
+#include <opencv2/core/eigen.hpp>
+#include "_bundle_adjust_main.h"
 
 namespace fs = std::filesystem;
 /*
 //struct main_window_ main_window;
 */
+std::vector<Eigen::MatrixXf> ret_vi(const std::vector<Eigen::MatrixXf> &bvec){
 
-void write_to_eigen(Eigen::VectorXf &v, cv::Vec2f &cv_v,int n,int st){
+     std::vector<Eigen::MatrixXf> Vi;
+     for(int i = 0;i < bvec.size();i++){
 
-    for(int i = 0;i < n;i++){
-
-        v[st+i] = cv_v[i];
+         Vi.push_back(bvec[i].transpose()*bvec[i]);
 
     }
 
+     return Vi;
 }
+
+Eigen::MatrixXd ret_u(const std::vector<Eigen::MatrixXf> &avecf){
+
+    std::vector<Eigen::MatrixXd> avec;
+
+    for (int i = 0;i<avecf.size();i++){
+      Eigen::MatrixXd cast = avecf[i].cast<double>();
+      avec.push_back(cast) ;
+
+    }
+
+
+    Eigen::MatrixXd U;
+    int c = avec[0].cols();
+    U = Eigen::MatrixXd::Zero(c,c);
+
+     for(int i = 0;i < avec.size();i++){
+
+         U = U + avec[i].transpose()*avec[i];
+
+    }
+
+     return U;
+}
+
+Eigen::MatrixXf ret_uf(const std::vector<Eigen::MatrixXf> &avec){
+
+
+
+    Eigen::MatrixXf U;
+    int c = avec[0].cols();
+    U = Eigen::MatrixXf::Zero(c,c);
+
+     for(int i = 0;i < avec.size();i++){
+
+         U = U + avec[i].transpose()*avec[i];
+
+    }
+
+     return U;
+}
+
+std::vector<Eigen::MatrixXf> ret_Wi(const std::vector<Eigen::MatrixXf> &bvec,const std::vector<Eigen::MatrixXf> &avec){
+
+    std::vector<Eigen::MatrixXf> W;
+
+    for(int i = 0;i < avec.size();i++){
+
+         W.push_back(avec[i].transpose() * bvec[i]);
+
+    }
+
+    return W;
+}
+
+std::vector<Eigen::VectorXf> ret_Eb(const std::vector<Eigen::MatrixXf> &bvec,const std::vector<Eigen::VectorXf> &e_vec){
+
+    std::vector<Eigen::VectorXf> Ev;
+
+    for(int i = 0;i < bvec.size();i++){
+
+         Ev.push_back(bvec[i].transpose() * e_vec[i]);
+
+    }
+
+    return Ev;
+}
+
+Eigen::VectorXf ret_Ea(const std::vector<Eigen::MatrixXf> &avec,const std::vector<Eigen::VectorXf> &e_vec){
+
+    Eigen::VectorXf Ev = Eigen::VectorXf::Zero(avec[0].cols());
+
+    for(int i = 0;i < avec.size();i++){
+
+        Ev = Ev + avec[i].transpose() * e_vec[i];
+
+    }
+
+    return Ev;
+}
+
+std::vector<Eigen::MatrixXf> ret_Y(const std::vector<Eigen::MatrixXf> &W,std::vector<Eigen::MatrixXf> V,float labda){
+
+    std::vector<Eigen::MatrixXf> Y;
+    for (int p = 0;p < V.size();p++){
+
+        V[p].diagonal() = V[p].diagonal()*(1 + labda);
+        Y.push_back(W[p]*V[p].inverse());
+
+    }
+
+    return Y;
+}
+
+Eigen::VectorXf ret_delta_a(Eigen::MatrixXf &uvecf,const std::vector<Eigen::MatrixXf> &Yvec,const std::vector<Eigen::MatrixXf> &wvec,Eigen::VectorXf &eA_vec,const std::vector<Eigen::VectorXf> &eB_vec,float labda){
+Eigen::VectorXf rr;
+
+    uvecf.diagonal() = uvecf.diagonal()*(1 + labda);
+
+
+    Eigen::MatrixXf sum_wy = Eigen::MatrixXf::Zero(Yvec[0].rows(),wvec[0].rows());
+    Eigen::VectorXf sum_YEb = Eigen::VectorXf::Zero(Yvec[0].rows());
+
+    for(int i = 0;i<wvec.size();i++){
+
+        sum_wy = sum_wy + Yvec[i]*wvec[i].transpose();
+        sum_YEb = sum_YEb + Yvec[i] * eB_vec[i];
+
+    }
+
+
+    uvecf = uvecf - sum_wy;
+    //std::cout <<"sum_wy: "<<"\n"<<uvecf<<"\n";
+    Eigen::VectorXf x = uvecf.colPivHouseholderQr().solve(eA_vec - sum_YEb);
+
+
+    return x;
+}
+
+
+std::vector<Eigen::VectorXf> ret_delta_b(std::vector<Eigen::MatrixXf> vvec,const std::vector<Eigen::VectorXf> &eB_vec,const std::vector<Eigen::MatrixXf> &wvec,const Eigen::VectorXf &delta_a,float labda){
+
+    std::vector<Eigen::VectorXf> delta_b;
+
+    for (int p = 0;p < vvec.size();p++){
+
+        vvec[p].diagonal() = vvec[p].diagonal()*(1 + labda);
+        delta_b.push_back( vvec[p].inverse() * (eB_vec[p] - wvec[p].transpose() * delta_a) );
+
+    }
+    return delta_b;
+}
+
 
 int main(int argc, char **argv) {
 
@@ -42,7 +178,7 @@ int main(int argc, char **argv) {
 
             img::images test(path_list);
             test.load_images();
-            //test.images_to_cylinder(950.0);
+            //test.images_to_cylinder(1100);
             test.calculate_keypoints();
 
 
@@ -76,86 +212,125 @@ int main(int argc, char **argv) {
             cv::Mat adj = t1.return_adj_mat();
             std::vector<std::vector< cv::Matx33f >> hom_mat = t1.return_Hom_mat();
             std::vector<std::vector<std::vector<cv::DMatch>>> matchMat = t1.return_match_mat();
+            float focal = 900;
+            imgm::pan_img_transform Tr(adj);
+            Tr = imgm::calc_stitch_from_adj(imags,testpars.hom,adj);
 
-            std::vector<float> G;
-            G =  gain::gain_compensation(imags,adj,hom_mat);
+            float labda = .001;
 
-            std::cout <<adj<<"\n";
-            //float foc = maths::focal_from_hom(hom_mat,adj);
-            //std::cout<<"focal is: "<< foc <<"\n";
-
-            cv::Vec3f q = maths::eucl2hom_point_2D(key_p[0].keypoint[matchMat[0][1][0].queryIdx].pt);
-            cv::Vec3f t = maths::eucl2hom_point_2D(key_p[1].keypoint[matchMat[0][1][0].trainIdx].pt);
-            std::vector<cv::Vec3f> tv(1);
-            tv[0] = t;
-
-            std::cout<<"kp q: " << q <<"\n";
-            std::cout<<"kp t: " << t <<"\n";
-
-            std::vector<cv::Vec3f> r =  maths::applyH_2D(tv, hom_mat[0][1], maths::GEOM_TYPE_POINT);
-            std::cout<<"kp t: " << r[0] <<"\n";
+            class bund::parameters sanity(Tr.H_1j,key_p,matchMat,adj,900);
+            std::vector<std::vector< cv::Matx33f >> hom_b = sanity.ret_hmat();
 
 
 
-            //std::cout<<"n matches: " << matchMat[0][1][0].queryIdx <<"\n";
-
-            class bund::E_func cl_test(key_p,matchMat,adj);
-
-            std::vector<Eigen::VectorXf> m_vec = cl_test.get_measurements();
-            Eigen::MatrixXf v(3,3);
-            int a = 3;
-
-            v << a,2,3,4,5,6,7,8,a;
-
-            std::cout<<"mvec: " << v <<"\n";
 
 
+            std::vector<Eigen::VectorXf> ms = sanity.ret_measurements();
+            std::vector<Eigen::MatrixXf> bvec = sanity.ret_B_i();
+            std::vector<Eigen::MatrixXf> vvec = ret_vi(bvec);
+            class bund::E_func err(key_p,matchMat,adj);
+            std::vector<Eigen::VectorXf> meas = err.get_measurements();
+            std::vector<Eigen::VectorXf> e_vec = err.error(ms);
+            std::vector<Eigen::VectorXf> eB_vec = ret_Eb(bvec,e_vec);
+            std::vector<Eigen::MatrixXf> avec = sanity.ret_A_i();
+            Eigen::MatrixXf uvecf = ret_uf(avec);
+            Eigen::VectorXf eA_vec = ret_Ea(avec,e_vec);
+            std::vector<Eigen::MatrixXf> wvec = ret_Wi(bvec,avec);
+            std::vector<Eigen::MatrixXf> Yvec = ret_Y(wvec,vvec,labda);
+
+
+
+            class bundm::adjuster testad(Tr.H_1j,key_p,matchMat,adj,800,labda);
+            struct bundm::inter_par testpars = testad.iterate();
+
+
+
+            //blnd::simple_blend(Tr,imags);
+
+
+            //Tr = imgm::calc_stitch_from_adj(imags,hom_mat ,adj);
+
+
+            /*
+            class bundm::adjuster testad(Tr.H_1j,key_p,matchMat,adj,800,hom_mat,labda);
+            struct bundm::inter_par testpars = testad.iterate();
+
+            std::cout <<"test eA_vec: "<<"\n"<<testpars.delta_a<<"\n";
+            std::cout <<"test delta_b: "<<"\n"<<testpars.delta_b[120]<<"\n";
+
+
+
+            std::vector<std::vector<int>> idx_set = err.ret_idx_set();
+
+
+            //Eigen::MatrixXd uvec = ret_u(avec);
+
+
+
+
+
+            std::cout <<"wvec: "<<"\n"<<vvec[1]({0,1,2},{0,1,2})<<"\n";
+            std::cout <<"wvec: "<<"\n"<<vvec[1]({0,1,2},{0,1,2}).determinant()<<"\n";
+            std::cout <<"bvec: "<<"\n"<<bvec[1]<<"\n";
+
+
+
+
+
+            std::cout<<"point1" <<"\n"<< matchMat[0][2][10].queryIdx<<"\n";
+            std::cout<<"point1" <<"\n"<< key_p[0].keypoint[matchMat[0][2][10].queryIdx].pt <<"\n";
+
+            std::cout<<"point2" <<"\n"<< matchMat[0][2][10].queryIdx<<"\n";
+            std::cout<<"point2" <<"\n"<< key_p[2].keypoint[33].pt <<"\n";
+
+            cv::Vec3f poin = {205,285,1};
+            cv::circle(imags[0], key_p[0].keypoint[matchMat[0][2][10].queryIdx].pt,20, cv::Scalar(255,255,255),10, 8,0);
+
+            poin = hom_mat[2][0]*poin;
+            poin = poin/poin[2];
+            std::cout<<"point" <<"\n"<< poin<<"\n";
+
+            cv::circle(imags[2], key_p[2].keypoint[matchMat[0][2][10].trainIdx].pt,20, cv::Scalar(255,255,255),10, 8,0);
+            cv::imshow("Image Display",imags[2]);
+            cv::waitKey(0);
+
+
+
+            imgm::pan_img_transform Tr(adj);
+
+            blnd::simple_blend(Tr,imags);
+
+
+
+
+            Tr = imgm::calc_stitch_from_adj(imags,hom_mat ,adj);
+            Eigen::Matrix3f matd;
+            cv::cv2eigen(Tr.H_1j[0], matd);
+
+            class bund::parameters sanity(Tr.H_1j,key_p,matchMat,adj,800,hom_mat);
+
+            class bund::E_func err(key_p,matchMat,adj);
+
+            std::vector<Eigen::MatrixXf> bvec = sanity.ret_B_i();
+            std::vector<Eigen::MatrixXf> avec = sanity.ret_A_i();
+            std::vector<Eigen::VectorXf> ms = sanity.ret_measurements();
+
+            std::vector<Eigen::VectorXf> e_vec = err.error(ms);
+
+            Eigen::MatrixXf uvec = ret_u(avec);
+            std::vector<Eigen::MatrixXf> vvec = ret_vi(bvec);
+            std::vector<Eigen::MatrixXf> wvec = ret_Wi(bvec,avec);
+
+
+
+            std::cout <<"w: "<<"\n"<<vvec[11]<<"\n";
 
 /*
 
 
 
-            for (int i = 0;i<imags.size();i++){
 
 
-               imags[i] = imags[i] * G[i];
-
-            }
-
-
-            cv::Mat path_lenght = cv::Mat::ones(adj.rows, adj.cols, CV_64F);
-            path_lenght = path_lenght - path_lenght.mul(adj);
-
-            std::cout<< path_lenght <<"\n";
-            cv::Mat row_sum;
-            cv::reduce(adj, row_sum, 1, cv::REDUCE_SUM, CV_64F);
-            double min=0, max=0;
-            cv::Point minLoc, maxLoc;
-            cv::minMaxLoc(row_sum, &min, &max, &minLoc, &maxLoc);
-            std::cout<<"row sum"<< row_sum <<"\n";
-            std::cout<<"max"<< maxLoc.y <<"\n";
-
-
-            std::vector<std::pair<int, std::vector<int>>> tesst = maths::bfs_ordered_with_neighbors(path_lenght, maxLoc.y);
-
-
-            for (int j = 0;j<tesst.size();j++){
-
-                std::cout<< "node: "<< tesst[j].first <<" connect: ";
-                for (int i: tesst[j].second){
-                    std::cout << i << ' ';}
-                std::cout<<"\n";
-            }
-
-            std::map<int, std::pair<int,double>> table = maths::path_table(path_lenght,tesst,maxLoc.y);
-
-            for (auto const& [key, val] : table)
-            {
-                std::cout << key        // string (key)
-                        << ':'
-                        << val.first        // string's value
-                        << std::endl;
-            }
 
             imgm::pan_img_transform Tr(adj);
             Tr = imgm::calc_stitch_from_adj(imags,hom_mat ,adj);
@@ -203,149 +378,6 @@ int main(int argc, char **argv) {
             cv::waitKey(0);
 
 
-            std::vector<cv::Vec3f> poin;
-
-            poin.push_back({169.532,159.708,1});
-            poin = maths::applyH_2D(poin,  tes.pan2img[2], maths::GEOM_TYPE_POINT);
-
-            //std::cout<<poin[0];
-            //cv::Point2f a(poin[0][0]/poin[0][2], poin[1][0]/poin[0][2]);
-
-            poin[0] = poin[0]/poin[0][2];
-            std::cout << poin[0]<<"\n";
-            cv::Point2f at(poin[0][0], poin[0][1]);
-//imags[2]
-//panorama
-            cv::circle(imags[2],at,20,CV_RGB(50, 50,122),10);
-
-            cv::imshow("Image Display", imags[2]);
-            cv::waitKey(0);
-
-
-
-
-/*
-
-2715
-
-            //cv::Mat pan = imgm::stitch(imags[0], imags[1], H);
-
-
-
-
-            Eigen::MatrixXd b(2,3);
-            b << 92, 60, 100,
-                 80, 30, 70;
-
-            Eigen::MatrixXd con_XY;
-            con_XY = cov_mat_XY(b,b);
-
-            std::cout << con_XY <<"\n";
-
-
-
-
-
-            std::vector<std::vector<int>> angles = {
-            {0, 1, 1, 0, 0, 1},
-            {1, 0, 1, 1, 0, 0},
-            {1, 1, 0, 1, 1, 0},
-            {0, 1, 1, 0, 1, 1},
-            {0, 0, 1, 1, 0, 1},
-            {1, 0, 0, 1, 1, 0}
-            };
-
-            cv::Mat matAngles(angles.size(), angles.at(0).size(), CV_64F);
-            for(int i=0; i<matAngles.rows; ++i)
-                for(int j=0; j<matAngles.cols; ++j)
-                    matAngles.at<double>(i, j) = angles.at(i).at(j);
-
-             //std::cout << matAngles << " ";
-
-
-
-
-
-
-
-
-
-
-            maths::graph_thread::set_mat(imags,key_p);
-            maths::thread threads = maths::graph_thread::get_threads(4);
-
-            maths::graph_thread t1;
-            maths::graph_thread t2;
-            maths::graph_thread t3;
-            maths::graph_thread t4;
-
-            std::thread thread_obj1(&maths::graph_thread::cal_adj, &t1, imags,threads[0]);
-            std::thread thread_obj2(&maths::graph_thread::cal_adj, &t2, imags,threads[1]);
-            std::thread thread_obj3(&maths::graph_thread::cal_adj, &t3, imags,threads[2]);
-            std::thread thread_obj4(&maths::graph_thread::cal_adj, &t4, imags,threads[3]);
-
-            thread_obj1.join();
-            thread_obj2.join();
-            thread_obj3.join();
-            thread_obj4.join();
-
-            std::cout<< t1.return_mat() <<"\n";
-
-            cv::Mat vset = t1.return_mat();
-
-            std::vector<int> connected_vertices = dfs(vset, 1);
-
-
-
-            for (int i = 0; i < connected_vertices.size(); ++i) {
-                std::cout<< connected_vertices[i] <<" ";
-            }
-
-
-            cv::Mat ttest= t1.return_mat();
-           // pan_from_mat(ttest,imags,key_p);
-
-
-
-
-
-
-
-
-
-
-
-            cv::Mat pan = imgm::stitch(imags[1], imags[0], H);
-
-            kp1 = maths::extract_keypoints(imags[2]);
-            kp2 = maths::extract_keypoints(pan);
-
-            match = maths::match_keypoints(kp1,kp2);
-            H = maths::find_homography(kp1,kp2,match,1000,4);
-            pan = imgm::stitch(imags[2],pan,  H);
-
-            cv::imshow("Image Display", pan);
-            cv::waitKey(0);
-
-
-
- *                         kp1 = kpmat[i];
-                        kp2 = kpmat[j];
-
-                        simmat.at<double>(i,j) = match_quality(kp1,imags[i],kp2,imags[j]);
- *
-            std::vector<cv::DMatch> match = maths::match_keypoints(kp1,kp2);
-
-        std::cout << match.size()<<"\n";
-        cv::Matx33f  H = maths::find_homography(kp1,kp2,match,1000,4);
-
-
-
-
-        cv::Mat pan = imgm::stitch(imags[2], imags[0], H);
-
-         cv::imshow("Image Display", pan);
-         cv::waitKey(0);
 
 */
 

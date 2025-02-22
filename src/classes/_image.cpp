@@ -78,7 +78,7 @@ void images::images_to_cylinder(float f){
 
     for(int i = 0;i<img_data.size();i++){
 
-        img_data[i] = imgm::project(img_data[i],400.0,266.0,f);
+        img_data[i] = imgm::project(img_data[i],400.0,300.0,f);
 
     }
 

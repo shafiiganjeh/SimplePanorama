@@ -18,6 +18,7 @@ namespace imgm {
 
             pan_img_transform(const cv::Mat& adj);
 
+            std::vector<cv::Matx33f> H_1j;
             std::vector<cv::Matx33f> img2pan;
             std::vector<cv::Matx33f> pan2img;
             std::vector<int> stitch_order;
@@ -32,7 +33,7 @@ namespace imgm {
 
     cv::Mat file_to_cv(std::string path);
 
-    cv::Mat stitch(const cv::Mat &base, const cv::Mat &attach, const cv::Matx33f &H,std::vector<cv::Vec3f> p);
+    cv::Mat stitch(const cv::Mat &base, const cv::Mat &attach, const cv::Matx33f &H);
 
     class pan_img_transform calc_stitch_from_adj(const std::vector<cv::Mat> &imags,const std::vector<std::vector< cv::Matx33f >> &Hom,const cv::Mat& adj);
 

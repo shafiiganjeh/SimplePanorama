@@ -6,6 +6,7 @@ namespace imgm {
 
     pan_img_transform::pan_img_transform(const cv::Mat& adj){
 
+            H_1j.resize(adj.cols);
             img2pan.resize(adj.cols);
             pan2img.resize(adj.cols);
             translation.resize(adj.cols);
@@ -200,6 +201,7 @@ class pan_img_transform calc_stitch_from_adj(const std::vector<cv::Mat> &imags,c
 
             if(visited.count(node_visit) == 0){
                 cv::Mat H = cv::Mat::eye(3,3, CV_32F);
+
                 visited.insert(node_visit);
 
                 int node_current = node_visit;
@@ -209,13 +211,12 @@ class pan_img_transform calc_stitch_from_adj(const std::vector<cv::Mat> &imags,c
                     node_current = paths[node_current].first;
 
                 }
+                pan_var.H_1j[node_visit] = H;
+
                 maths::translation Tr;
                 H = translation*H;
 
                 pan_var.stitch_order.push_back(node_visit);
-                //pan_var.img2pan[node_visit] = H;
-
-                //panorama = stitch(panorama, imags[node_visit],H);
 
                 Tr = maths::get_translation(panorama, imags[node_current],H);
                 panorama.create(Tr.yend - Tr.ystart + 1, Tr.xend - Tr.xstart + 1, panorama.type());
@@ -234,6 +235,8 @@ class pan_img_transform calc_stitch_from_adj(const std::vector<cv::Mat> &imags,c
     }
     //cv::imshow("Image Display",panorama);
     //cv::waitKey(0);
+    pan_var.H_1j[pan_var.stitch_order[0]] = cv::Matx33f::eye();
+
     for (int i = pan_var.stitch_order.size() - 1 ; i > 0 ;i-- ){
 
         for (int j = i-1;j >= 0 ;j--  ){
