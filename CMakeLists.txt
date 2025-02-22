@@ -43,8 +43,10 @@ add_library(code
     ${CMAKE_SOURCE_DIR}/src/math/_img_manipulation.h
     ${CMAKE_SOURCE_DIR}/src/math/_maths.h
     ${CMAKE_SOURCE_DIR}/src/math/_maths.cpp
-    ${CMAKE_SOURCE_DIR}/src/math/_bundle_adjust.h
-    ${CMAKE_SOURCE_DIR}/src/math/_bundle_adjust.cpp
+    ${CMAKE_SOURCE_DIR}/src/math/_bundle_adjust_tools.h
+    ${CMAKE_SOURCE_DIR}/src/math/_bundle_adjust_tools.cpp
+    ${CMAKE_SOURCE_DIR}/src/math/_bundle_adjust_main.h
+    ${CMAKE_SOURCE_DIR}/src/math/_bundle_adjust_main.cpp
     ${CMAKE_SOURCE_DIR}/src/math/_gain_compensation.h
     ${CMAKE_SOURCE_DIR}/src/math/_gain_compensation.cpp
     ${CMAKE_SOURCE_DIR}/src/math/_blending.h

@@ -2,7 +2,7 @@
 
 namespace maths {
 
-    struct keypoints extract_keypoints(const cv::Mat &img,int nfeatures,int nOctaveLayers ,double contrastThreshold ,double edgeThreshold ,double sigma ){
+struct keypoints extract_keypoints(const cv::Mat &img,int nfeatures,int nOctaveLayers ,double contrastThreshold ,double edgeThreshold ,double sigma ){
 
         cv::Mat greyMat;
         keypoints kp;
@@ -233,19 +233,19 @@ double homography_loss(const struct keypoints &kp1,const struct keypoints &kp2,c
 }
 
 
-cv::Matx33f find_homography(const struct keypoints &kp1,const struct keypoints &kp2,const std::vector<cv::DMatch> &match,int max_iter,int sample){
+struct Homography find_homography(const struct keypoints &kp1,const struct keypoints &kp2,const std::vector<cv::DMatch> &match,int max_iter,int sample){
 
-
+        struct Homography Hom;
         cv::Matx33f H(1, 0, 0,
                       0, 1, 0,
                       0, 0, 1);
-
+        Hom.H = H;
 
         if (match.size() < 8){
                std::invalid_argument("non matching images");
         }
 
-        double loss = homography_loss(kp1,kp2,match ,H );
+        double loss = homography_loss(kp1,kp2,match ,Hom.H );
 
         for (int i = 0;i < max_iter;i++){
 
@@ -265,7 +265,9 @@ cv::Matx33f find_homography(const struct keypoints &kp1,const struct keypoints &
             }
 
             cv::Matx33f T_b = Normalize2D(img);
+            Hom.norm_b = T_b;
             cv::Matx33f T_a = Normalize2D(train);
+            Hom.norm_a = T_a;
 
             img = applyH_2D(img,T_b,GEOM_TYPE_POINT);
             train = applyH_2D(train,T_a,GEOM_TYPE_POINT);
@@ -282,12 +284,12 @@ cv::Matx33f find_homography(const struct keypoints &kp1,const struct keypoints &
                 //std::cout << loss <<"\n";
                 loss = temp_loss;
 
-                H = H_temp;
+                Hom.H = H_temp;
 
             }
 
         }
-        return H;
+        return Hom;
 }
 
 float N_outliers(const struct keypoints &kp1,const struct keypoints &kp2,std::vector<cv::DMatch> &match,const  cv::Matx33f &H,std::vector<float> &T){
@@ -341,11 +343,11 @@ float graph_thread::match_quality(const struct keypoints &kp1,const cv::Mat img1
         std::vector<cv::Point2f> obj;
         std::vector<cv::Point2f> scene;
 
-        cv::Matx33f H12 = find_homography(kp1,kp2,match12.first,1000,4);
-        hom_mat[row][col] = H12;
-        hom_mat[col][row] = H12.inv();
+        struct Homography H12 = find_homography(kp1,kp2,match12.first,1000,4);
+        hom_mat[row][col] = H12.H;
+        hom_mat[col][row] = H12.H.inv();
 
-        int out = N_outliers(kp1,kp2,match12.first,H12,T12);
+        int out = N_outliers(kp1,kp2,match12.first,H12.H,T12);
 
         return 1-out/((float)match12.first.size());
 
@@ -397,6 +399,13 @@ std::vector<std::vector<std::vector<cv::DMatch>>> graph_thread::return_match_mat
 std::vector<std::vector< cv::Matx33f >> graph_thread::return_Hom_mat(){
 
     return hom_mat;
+
+}
+
+
+std::vector<std::vector< struct Homography >> graph_thread::return_Norm_mat(){
+
+    return norm_mat;
 
 }
 

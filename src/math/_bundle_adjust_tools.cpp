@@ -1,4 +1,4 @@
-#include "_bundle_adjust.h"
+#include "_bundle_adjust_tools.h"
 
 namespace bund {
 
@@ -126,30 +126,7 @@ void write_to_eigen(Eigen::VectorXf &v,const cv::Vec2f &cv_v,int n,int st){
 }
 
 
-Eigen::MatrixXf cov_mat_XY(Eigen::MatrixXf X,Eigen::MatrixXf Y){
-
-    Eigen::MatrixXf con_XY;
-
-    if((X.rows() != Y.rows())){
-
-        throw std::invalid_argument("Error: random vector X and Y have different sizes.");
-
-    }
-
-    Eigen::MatrixXf Xv;
-    Eigen::MatrixXf Yv;
-
-    Xv = (X.colwise() - X.rowwise().mean());
-    Yv = (Y.colwise() - Y.rowwise().mean());
-
-    con_XY = (Xv * Yv.transpose())/X.rows();
-
-    return con_XY;
-
-}
-
-
-E_func::E_func(const std::vector<maths::keypoints> &kp,std::vector<std::vector<std::vector<cv::DMatch>>> &match,const cv::Mat &adj){
+E_func::E_func(const std::vector<maths::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match,const cv::Mat &adj){
 
 
     for (int i = 0;i < adj.rows;i++){
@@ -163,9 +140,9 @@ E_func::E_func(const std::vector<maths::keypoints> &kp,std::vector<std::vector<s
                     idx[0] = i;
                     idx[1] = j;
 
-                    Eigen::VectorXf measure = Eigen::VectorXf::Zero(2*adj.cols);
-                    write_to_eigen(measure, kp[i].keypoint[match[i][j][p].queryIdx].pt,2,j*2);
-                    write_to_eigen(measure, kp[j].keypoint[match[i][j][p].trainIdx].pt,2,i*2);
+                    Eigen::VectorXf measure = Eigen::VectorXf::Zero(4);
+                    write_to_eigen(measure, kp[i].keypoint[match[i][j][p].queryIdx].pt,2,2);
+                    write_to_eigen(measure, kp[j].keypoint[match[i][j][p].trainIdx].pt,2,0);
                     measurements.push_back(measure);
                     idx_set.push_back(idx);
 
@@ -190,17 +167,14 @@ std::vector<std::vector<int>> E_func::ret_idx_set(){
 
 std::vector<Eigen::VectorXf> E_func::error(const std::vector<Eigen::VectorXf> &t_to_q){
 
-    std::cout <<"size: "<< measurements[0].size();
 
     std::vector<Eigen::VectorXf> error_vec;
 
     for (int n = 0;n < measurements.size();n++){
-        Eigen::VectorXf er = Eigen::VectorXf::Zero(measurements[0].size());
-        int i = idx_set[n][0];
-        int j = idx_set[n][1];
+        Eigen::VectorXf er = Eigen::VectorXf::Zero(4);
 
-        er({2*j,1+2*j}) = t_to_q[n]({3*j,1+3*j})/t_to_q[n][2+3*j];
-        er({2*i,1+2*i}) = t_to_q[n]({3*i,1+3*i})/t_to_q[n][2+3*i];
+        er({2,3}) = t_to_q[n]({3,4})/t_to_q[n][5];
+        er({0,1}) = t_to_q[n]({0,1})/t_to_q[n][2];
 
         error_vec.push_back(measurements[n] - er);
 
@@ -252,10 +226,11 @@ Eigen::MatrixXf parameters::ret_hom(int i, int j){
 }
 
 
-parameters::parameters(std::vector<cv::Matx33f> &H,const std::vector<maths::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match,const cv::Mat &ad,float foc,const std::vector<std::vector< cv::Matx33f >> &hom_mat){
+parameters::parameters(std::vector<cv::Matx33f> &H,const std::vector<maths::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match,const cv::Mat &ad,float foc){
 
     focal = foc;
     adj = ad;
+    float eps = 5e-5;
 
     Eigen::MatrixXf foc_mat = get_foc(false);
     Eigen::MatrixXf foc_mat_inv = get_foc(true);
@@ -264,6 +239,8 @@ parameters::parameters(std::vector<cv::Matx33f> &H,const std::vector<maths::keyp
 
         Eigen::Matrix3f matr;
         cv::cv2eigen(H[i], matr);
+
+
         matr = foc_mat_inv * matr * foc_mat;
 
         Eigen::VectorXf rotation = findRealColumns(matr);
@@ -276,30 +253,26 @@ parameters::parameters(std::vector<cv::Matx33f> &H,const std::vector<maths::keyp
 
 
     std::vector<std::vector<std::vector<Eigen::VectorXf>>> measure_mat(adj.rows, std::vector<std::vector<Eigen::VectorXf>>(adj.cols));
+    std::vector<int> idx(2);
 
     for (int i = 0;i < adj.rows;i++){
         for(int j = i;j < adj.cols;j++){
 
-            Eigen::MatrixXf hom;// = ret_hom(i, j);
-            cv::cv2eigen(hom_mat[i][j], hom);
-
+            Eigen::MatrixXf hom = ret_hom(i, j);
 
             if (.5 <= adj.at<double>(i,j)){
 
                 for (int p = 0;p < match[i][j].size();p++){
                     Eigen::VectorXf temp(3);
-                    Eigen::VectorXf measure = Eigen::VectorXf::Zero(3*adj.cols);
+                    Eigen::VectorXf measure = Eigen::VectorXf::Zero(6);
 
-                    write_to_eigen(measure, kp[j].keypoint[match[i][j][p].trainIdx].pt,2,3*i);
-                    measure[2+3*i] = 1;
+                    write_to_eigen(measure, kp[j].keypoint[match[i][j][p].trainIdx].pt,2,0);
+                    measure[2] = 1;
 
                     write_to_eigen(temp, kp[j].keypoint[match[i][j][p].trainIdx].pt,2,0);
                     temp[2] = 1;
                     temp = hom * temp;
-                    measure({3*j,1+3*j,2+3*j}) = temp;
-
-                    //write_to_eigen(measure, kp[i].keypoint[match[i][j][p].queryIdx].pt,2,3);
-                    //measure[5] = 1;
+                    measure({3,4,5}) = temp;
 
                     measure_mat[i][j].push_back(measure);
 
@@ -347,20 +320,22 @@ std::vector<Eigen::MatrixXf> parameters::ret_B_i(){
 
                 for (int p = 0;p < measurements[i][j].size();p++){
 
-                    Eigen::MatrixXf B_insert = Eigen::MatrixXf::Zero(2*size,3*size);
+                    Eigen::MatrixXf B_insert = Eigen::MatrixXf::Zero(4,2);
 
-                    Eigen::VectorXf t = measurements[i][j][p]({3*i,1+3*i,2+3*i});
+                    B_insert({0,1},{0,1}) = Eigen::MatrixXf::Identity(2,2);
+
+
+                    Eigen::VectorXf t = measurements[i][j][p]({0,1,2});
                     Eigen::VectorXf t_tr = hom*t;
+                    //Eigen::VectorXf t_tr = measurements[i][j][p]({3,4,5});
+
 
                     Eigen::MatrixXf B1(2,3);
-                    Eigen::MatrixXf B2(2,3);
+                    B1 << 1/t_tr[0],0,-t_tr[0]/(t_tr[2]*t_tr[2]),0,1/t_tr[0],-t_tr[1]/(t_tr[2]*t_tr[2]);
+                    B1 = B1 *  hom({0,1,2},{0,1});
 
-                    B1 << 1/t[2],0,-t[0]/(t[2]*t[2]),0,1/t[2],-t[1]/(t[2]*t[2]);
+                    B_insert({2,3},{0,1}) = B1;
 
-                    B2 << (hom(0,0)*t_tr[2] - t_tr[0]*hom(2,0))/(t_tr[2] * t_tr[2]),(hom(0,1)*t_tr[2] - t_tr[0]*hom(2,1))/(t_tr[2] * t_tr[2]),(hom(0,2)*t_tr[2] - t_tr[0]*hom(2,2))/(t_tr[2] * t_tr[2]),(hom(1,0)*t_tr[2] - t_tr[1]*hom(2,0))/(t_tr[2] * t_tr[2]),(hom(1,1)*t_tr[2] - t_tr[1]*hom(2,1))/(t_tr[2] * t_tr[2]),(hom(1,2)*t_tr[2] - t_tr[1]*hom(2,2))/(t_tr[2] * t_tr[2]);
-
-                    B_insert({0 + 2*i,1 + 2*i},{0 + 3*i,1 + 3*i,2 + 3*i}) = B1;
-                    B_insert({0 + 2*j,1 + 2*j},{0 + 3*j,1 + 3*j,2 + 3*j}) = B2;
                     B_i.push_back(B_insert);
 
                 }
@@ -417,14 +392,15 @@ std::vector<Eigen::MatrixXf> parameters::ret_A_i(){
 
                 for (int p = 0;p < measurements[i][j].size();p++){
 
-                    Eigen::MatrixXf A_insert = Eigen::MatrixXf::Zero(2*size,3*size+1);
+                    Eigen::MatrixXf A_insert = Eigen::MatrixXf::Zero(4,3*size+1);
 
-                    Eigen::VectorXf t = measurements[i][j][p]({3*i,1+3*i,2+3*i});
+                    Eigen::VectorXf t = measurements[i][j][p]({0,1,2});
                     Eigen::VectorXf f_i = dfocal * t;
                     Eigen::VectorXf t_tr = hom * t;
+                    //Eigen::VectorXf t_tr = measurements[i][j][p]({3,4,5});
 
-                    A_insert.col(0)({2*i,1+2*i})<< 0 , 0;
-                    A_insert.col(0)({2*j,1+2*j})<< (f_i[0] * t_tr[2] - t_tr[0] * f_i[2])/(t_tr[2]*t_tr[2]),(f_i[1] * t_tr[2] - t_tr[0] * f_i[2])/(t_tr[2]*t_tr[2]);
+                    A_insert.col(0)({0,1})<< 0 , 0;
+                    A_insert.col(0)({2,3})<< (f_i[0] * t_tr[2] - t_tr[0] * f_i[2])/(t_tr[2]*t_tr[2]),(f_i[1] * t_tr[2] - t_tr[0] * f_i[2])/(t_tr[2]*t_tr[2]);
 
 
                     for (int k = 0;k < 3;k++){
@@ -437,11 +413,11 @@ std::vector<Eigen::MatrixXf> parameters::ret_A_i(){
                         Eigen::Matrix3f Hj = foc_ * rot_i * d_R_j * foc_inv;
                         Eigen::VectorXf vec_dRj = Hj * t;
 
-                        A_insert.col(3*i+1+k)({2*i,1+2*i})<< 0,0;
-                        A_insert.col(3*i+1+k)({2*j,1+2*j})<< (vec_dRi[0] * t_tr[2] - t_tr[0] * vec_dRi[2])/(t_tr[2]*t_tr[2]),(vec_dRi[1] * t_tr[2] - t_tr[0] * vec_dRi[2])/(t_tr[2]*t_tr[2]);
+                        A_insert.col(3*i+1+k)({0,1})<< 0,0;
+                        A_insert.col(3*i+1+k)({2,3})<< (vec_dRi[0] * t_tr[2] - t_tr[0] * vec_dRi[2])/(t_tr[2]*t_tr[2]),(vec_dRi[1] * t_tr[2] - t_tr[0] * vec_dRi[2])/(t_tr[2]*t_tr[2]);
 
-                        A_insert.col(3*j+1+k)({2*j,1+2*j})<< 0,0;
-                        A_insert.col(3*j+1+k)({2*i,1+2*i})<<(vec_dRj[0] * t_tr[2] - t_tr[0] * vec_dRj[2])/(t_tr[2]*t_tr[2]),(vec_dRj[1] * t_tr[2] - t_tr[0] * vec_dRj[2])/(t_tr[2]*t_tr[2]);
+                        A_insert.col(3*j+1+k)({0,1})<< 0,0;
+                        A_insert.col(3*j+1+k)({2,3})<<(vec_dRj[0] * t_tr[2] - t_tr[0] * vec_dRj[2])/(t_tr[2]*t_tr[2]),(vec_dRj[1] * t_tr[2] - t_tr[0] * vec_dRj[2])/(t_tr[2]*t_tr[2]);
 
                     }
 
@@ -456,74 +432,87 @@ std::vector<Eigen::MatrixXf> parameters::ret_A_i(){
 
 }
 
+void parameters::add_delta(std::vector<Eigen::VectorXf> delta_b,Eigen::VectorXf delta_a){
+
+    int c = 0;
+    focal_res = focal;
+
+    std::vector<Eigen::Vector3f>().swap(rot_res);
+    std::vector<std::vector<std::vector<Eigen::VectorXf>>>().swap(measurements_res);
+
+    copy(rot.begin(), rot.end(), back_inserter(rot_res));
+    copy(measurements.begin(), measurements.end(), back_inserter(measurements_res));
+
+    focal = focal + delta_a[0];
+
+    for (int i = 0;i < rot.size();i++){
+
+        rot[i] = delta_a({1+i*3,2+i*3,3+i*3});
+
+    }
+
+    for (int i = 0;i < adj.rows;i++){
+        for(int j = i;j < adj.cols;j++){
+
+            Eigen::MatrixXf hom = ret_hom(i, j);
+
+            if (.5 <= adj.at<double>(i,j)){
+
+                for (int p = 0;p < measurements[i][j].size();p++){
+
+                    Eigen::VectorXf temp(3);
+                    measurements[i][j][p]({0,1}) = measurements[i][j][p]({0,1}) + delta_b[c];
+
+                    temp({0,1}) = measurements[i][j][p]({0,1});
+                    temp[2] = 1;
+                    temp = hom * temp;
+                    measurements[i][j][p]({3,4,5}) = temp;
+
+                    c++;
+                }
+            }
+        }
+    }
+
+}
+
+void parameters::reset(){
+
+    focal = focal_res;
+
+    std::vector<Eigen::Vector3f>().swap(rot);
+    std::vector<std::vector<std::vector<Eigen::VectorXf>>>().swap(measurements);
+
+    copy(rot_res.begin(), rot_res.end(), back_inserter(rot));
+    copy(measurements_res.begin(), measurements_res.end(), back_inserter(measurements));
 
 }
 
 
-#ifndef BUNDLE_H
-#define BUNDLE_H
+std::vector<std::vector< cv::Matx33f >> parameters::ret_hmat(){
 
-#include <iostream>
-#include <Eigen/Dense>
-#include <vector>
-#include "_maths.h"
-#include <unsupported/Eigen/MatrixFunctions>
-#include <opencv2/core/eigen.hpp>
+    //std::vector<std::vector< cv::Matx33f >> hom_mat(adj.rows, std::vector<cv::Matx33f>(adj.cols, cv::Matx33f));
+    std::vector<std::vector<cv::Matx33f>> hom_mat(adj.rows, std::vector<cv::Matx33f>(adj.cols, cv::Matx33f::eye()));
 
+    for (int i = 0;i < adj.rows;i++){
+        for(int j = i;j < adj.cols;j++){
 
-namespace bund {
+            Eigen::MatrixXf hom = ret_hom(i, j);
 
-    Eigen::MatrixXf cov_mat_XY(Eigen::MatrixXf X,Eigen::MatrixXf Y);
+            if (.5 <= adj.at<double>(i,j)){
 
+                cv::eigen2cv(hom,hom_mat[i][j]);
 
-    class parameters {
+            }
+        }
+    }
 
-        public:
-
-            parameters(std::vector<cv::Matx33f> &H,const std::vector<maths::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match,const cv::Mat &adj,float foc,const std::vector<std::vector< cv::Matx33f >> &hom_mat);
-            Eigen::MatrixXf ret_hom(int i, int j);
-            std::vector<Eigen::MatrixXf> ret_B_i();
-            std::vector<Eigen::MatrixXf> ret_A_i();
-            std::vector<Eigen::VectorXf> ret_measurements();
-
-        private:
-
-            Eigen::MatrixXf get_rot(int i);
-            Eigen::MatrixXf get_foc(bool inv);
-
-            std::vector<std::vector<std::vector<Eigen::VectorXf>>> measurements;
-            float focal;
-            std::vector<Eigen::Vector3f> rot;
-            cv::Mat adj;
-
-    };
-
-
-
-    class E_func {
-
-        public:
-
-            E_func(const std::vector<maths::keypoints> &kp,std::vector<std::vector<std::vector<cv::DMatch>>> &match,const cv::Mat &adj);
-            std::vector<Eigen::VectorXf> error(const std::vector<Eigen::VectorXf> &t_to_q);
-            std::vector<Eigen::VectorXf> get_measurements();
-            std::vector<std::vector<int>> ret_idx_set();
-
-        private:
-
-            std::vector<Eigen::VectorXf> measurements;
-            std::vector<std::vector<int>> idx_set;
-
-    };
-
-
+    return hom_mat;
 
 }
 
-#endif
 
-
-
+}
 
 
 

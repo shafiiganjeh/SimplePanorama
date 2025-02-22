@@ -18,8 +18,18 @@
 namespace maths {
 
     struct keypoints{
+
         std::vector<cv::KeyPoint> keypoint;
         cv::Mat descriptor;
+
+    };
+
+    struct Homography{
+
+        cv::Matx33f H;
+        cv::Matx33f norm_b;
+        cv::Matx33f norm_a;
+
     };
 
     struct translation{
@@ -59,7 +69,7 @@ namespace maths {
 
     double homography_loss(const struct keypoints &kp1,const struct keypoints &kp2,const std::vector<cv::DMatch> &match , const cv::Matx33f &H );
 
-    cv::Matx33f find_homography(const struct keypoints &kp1,const struct keypoints &kp2,const std::vector<cv::DMatch> &match,int max_iter = 10,int sample = 4);
+    struct Homography find_homography(const struct keypoints &kp1,const struct keypoints &kp2,const std::vector<cv::DMatch> &match,int max_iter = 10,int sample = 4);
 
     float match_quality(const struct keypoints &kp1,const cv::Mat img1,const struct keypoints &kp2,const cv::Mat img2);
 
@@ -85,6 +95,7 @@ namespace maths {
         static void set_mat(const std::vector<cv::Mat> & imgs,std::vector<maths::keypoints> key_p);
         static cv::Mat return_adj_mat();
         static std::vector<std::vector< cv::Matx33f >> return_Hom_mat();
+        static std::vector<std::vector< struct Homography >> return_Norm_mat();
         static std::vector<std::vector<std::vector<cv::DMatch>>> return_match_mat();
         static thread get_threads(int n = 1);
 
@@ -95,6 +106,7 @@ namespace maths {
         float match_quality(const struct keypoints &kp1,const cv::Mat img1,const struct keypoints &kp2,const cv::Mat img2,int row,int col);
         static inline cv::Mat adj;
         static inline std::vector<std::vector< cv::Matx33f >> hom_mat;
+        static inline std::vector<std::vector< struct Homography >> norm_mat;
         static inline std::vector<std::vector<std::vector<cv::DMatch>>> match_mat;
         static inline std::vector<maths::keypoints> kpmat;
 
