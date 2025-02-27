@@ -97,7 +97,7 @@ namespace maths {
         static std::vector<std::vector< cv::Matx33f >> return_Hom_mat();
         static std::vector<std::vector< struct Homography >> return_Norm_mat();
         static std::vector<std::vector<std::vector<cv::DMatch>>> return_match_mat();
-        static thread get_threads(int n = 1);
+        static thread get_threads(int n);
 
         void cal_adj(const std::vector<cv::Mat> & imgs,const std::vector<std::vector<int>> idx);
 

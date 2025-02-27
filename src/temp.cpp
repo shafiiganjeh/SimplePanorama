@@ -524,7 +524,90 @@ namespace bund {
 
 
 
+parameters::parameters(std::vector<cv::Matx33f> &H,const std::vector<maths::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match,const cv::Mat &ad,float foc,const std::vector<std::vector< cv::Matx33f >> &hom_mat,const imgm::pan_img_transform &Tr){
 
+    adj = ad;
+    float eps = 5e-5;
+
+    std::vector<std::vector<std::vector<Eigen::VectorXf>>> measure_mat(adj.rows, std::vector<std::vector<Eigen::VectorXf>>(adj.cols));
+
+    std::vector<std::vector<Eigen::MatrixXf>> normalizeri(hom_mat.size(), std::vector<Eigen::MatrixXf>(hom_mat[0].size()));
+
+    std::vector<std::vector<Eigen::MatrixXf>> normalizerj(hom_mat.size(), std::vector<Eigen::MatrixXf>(hom_mat[0].size()));
+
+    for (int i = 0;i < adj.rows;i++){
+        for(int j = i;j < adj.cols;j++){
+
+            std::vector<cv::Vec3f> normi;
+            std::vector<cv::Vec3f> normj;
+
+            if (.5 <= adj.at<double>(i,j)){
+
+                for (int p = 0;p < match[i][j].size();p++){
+                    cv::Vec3f vec;
+                    cv::Vec2f tempf = kp[j].keypoint[match[i][j][p].trainIdx].pt;
+
+                    vec[0] = tempf[0];
+                    vec[1] = tempf[1];
+                    vec[2] = 1;
+                    normi.push_back(vec);
+
+                    tempf = kp[i].keypoint[match[i][j][p].queryIdx].pt;
+                    vec[0] = tempf[0];
+                    vec[1] = tempf[1];
+                    vec[2] = 1;
+                    normj.push_back(vec);
+
+                }
+
+                cv::Matx33f N = maths::Normalize2D(normi);
+                cv::cv2eigen(N,normalizeri[i][j]);
+
+                N = maths::Normalize2D(normj);
+                cv::cv2eigen(N,normalizerj[i][j]);
+
+            }
+        }
+    }
+
+    R_approx.normalizerTi = normalizeri;
+    R_approx.normalizerTj = normalizerj;
+
+    R_approx = approximate_R(hom_mat,Tr,foc);
+
+
+    for (int i = 0;i < adj.rows;i++){
+        for(int j = i;j < adj.cols;j++){
+
+            //std::cout<<"kapprox" << R_approx.K[i][j]<<"\n";
+            //std::cout<<"kinv" << R_approx.K[i][j].inverse()<<"\n";
+            //std::cout<<"R" << R_approx.R[i][j]<<"\n";
+
+            Eigen::MatrixXf hom = ret_hom(i,j);
+
+                for (int p = 0;p < match[i][j].size();p++){
+                    Eigen::VectorXf temp(3);
+                    Eigen::VectorXf measure = Eigen::VectorXf::Zero(6);
+
+                    write_to_eigen(temp, kp[j].keypoint[match[i][j][p].trainIdx].pt,2,0);
+                    temp[2] = 1;
+                    temp = normalizerj[i][j] * temp;
+                    measure({0,1,2}) = temp;
+
+                    temp = hom * temp;
+                    measure({3,4,5}) = temp;
+
+                    measure_mat[i][j].push_back(measure);
+
+                }
+            }
+
+        }
+    }
+
+    measurements = measure_mat;
+
+}
 
 
 
