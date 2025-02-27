@@ -442,6 +442,7 @@ std::vector<std::vector<T>> splitVector(const std::vector<T>& vec, int n) {
         }
 
         if (n > vec.size()) {
+
             throw std::invalid_argument("n should be less than vector size.");
         }
 
@@ -462,12 +463,14 @@ std::vector<std::vector<T>> splitVector(const std::vector<T>& vec, int n) {
         return result;
 }
 void _(){
-    int n;
+    int n = 1;
     std::vector<int> idx;
     std::vector<std::vector<int>> split_id = splitVector(idx, n);
 }
 
 thread graph_thread::get_threads(int n){
+
+        std::cout <<"vector size: "<<n<<"\n";
 
         int size = adj.rows;
         std::vector<std::vector<int>> calcs;

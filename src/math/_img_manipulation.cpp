@@ -4,12 +4,26 @@
 
 namespace imgm {
 
-    pan_img_transform::pan_img_transform(const cv::Mat& adj){
+    pan_img_transform::pan_img_transform(const cv::Mat* adj_mat,const std::vector<cv::Mat> *imags){
 
-            H_1j.resize(adj.cols);
-            img2pan.resize(adj.cols);
-            pan2img.resize(adj.cols);
-            translation.resize(adj.cols);
+            H_1j.resize(adj_mat->cols);
+            img2pan.resize(adj_mat->cols);
+            pan2img.resize(adj_mat->cols);
+            translation.resize(adj_mat->cols);
+
+            img_address = imags;
+            adj = adj_mat;
+
+            for (const cv::Mat& mt : *imags){
+
+                std::vector<float> size(2);
+                size[0] = mt.rows;
+                size[1] = mt.cols;
+                img_dimensions.push_back(size);
+
+            }
+
+
 
     }
 
@@ -97,8 +111,10 @@ namespace imgm {
             T(2, 2) = 1;
             T(0, 2) = -xstart;
             T(1, 2) = -ystart;
+            std::cout <<"translation "<<T<<"\n";
 
             T = T * H;
+            //T = H;
             // warp second image
             cv::Mat panorama;
             cv::warpPerspective(attach, panorama, T, cv::Size(xend - xstart + 1, yend - ystart + 1), cv::INTER_LINEAR);
@@ -162,42 +178,62 @@ namespace imgm {
             return dst;
 }
 
-class pan_img_transform calc_stitch_from_adj(const std::vector<cv::Mat> &imags,const std::vector<std::vector< cv::Matx33f >> &Hom,const cv::Mat& adj){
+//imags
+//adj
+void calc_stitch_from_adj(pan_img_transform &T,const std::vector<std::vector< cv::Matx33f >> &Hom){
 
-    pan_img_transform pan_var(adj);
+    pan_img_transform pan_var(T.adj,T.img_address );
 
     std::unordered_set<int> visited;
     cv::Mat row_sum;
 
-    cv::reduce(adj, row_sum, 1, cv::REDUCE_SUM, CV_64F);
+    cv::reduce(*T.adj, row_sum, 1, cv::REDUCE_SUM, CV_64F);
     double min=0, max=0;
     cv::Point minLoc, maxLoc;
     cv::minMaxLoc(row_sum, &min, &max, &minLoc, &maxLoc);
 
-    std::vector<std::pair<int, std::vector<int>>> tree = maths::bfs_ordered_with_neighbors(adj, maxLoc.y);
-    std::map<int, std::pair<int,double>> paths = maths::path_table(adj,tree ,maxLoc.y);
+    std::vector<std::pair<int, std::vector<int>>> tree = maths::bfs_ordered_with_neighbors(*T.adj, maxLoc.y);
+    std::map<int, std::pair<int,double>> paths = maths::path_table(*T.adj,tree ,maxLoc.y);
 
-    cv::Mat panorama(imags[maxLoc.y].size(),imags[maxLoc.y].type());//placeholder
-    panorama = imags[maxLoc.y];
+    cv::Mat panorama((*T.img_address)[maxLoc.y].size(),(*T.img_address)[maxLoc.y].type());//placeholder
+    panorama = (*T.img_address)[maxLoc.y];
     //Mat1f m(rows, cols);
 
-    pan_var.stitch_order.push_back(maxLoc.y);
-    pan_var.img2pan[maxLoc.y] = cv::Matx33f::eye();
-    pan_var.pan2img[maxLoc.y] = cv::Matx33f::eye();
-    pan_var.translation[maxLoc.y].T = cv::Matx33f::eye();
-    pan_var.translation[maxLoc.y].xstart = 0;
-    pan_var.translation[maxLoc.y].xend = imags[maxLoc.y].cols;
-    pan_var.translation[maxLoc.y].ystart = 0;
-    pan_var.translation[maxLoc.y].yend = imags[maxLoc.y].rows;
+    T.stitch_order.push_back(maxLoc.y);
+    T.img2pan[maxLoc.y] = cv::Matx33f::eye();
+    T.pan2img[maxLoc.y] = cv::Matx33f::eye();
+    T.translation[maxLoc.y].T = cv::Matx33f::eye();
+    T.translation[maxLoc.y].xstart = 0;
+    T.translation[maxLoc.y].xend = (*T.img_address)[maxLoc.y].cols;
+    T.translation[maxLoc.y].ystart = 0;
+    T.translation[maxLoc.y].yend = (*T.img_address)[maxLoc.y].rows;
 
+    Eigen::MatrixXd K(3,3);
+    K << T.focal,0,0,0,T.focal,0,0,0,1;
 
     cv::Mat translation = cv::Mat::eye(3,3, CV_32F);
-
+    std::map<int, Eigen::MatrixXd> rotations;
+    rotations[tree[0].first] = Eigen::MatrixXd::Identity(3,3);
 
     for (const std::pair<int, std::vector<int>> &node : tree){
         visited.insert(node.first);
 
+        //std::cout <<"node.first "<<node.first<<"\n";
+
         for (const int &node_visit : node.second){
+
+            if (!(rotations.count(node_visit))){
+
+                //std::cout <<"node_visit "<<node_visit<<"\n";
+                Eigen::MatrixXd H_eigen;
+
+                cv::cv2eigen(static_cast<cv::Matx33d>(Hom[node.first][node_visit]),H_eigen);
+
+                Eigen::MatrixXd R_H = K.inverse() * H_eigen * K ;//* rotations[node.first];
+                //std::cout <<"rh "<<K<<"\n";
+                R_H = ( R_H * R_H.transpose() ).pow(0.5) * (R_H.transpose()).inverse();
+                rotations[node_visit] = R_H;
+            }
 
             if(visited.count(node_visit) == 0){
                 cv::Mat H = cv::Mat::eye(3,3, CV_32F);
@@ -211,23 +247,23 @@ class pan_img_transform calc_stitch_from_adj(const std::vector<cv::Mat> &imags,c
                     node_current = paths[node_current].first;
 
                 }
-                pan_var.H_1j[node_visit] = H;
+                T.H_1j[node_visit] = H;
 
                 maths::translation Tr;
                 H = translation*H;
 
-                pan_var.stitch_order.push_back(node_visit);
+                T.stitch_order.push_back(node_visit);
 
-                Tr = maths::get_translation(panorama, imags[node_current],H);
+                Tr = maths::get_translation(panorama, (*T.img_address)[node_current],H);
                 panorama.create(Tr.yend - Tr.ystart + 1, Tr.xend - Tr.xstart + 1, panorama.type());
 
                 cv::Mat Hinv = Tr.T*H;
-                pan_var.img2pan[node_visit] = Hinv;
+                T.img2pan[node_visit] = Hinv;
                 Hinv = Hinv.inv();
-                pan_var.pan2img[node_visit] = Hinv;
+                T.pan2img[node_visit] = Hinv;
 
 
-                pan_var.translation[node_visit] = Tr;
+                T.translation[node_visit] = Tr;
                 translation = Tr.T*translation;
 
             }
@@ -235,18 +271,22 @@ class pan_img_transform calc_stitch_from_adj(const std::vector<cv::Mat> &imags,c
     }
     //cv::imshow("Image Display",panorama);
     //cv::waitKey(0);
-    pan_var.H_1j[pan_var.stitch_order[0]] = cv::Matx33f::eye();
+    T.H_1j[T.stitch_order[0]] = cv::Matx33f::eye();
 
-    for (int i = pan_var.stitch_order.size() - 1 ; i > 0 ;i-- ){
+    for (int i = T.stitch_order.size() - 1 ; i > 0 ;i-- ){
 
         for (int j = i-1;j >= 0 ;j--  ){
 
-            pan_var.img2pan[pan_var.stitch_order[j]] = pan_var.translation[pan_var.stitch_order[i]].T * pan_var.img2pan[pan_var.stitch_order[j]];
+            T.img2pan[T.stitch_order[j]] = T.translation[T.stitch_order[i]].T * T.img2pan[T.stitch_order[j]];
 
         }
     }
 
-    return pan_var;
+    for(int i = 0 ; i < rotations.size();i++ ){
+
+        T.rot.push_back( rotations[i] );
+
+    }
 
 }
 

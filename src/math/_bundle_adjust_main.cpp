@@ -5,11 +5,11 @@
 namespace bundm {
 
 
-Eigen::MatrixXf adjuster::ret_uf(const std::vector<Eigen::MatrixXf> &avec){
+Eigen::MatrixXd adjuster::ret_uf(const std::vector<Eigen::MatrixXd> &avec){
 
-    Eigen::MatrixXf U;
+    Eigen::MatrixXd U;
     int c = avec[0].cols();
-    U = Eigen::MatrixXf::Zero(c,c);
+    U = Eigen::MatrixXd::Zero(c,c);
 
      for(int i = 0;i < avec.size();i++){
 
@@ -21,9 +21,9 @@ Eigen::MatrixXf adjuster::ret_uf(const std::vector<Eigen::MatrixXf> &avec){
 }
 
 
-std::vector<Eigen::MatrixXf> adjuster::sum_transpose(const std::vector<Eigen::MatrixXf> &bvec,const std::vector<Eigen::MatrixXf> &avec){
+std::vector<Eigen::MatrixXd> adjuster::sum_transpose(const std::vector<Eigen::MatrixXd> &bvec,const std::vector<Eigen::MatrixXd> &avec){
 
-    std::vector<Eigen::MatrixXf> W;
+    std::vector<Eigen::MatrixXd> W;
 
     for(int i = 0;i < avec.size();i++){
 
@@ -35,9 +35,9 @@ std::vector<Eigen::MatrixXf> adjuster::sum_transpose(const std::vector<Eigen::Ma
 }
 
 
-Eigen::VectorXf adjuster::ret_Ea(const std::vector<Eigen::MatrixXf> &avec,const std::vector<Eigen::VectorXf> &e_vec){
+Eigen::VectorXd adjuster::ret_Ea(const std::vector<Eigen::MatrixXd> &avec,const std::vector<Eigen::VectorXd> &e_vec){
 
-    Eigen::VectorXf Ev = Eigen::VectorXf::Zero(avec[0].cols());
+    Eigen::VectorXd Ev = Eigen::VectorXd::Zero(avec[0].cols());
 
     for(int i = 0;i < avec.size();i++){
 
@@ -49,9 +49,9 @@ Eigen::VectorXf adjuster::ret_Ea(const std::vector<Eigen::MatrixXf> &avec,const 
 }
 
 
-std::vector<Eigen::VectorXf> adjuster::ret_Eb(const std::vector<Eigen::MatrixXf> &bvec,const std::vector<Eigen::VectorXf> &e_vec){
+std::vector<Eigen::VectorXd> adjuster::ret_Eb(const std::vector<Eigen::MatrixXd> &bvec,const std::vector<Eigen::VectorXd> &e_vec){
 
-    std::vector<Eigen::VectorXf> Ev;
+    std::vector<Eigen::VectorXd> Ev;
 
     for(int i = 0;i < bvec.size();i++){
 
@@ -63,31 +63,36 @@ std::vector<Eigen::VectorXf> adjuster::ret_Eb(const std::vector<Eigen::MatrixXf>
 }
 
 
-adjuster::adjuster(std::vector<cv::Matx33f> &H,const std::vector<maths::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match,const cv::Mat &adj,float foc,float lmbd){
+adjuster::adjuster(const std::vector<maths::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match,const cv::Mat &adj,float foc,float lmbd,const std::vector<std::vector< cv::Matx33f >> &hom_mat,const imgm::pan_img_transform &Tr){
 
     par_er = std::make_shared<class bund::E_func>(kp,match,adj);
-    par_img = std::make_shared<class bund::parameters>(H,kp,match,adj,foc);
+    par_img = std::make_shared<class bund::parameters>(kp,match,Tr);
     iter.lambda = lmbd;
+    iter.hom = par_img -> ret_hmat();
 
 }
 
 
 void adjuster::get_iter_par(){
 
-    std::vector<Eigen::MatrixXf> avec = par_img -> ret_A_i();
+    std::vector<Eigen::MatrixXd> avec = par_img -> ret_A_i_num();
 
     iter.u_vecf = ret_uf(avec);
 
-    std::vector<Eigen::MatrixXf> bvec = par_img -> ret_B_i();
+    std::vector<Eigen::MatrixXd> bvec = par_img -> ret_B_i_num();
     iter.v_vec = sum_transpose(bvec,bvec);
 
     iter.w_vec = sum_transpose(bvec,avec);
 
-    std::vector<Eigen::VectorXf> ms = par_img -> ret_measurements();
+    std::vector<Eigen::VectorXd> ms = par_img -> ret_measurements();
+    //struct bund::approx normalizer = par_img -> ret_all();
+
     iter.e_vec = par_er -> error(ms);
     iter.eA_vec = ret_Ea(avec,iter.e_vec);
 
     iter.eB_vec = ret_Eb(bvec,iter.e_vec);
+
+
 }
 
 
@@ -110,9 +115,9 @@ void adjuster::augment(){
 
 void adjuster::get_error(){
 
-    Eigen::MatrixXf sum_wy = Eigen::MatrixXf::Zero(iter.Y_vec[0].rows(),iter.w_vec[0].rows());
-    Eigen::VectorXf sum_YEb = Eigen::VectorXf::Zero(iter.Y_vec[0].rows());
-    Eigen::MatrixXf uvecf = iter.u_vecf_augmented;
+    Eigen::MatrixXd sum_wy = Eigen::MatrixXd::Zero(iter.Y_vec[0].rows(),iter.w_vec[0].rows());
+    Eigen::VectorXd sum_YEb = Eigen::VectorXd::Zero(iter.Y_vec[0].rows());
+    Eigen::MatrixXd uvecf = iter.u_vecf_augmented;
 
     for(int i = 0;i < iter.w_vec.size();i++){
 
@@ -140,36 +145,44 @@ struct inter_par adjuster::iterate(){
     float error_new;
     float lambda = iter.lambda;
 
-iter.hom = par_img -> ret_hmat();
-return iter;
+    std::vector<Eigen::VectorXd> ms = par_img -> ret_measurements();
+    //struct bund::approx normalizer = par_img -> ret_all();
+
+    std::vector<Eigen::VectorXd> new_error = par_er -> error(ms);
+
+
+
 
 
     int break_counter = 0;
-    for (int it = 0;it<100;it++){
+    for (int it = 0;it<20;it++){
 
         get_iter_par();
         augment();
         get_error();
 
         error_start = 0;
-        for (Eigen::VectorXf e : iter.e_vec){
+        for (Eigen::VectorXd e : iter.e_vec){
 
             error_start = error_start + e.norm();
 
         }
+        std::cout <<"error "<<error_start<<"\n";
 
         par_img -> add_delta(iter.delta_b,iter.delta_a);
 
-        std::vector<Eigen::VectorXf> ms = par_img -> ret_measurements();
-        std::vector<Eigen::VectorXf> new_error = par_er -> error(ms);
+        std::vector<Eigen::VectorXd> ms = par_img -> ret_measurements();
+        //struct bund::approx normalizer = par_img -> ret_all();
+        std::vector<Eigen::VectorXd> new_error = par_er -> error(ms);
 
         error_new = 0;
-        for (Eigen::VectorXf e : new_error){
+        for (Eigen::VectorXd e : new_error){
 
             error_new = error_new + e.norm();
 
         }
 
+        std::cout<<"\n" <<"test error: " << error_new<<"\n";
         if( error_start > error_new ){
 
             iter.lambda = iter.lambda / 10;
@@ -194,11 +207,19 @@ return iter;
     }
 
     iter.hom = par_img -> ret_hmat();
-
     return iter;
 
 }
 
+/*
+std::vector<std::vector< cv::Matx33d >> adjuster::ret_k(){
+
+    std::vector<std::vector< cv::Matx33d >> k;
+    k = par_img -> ret_kmat();
+
+    return k;
+}
+*/
 
 }
 

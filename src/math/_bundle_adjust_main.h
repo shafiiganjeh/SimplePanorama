@@ -11,22 +11,22 @@ namespace bundm {
 
         float lambda;
 
-        std::vector<Eigen::VectorXf> e_vec;
+        std::vector<Eigen::VectorXd> e_vec;
 
-        Eigen::MatrixXf u_vecf;
-        std::vector<Eigen::MatrixXf> v_vec;
-        std::vector<Eigen::MatrixXf> w_vec;
-        Eigen::VectorXf eA_vec;
-        std::vector<Eigen::VectorXf> eB_vec;
+        Eigen::MatrixXd u_vecf;
+        std::vector<Eigen::MatrixXd> v_vec;
+        std::vector<Eigen::MatrixXd> w_vec;
+        Eigen::VectorXd eA_vec;
+        std::vector<Eigen::VectorXd> eB_vec;
 
-        Eigen::MatrixXf u_vecf_augmented;
-        std::vector<Eigen::MatrixXf> v_vec_augmented;
-        std::vector<Eigen::MatrixXf> Y_vec;
+        Eigen::MatrixXd u_vecf_augmented;
+        std::vector<Eigen::MatrixXd> v_vec_augmented;
+        std::vector<Eigen::MatrixXd> Y_vec;
 
-        std::vector<Eigen::VectorXf> delta_b;
-        Eigen::VectorXf delta_a;
+        std::vector<Eigen::VectorXd> delta_b;
+        Eigen::VectorXd delta_a;
 
-        std::vector<std::vector< cv::Matx33f >> hom;
+        std::vector<std::vector< cv::Matx33d >> hom;
 
     };
 
@@ -34,9 +34,10 @@ namespace bundm {
 
         public:
 
-            adjuster(std::vector<cv::Matx33f> &H,const std::vector<maths::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match,const cv::Mat &adj,float foc,float lmbd);
+            adjuster(const std::vector<maths::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match,const cv::Mat &adj,float foc,float lmbd,const std::vector<std::vector< cv::Matx33f >> &hom_mat,const imgm::pan_img_transform &Tr);
 
             struct inter_par iterate();
+            std::vector<std::vector< cv::Matx33d >> ret_k();
 
         private:
 
@@ -44,21 +45,19 @@ namespace bundm {
             std::shared_ptr<class bund::E_func> par_er;
             struct inter_par iter;
 
-            Eigen::MatrixXf ret_uf(const std::vector<Eigen::MatrixXf> &avec);
+            Eigen::MatrixXd ret_uf(const std::vector<Eigen::MatrixXd> &avec);
 
-            std::vector<Eigen::MatrixXf> sum_transpose(const std::vector<Eigen::MatrixXf> &bvec,const std::vector<Eigen::MatrixXf> &avec);
+            std::vector<Eigen::MatrixXd> sum_transpose(const std::vector<Eigen::MatrixXd> &bvec,const std::vector<Eigen::MatrixXd> &avec);
 
-            Eigen::VectorXf ret_Ea(const std::vector<Eigen::MatrixXf> &avec,const std::vector<Eigen::VectorXf> &e_vec);
+            Eigen::VectorXd ret_Ea(const std::vector<Eigen::MatrixXd> &avec,const std::vector<Eigen::VectorXd> &e_vec);
 
-            std::vector<Eigen::VectorXf> ret_Eb(const std::vector<Eigen::MatrixXf> &bvec,const std::vector<Eigen::VectorXf> &e_vec);
+            std::vector<Eigen::VectorXd> ret_Eb(const std::vector<Eigen::MatrixXd> &bvec,const std::vector<Eigen::VectorXd> &e_vec);
 
             void get_iter_par();
             void augment();
             void get_error();
 
     };
-
-
 
 }
 
