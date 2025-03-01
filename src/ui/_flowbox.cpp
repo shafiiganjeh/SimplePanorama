@@ -152,10 +152,13 @@ void connect_signals(struct flowbox_ *flowbox,struct main_window_ *main_window){
 }
 
 void build_flowbox(GtkWidget *add_to,struct flowbox_ *flowbox,struct main_window_ *main_window){
+        //build scrollable flowbox with multiple selections
         flowbox->flowbox_main = gtk_flow_box_new();
         gtk_flow_box_set_selection_mode(GTK_FLOW_BOX(flowbox->flowbox_main),GTK_SELECTION_MULTIPLE);
         flowbox->flowbox_scrolled_window = gtk_scrolled_window_new (NULL, NULL);
+        //enable drag and drop
         gtk_drag_dest_set(GTK_WIDGET(flowbox->flowbox_main), GTK_DEST_DEFAULT_ALL, targetentries, 1, GDK_ACTION_COPY);
+        //add viewport for scrolling
         flowbox->flowbox_scrolled_window_viewpoint = gtk_viewport_new (NULL, NULL);
 
         gtk_container_add(GTK_CONTAINER(flowbox->flowbox_scrolled_window_viewpoint), flowbox->flowbox_main);
@@ -167,4 +170,5 @@ void build_flowbox(GtkWidget *add_to,struct flowbox_ *flowbox,struct main_window
 
         connect_signals(flowbox,main_window);
 }
+
 }

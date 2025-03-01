@@ -5,6 +5,7 @@
 #include "_flowbox.h"
 #include "_create_menu.h"
 #include "_toolbar.h"
+#include "_image_viewer.h"
 
 
 void build_window(int argc, char** argv,struct main_window_ *main_window);

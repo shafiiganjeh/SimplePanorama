@@ -34,9 +34,19 @@ gboolean cut(GtkWidget* self,GdkEventButton *event,struct main_window_ *main_win
 
 }
 
+
+gboolean new_pan(GtkWidget* self,GdkEventButton *event,struct main_window_ *main_window){
+
+        imgv::create_viewer(main_window,self,event);
+
+        return FALSE;
+}
+
+
 void connect_signals(struct main_window_ *main_window){
 
         g_signal_connect(main_window->toolbar.toolbar_main_cut, "button-release-event", G_CALLBACK(cut), main_window);
+        g_signal_connect(main_window->toolbar.toolbar_main_new, "button-release-event", G_CALLBACK(new_pan), main_window);
 
 }
 
@@ -49,6 +59,12 @@ void create_toolbar(GtkWidget *add_to,struct toolbar_ *toolbar,struct main_windo
         toolbar->toolbar_main_cut = gtk_tool_button_new (toolbar->toolbar_main_cut_img,"Cut");
         gtk_toolbar_insert(GTK_TOOLBAR(toolbar->toolbar_main),toolbar->toolbar_main_cut,0);
         gtk_widget_set_tooltip_text (GTK_WIDGET(toolbar->toolbar_main_cut),"Cut selection");
+
+        toolbar->toolbar_main_new_img = gtk_image_new_from_icon_name ("document-new",GTK_ICON_SIZE_SMALL_TOOLBAR );
+        toolbar->toolbar_main_new = gtk_tool_button_new (toolbar->toolbar_main_new_img,"New");
+        gtk_toolbar_insert(GTK_TOOLBAR(toolbar->toolbar_main),toolbar->toolbar_main_new,1);
+        gtk_widget_set_tooltip_text (GTK_WIDGET(toolbar->toolbar_main_new),"Panorama from selection");
+
 
         gtk_box_pack_end (GTK_BOX(add_to),toolbar->toolbar_main,FALSE,FALSE,0);
 

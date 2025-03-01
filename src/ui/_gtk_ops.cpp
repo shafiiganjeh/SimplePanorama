@@ -24,10 +24,13 @@ int findStringIndex(const std::vector<std::string>& vec, const std::string& targ
 
 std::tuple<const std::vector<uint8_t>,const int,const int> to_img_buffer(const cv::Mat& img){
         cv::Mat RGB_conv;
+
         cv::cvtColor(img, RGB_conv, cv::COLOR_BGR2RGB);
 
 
         std::vector<uint8_t> RGB_buffer;
+
+
 
         if (RGB_conv.isContinuous()) {
         RGB_buffer.assign(RGB_conv.data, RGB_conv.data + RGB_conv.total()*RGB_conv.channels());
@@ -41,11 +44,11 @@ std::tuple<const std::vector<uint8_t>,const int,const int> to_img_buffer(const c
 }
 
 
-GtkImage* cv_image_to_gtk_image(cv::Mat cv_image){
+GtkImage* cv_image_to_gtk_image(const cv::Mat &cv_image){
 
         auto [RGB_buffer,col,row] = to_img_buffer(cv_image);
         GBytes* ad = g_bytes_new (&RGB_buffer[0],col*row*3);
-        GdkPixbuf* pixbuff = gdk_pixbuf_new_from_bytes (ad,GDK_COLORSPACE_RGB,FALSE,8,col,row,col*3);
+        GdkPixbuf* pixbuff = gdk_pixbuf_new_from_bytes (ad,GDK_COLORSPACE_RGB,FALSE,8,row,col,row*3);
         return GTK_IMAGE(gtk_image_new_from_pixbuf (pixbuff));
 }
 
