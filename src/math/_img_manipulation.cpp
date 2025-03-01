@@ -56,6 +56,26 @@ namespace imgm {
     }
 
 
+    cv::Mat resizeKeepAspectRatio(const cv::Mat& input, int desiredWidth) {
+
+            int originalWidth = input.cols;
+            int originalHeight = input.rows;
+
+            double scale = static_cast<double>(desiredWidth) / originalWidth;
+            int desiredHeight = cvRound(originalHeight * scale);
+
+            int interpolation = (desiredWidth > originalWidth) ?
+                                cv::INTER_LINEAR :   // Enlarging
+                                cv::INTER_AREA;       // Shrinking
+
+
+            cv::Mat resizedImage;
+            cv::resize(input, resizedImage, cv::Size(desiredWidth, desiredHeight), 0, 0, interpolation);
+
+            return resizedImage;
+    }
+
+
     cv::Mat file_to_cv(std::string path){
 
             std::ifstream file(path, std::ios::binary);

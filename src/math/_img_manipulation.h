@@ -40,6 +40,8 @@ namespace imgm {
 
     cv::Mat resize_image( const cv::Mat& img, int target_width = 300);
 
+    cv::Mat resizeKeepAspectRatio(const cv::Mat& input, int desiredWidth);
+
     cv::Mat file_to_cv(std::string path);
 
     cv::Mat stitch(const cv::Mat &base, const cv::Mat &attach, const cv::Matx33f &H);

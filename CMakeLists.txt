@@ -39,6 +39,10 @@ add_library(code
     ${CMAKE_SOURCE_DIR}/src/ui/_gtk_vars.h
     ${CMAKE_SOURCE_DIR}/src/ui/_gtk_ops.cpp
     ${CMAKE_SOURCE_DIR}/src/ui/_gtk_ops.h
+    ${CMAKE_SOURCE_DIR}/src/ui/_image_viewer.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/_image_viewer.h
+    ${CMAKE_SOURCE_DIR}/src/ui/_viewer_toolbar.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/_viewer_toolbar.h
     ${CMAKE_SOURCE_DIR}/src/math/_img_manipulation.cpp
     ${CMAKE_SOURCE_DIR}/src/math/_img_manipulation.h
     ${CMAKE_SOURCE_DIR}/src/math/_maths.h

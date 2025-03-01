@@ -12,7 +12,7 @@ int findStringIndex(const std::vector<std::string>& vec, const std::string& targ
 
 std::tuple<const std::vector<uint8_t>,const int,const int> to_img_buffer(const cv::Mat& img);
 
-GtkImage* cv_image_to_gtk_image(cv::Mat cv_image);
+GtkImage* cv_image_to_gtk_image(const cv::Mat &cv_image);
 
 std::string path_from_uri(std::string uri);
 
