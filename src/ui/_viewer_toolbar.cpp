@@ -48,7 +48,6 @@ namespace imgvt{
         g_signal_connect(main_window->toolbar.toolbar_main_zin, "button-release-event", G_CALLBACK(zin), main_window);
         g_signal_connect(main_window->toolbar.toolbar_main_zout, "button-release-event", G_CALLBACK(zout), main_window);
 
-
 }
 
 

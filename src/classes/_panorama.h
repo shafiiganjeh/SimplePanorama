@@ -8,26 +8,52 @@
 #include "_maths.h"
 #include "_img_manipulation.h"
 #include "_image.h"
+#include "_blending.h"
+#include "_bundle_adjust_main.h"
 
 #define ORDER_AS_IS 1
+using thread = std::vector<std::vector<std::vector<int>>>;
 
 namespace pan{
 
+    enum Blending {
+        NO_BLEND,
+        SIMPLE_BLEND,
+    };
+
+    struct config{
+
+        bool gain_compensation = false;
+        bool bundle_adjust = false;
+        int blend = SIMPLE_BLEND;
+        float focal = 1500;
+        int init_size = 800;
+        float lambda = .0001;
+
+    };
 
 class panorama : public img::images {
 
     public:
 
-        unsigned int order_mode = ORDER_AS_IS;
+        panorama(std::vector<std::string> files) : img::images(files) {}
+        void load_resized(int width);
+        void get_adj_par(int threads = 3);
+        cv::Mat get_adj();
+        std::vector<std::vector<std::vector<cv::DMatch>>> get_match_mat();
+        std::vector<std::vector< cv::Matx33f >> get_hom_mat();
 
-        cv::Mat panorama_image;
+        void create_panorama(int threads,struct config conf);
 
     private:
 
         std::vector<int> image_order;
-        std::vector<maths::keypoints> img_keypoints;
+        cv::Mat panorama_image;
 
-        void extract_keypoints(std::vector<cv::Mat> img_data);
+        cv::Mat adj;
+        std::vector<std::vector< cv::Matx33f >> hom_mat;
+        std::vector<std::vector<std::vector<cv::DMatch>>> match_mat;
+
 };
 
 }

@@ -24,8 +24,11 @@ namespace bund {
             std::vector<Eigen::MatrixXd> ret_A_i();
             std::vector<Eigen::MatrixXd> ret_A_i_num();
             std::vector<Eigen::VectorXd> ret_measurements();
-            std::vector<std::vector< cv::Matx33d >> ret_hmat();
+            std::vector<std::vector< cv::Matx33f >> ret_hmat();
+            std::vector<double> ret_focal();
             Eigen::MatrixXd ret_hom(int i, int j);
+            std::vector<Eigen::MatrixXd> ret_rot();
+            std::vector<Eigen::MatrixXd> ret_K();
             void add_delta(std::vector<Eigen::VectorXd> delta_b,Eigen::VectorXd delta_a);
             void reset();
 
@@ -43,6 +46,8 @@ namespace bund {
             std::vector<Eigen::MatrixXd> rot_res;
             std::vector<Eigen::MatrixXd> rot_vec;
             std::vector<Eigen::MatrixXd> rot_vec_res;
+            std::vector<Eigen::Vector2d> principal_vec;
+            std::vector<Eigen::Vector2d> principal_vec_res;
 
             std::vector<Eigen::MatrixXd> K;
             std::vector<Eigen::MatrixXd> K_inv;

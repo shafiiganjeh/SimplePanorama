@@ -6,8 +6,6 @@ using Eigen::MatrixXf;
 using Eigen::VectorXf;
 
 
-
-
 void write_to_eigen(Eigen::VectorXd &v,const cv::Vec2d &cv_v,int n,int st){
 
     for(int i = 0;i < n;i++){
@@ -94,46 +92,52 @@ Eigen::MatrixXd parameters::ret_hom(int i, int j){
     return Hom;
 }
 
-Eigen::MatrixXd to_K(double focal){
+Eigen::MatrixXd to_K(double focal,const Eigen::Vector2d &pvec){
 
     Eigen::MatrixXd v(3,3);
-    v << focal,0,0,0,focal,0,0,0,1;
+    v << focal,0,pvec[0],0,focal,pvec[1],0,0,1;
 
     return v;
 }
 
-Eigen::MatrixXd to_K_inv(double focal){
+Eigen::MatrixXd to_K_inv(double focal,const Eigen::Vector2d &pvec){
 
     Eigen::MatrixXd v(3,3);
-    v << 1/focal,0,0,0,1/focal,0,0,0,1;
+    v << focal,0,pvec[0],0,focal,pvec[1],0,0,1;
 
-    return v;
+    return v.inverse().eval();
 }
 
 parameters::parameters(const std::vector<maths::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match,const class imgm::pan_img_transform &T){
 
     //double focal = T.focal;
     adj = *T.adj;
+    adj = adj  + adj.t();
     float eps = 5e-5;
 
     std::cout<<"adj :"<< adj<<" \n";
 
     for(int i = 0 ; i < T.rot.size();i++){
-
+        std::cout<<"rot :"<< T.rot[i] <<" \n";
         focal.push_back(T.focal);
+
         cv::Mat r_transform;
         rot.push_back(T.rot[i]);
-
         cv::eigen2cv(T.rot[i],r_transform);
         cv::Mat r_transform_vec;
         cv::Rodrigues(r_transform, r_transform_vec);
         Eigen::MatrixXd rot_v;
         cv::cv2eigen(r_transform_vec,rot_v);
-
         rot_vec.push_back(rot_v);
 
-        K.push_back(to_K(focal[i]));
-        K_inv.push_back(to_K_inv(focal[i]));
+
+        //principal_vec
+        Eigen::Vector2d pvec;
+        pvec <<0,0;
+        principal_vec.push_back(pvec);
+        //
+        K.push_back(to_K(focal[i],pvec));
+        K_inv.push_back(to_K_inv(focal[i],pvec));
 
     }
 
@@ -190,33 +194,33 @@ std::vector<Eigen::VectorXd> parameters::ret_measurements(){
     return M;
 }
 
-/*
-std::vector<Eigen::MatrixXf> parameters::ret_B_i(){
 
-    int size = rot.size();
-    std::vector<Eigen::MatrixXf> B_i;
+
+std::vector<Eigen::MatrixXd> parameters::ret_B_i(){
+
+    std::vector<Eigen::MatrixXd> B_i;
 
     for (int i = 0;i < adj.rows;i++){
         for(int j = i;j < adj.cols;j++){
 
             if (.5 <= adj.at<double>(i,j)){
 
-                Eigen::MatrixXf hom = ret_hom(i,j);
+                Eigen::MatrixXd hom = ret_hom(i,j);
 
                 for (int p = 0;p < measurements[i][j].size();p++){
 
-                    Eigen::MatrixXf B_insert = Eigen::MatrixXf::Zero(4,2);
+                    Eigen::MatrixXd B_insert = Eigen::MatrixXd::Zero(4,2);
 
-                    B_insert({0,1},{0,1}) = Eigen::MatrixXf::Identity(2,2);
+                    B_insert({0,1},{0,1}) = Eigen::MatrixXd::Identity(2,2);
 
 
-                    Eigen::VectorXf t = measurements[i][j][p]({0,1,2});
-                    Eigen::VectorXf t_tr = hom*t;
+                    Eigen::VectorXd t = measurements[i][j][p]({0,1,2});
+                    Eigen::VectorXd t_tr = hom*t;
                     //Eigen::VectorXf t_tr = measurements[i][j][p]({3,4,5});
 
 
-                    Eigen::MatrixXf B1(2,3);
-                    B1 << 1/t_tr[0],0,-t_tr[0]/(t_tr[2]*t_tr[2]),0,1/t_tr[0],-t_tr[1]/(t_tr[2]*t_tr[2]);
+                    Eigen::MatrixXd B1(2,3);
+                    B1 << 1/t_tr[2],0,-t_tr[0]/(t_tr[2]*t_tr[2]),0,1/t_tr[2],-t_tr[1]/(t_tr[2]*t_tr[2]);
                     B1 = B1 *  hom({0,1,2},{0,1});
 
                     B_insert({2,3},{0,1}) = B1;
@@ -231,7 +235,7 @@ std::vector<Eigen::MatrixXf> parameters::ret_B_i(){
     return B_i;
 
 }
-*/
+
 
 
 Eigen::VectorXd d_funcb(Eigen::VectorXd &inp_v,const Eigen::VectorXd &par){
@@ -318,77 +322,97 @@ std::vector<Eigen::MatrixXd> parameters::ret_B_i_num(){
 
 }
 
-/*
-Eigen::Matrix3f get_dR(const Eigen::Vector3f &rot_vec,const Eigen::MatrixXf &rot_mat,int axis,bool transposed){
 
-    Eigen::Vector3f e_i = Eigen::Vector3f::Zero();
-    Eigen::Matrix3f Id = Eigen::Matrix3f::Identity();
+Eigen::Matrix3d get_dR(const Eigen::Vector3d &rot_vec,const Eigen::MatrixXd &rot_mat,int axis,bool transposed){
+
+    double eps = 1e-8;
+
+    Eigen::Vector3d e_i = Eigen::Vector3d::Zero();
+    Eigen::Matrix3d Id = Eigen::Matrix3d::Identity();
     e_i[axis] = 1;
 
-    Eigen::Vector3f v_cross = rot_vec.cross( ( Id - rot_mat ) * e_i );
-    Eigen::Matrix3f v_cx(3,3);
+    Eigen::Vector3d v_cross = rot_vec.cross( ( Id - rot_mat ) * e_i );
+    Eigen::Matrix3d v_cx(3,3);
     v_cx << 0,-v_cross[2],v_cross[1],v_cross[2],0,-v_cross[0],-v_cross[1],v_cross[0],0;
 
-    Eigen::MatrixXf v_x(3,3);
+    Eigen::MatrixXd v_x(3,3);
     v_x << 0,-rot_vec[2],rot_vec[1],rot_vec[2],0,-rot_vec[0],-rot_vec[1],rot_vec[0],0;
     v_x = v_x * rot_vec[axis];
     float sq = rot_vec.squaredNorm();
 
-    Eigen::Matrix3f d_rot = ( ( v_x + v_cx )/sq ) * rot_mat;
+    Eigen::Matrix3d d_rot = ( ( v_x + v_cx ) / (sq + eps) ) * rot_mat;
 
     if (transposed){d_rot.transposeInPlace();}
     return d_rot;
 }
-*/
-/*
-std::vector<Eigen::MatrixXf> parameters::ret_A_i(){
 
-    int size = rot.size();
-    std::vector<Eigen::MatrixXf> A_i;
+
+
+std::vector<Eigen::MatrixXd> parameters::ret_A_i(){
+
+    int size = 3*rot_vec.size()+focal.size() + 2*principal_vec.size();
+    std::vector<Eigen::MatrixXd> A_i;
 
     for (int i = 0;i < adj.rows;i++){
         for(int j = i;j < adj.cols;j++){
 
-            Eigen::MatrixXf hom = ret_hom(i,j);
-            Eigen::MatrixXf rot_i = get_rot(i);
-            Eigen::MatrixXf rot_j = get_rot(j);
-            Eigen::MatrixXf foc_inv = get_foc(true);
-            Eigen::MatrixXf foc_ = get_foc(false);
-            Eigen::Matrix3f df;
-            df << 1,0,0,0,1,0,0,0,0;
-
-            Eigen::MatrixXf dfocal = ( df * rot_j * rot_i.transpose() * foc_inv - foc_ * rot_j * rot_i.transpose() * foc_inv * df * foc_inv );
-
+            //K[j] * rot[j] * rot[i].transpose() * K_inv[i];
             if (.5 <= adj.at<double>(i,j)){
+
+                Eigen::MatrixXd hom = ret_hom(i,j);
+
+                Eigen::Matrix3d df;
+                df << 1,0,0,0,1,0,0,0,0;
+
+                Eigen::Matrix3d dx;
+                dx << 0,0,1,0,0,0,0,0,0;
+
+                Eigen::Matrix3d dy;
+                dy << 0,0,0,0,0,1,0,0,0;
+
+                std::vector<Eigen::Matrix3d> D = {df,dx,dy};
 
                 for (int p = 0;p < measurements[i][j].size();p++){
 
-                    Eigen::MatrixXf A_insert = Eigen::MatrixXf::Zero(4,3*size+1);
+                    Eigen::VectorXd t = measurements[i][j][p]({0,1,2});
+                    Eigen::VectorXd t_tr = hom * t;
+                    Eigen::MatrixXd A_insert = Eigen::MatrixXd::Zero(4,size);
 
-                    Eigen::VectorXf t = measurements[i][j][p]({0,1,2});
-                    Eigen::VectorXf f_i = dfocal * t;
-                    Eigen::VectorXf t_tr = hom * t;
-                    //Eigen::VectorXf t_tr = measurements[i][j][p]({3,4,5});
+                    for(int d = 0;d<D.size();d++){
 
-                    A_insert.col(0)({0,1})<< 0 , 0;
-                    A_insert.col(0)({2,3})<< (f_i[0] * t_tr[2] - t_tr[0] * f_i[2])/(t_tr[2]*t_tr[2]),(f_i[1] * t_tr[2] - t_tr[0] * f_i[2])/(t_tr[2]*t_tr[2]);
+                        Eigen::MatrixXd dfocal_I = -(K[j] * rot[j] * rot[i].transpose() * K_inv[i] * D[d] * K_inv[i]);
+                        Eigen::MatrixXd dfocal_J = ( D[d] * rot[j] * rot[i].transpose() * K_inv[i]);
 
+                        Eigen::VectorXd f_i = dfocal_I * t;
+
+                        //Eigen::VectorXf t_tr = measurements[i][j][p]({3,4,5});
+
+                        A_insert.col(i * 6 + d)({0,1})<< 0 , 0;
+                        A_insert.col(i * 6 + d)({2,3})<< (f_i[0] * t_tr[2] - t_tr[0] * f_i[2])/(t_tr[2]*t_tr[2]),(f_i[1] * t_tr[2] - t_tr[1] * f_i[2])/(t_tr[2]*t_tr[2]);
+
+
+                        f_i = dfocal_J * t;
+                        t_tr = hom * t;
+
+                        A_insert.col(j * 6 + d)({0,1})<< 0 , 0;
+                        A_insert.col(j * 6 + d)({2,3})<< (f_i[0] * t_tr[2] - t_tr[0] * f_i[2])/(t_tr[2]*t_tr[2]),(f_i[1] * t_tr[2] - t_tr[1] * f_i[2])/(t_tr[2]*t_tr[2]);
+                    }
 
                     for (int k = 0;k < 3;k++){
 
-                        Eigen::Matrix3f d_R_i = get_dR(rot[i],rot_i,k,false);
-                        Eigen::Matrix3f Hi = foc_ * d_R_i * rot_j.transpose() * foc_inv;
-                        Eigen::VectorXf vec_dRi = Hi * t;
+                        Eigen::Matrix3d d_R_i = get_dR(rot_vec[i],rot[i],k,true);
+                        Eigen::Matrix3d Hi = K[j] * rot[j] * d_R_i * K_inv[i];
+                        Eigen::VectorXd vec_dRj = Hi * t;
 
-                        Eigen::Matrix3f d_R_j = get_dR(rot[j],rot_j,k,true);
-                        Eigen::Matrix3f Hj = foc_ * rot_i * d_R_j * foc_inv;
-                        Eigen::VectorXf vec_dRj = Hj * t;
+                        A_insert.col(i * 6 + k +3)({0,1})<< 0,0;
+                        A_insert.col(i * 6 + k +3)({2,3})<<(vec_dRj[0] * t_tr[2] - t_tr[0] * vec_dRj[2])/(t_tr[2]*t_tr[2]),(vec_dRj[1] * t_tr[2] - t_tr[0] * vec_dRj[2])/(t_tr[2]*t_tr[2]);
 
-                        A_insert.col(3*i+1+k)({0,1})<< 0,0;
-                        A_insert.col(3*i+1+k)({2,3})<< (vec_dRi[0] * t_tr[2] - t_tr[0] * vec_dRi[2])/(t_tr[2]*t_tr[2]),(vec_dRi[1] * t_tr[2] - t_tr[0] * vec_dRi[2])/(t_tr[2]*t_tr[2]);
+                        d_R_i = get_dR(rot_vec[j],rot[j],k,false);
+                        Hi = K[j] * d_R_i * rot[i].transpose() * K_inv[i];
+                        vec_dRj = Hi * t;
 
-                        A_insert.col(3*j+1+k)({0,1})<< 0,0;
-                        A_insert.col(3*j+1+k)({2,3})<<(vec_dRj[0] * t_tr[2] - t_tr[0] * vec_dRj[2])/(t_tr[2]*t_tr[2]),(vec_dRj[1] * t_tr[2] - t_tr[0] * vec_dRj[2])/(t_tr[2]*t_tr[2]);
+                        A_insert.col(j * 6 + k +3)({0,1})<< 0,0;
+                        A_insert.col(j * 6 + k +3)({2,3})<<(vec_dRj[0] * t_tr[2] - t_tr[0] * vec_dRj[2])/(t_tr[2]*t_tr[2]),(vec_dRj[1] * t_tr[2] - t_tr[0] * vec_dRj[2])/(t_tr[2]*t_tr[2]);
 
                     }
 
@@ -396,13 +420,13 @@ std::vector<Eigen::MatrixXf> parameters::ret_A_i(){
                 }
 
             }
-        }
+       }
     }
 
     return A_i;
 
 }
-*/
+
 
 Eigen::VectorXd d_func(const Eigen::VectorXd &inp_v,const Eigen::VectorXd &par){
 
@@ -410,14 +434,14 @@ Eigen::VectorXd d_func(const Eigen::VectorXd &inp_v,const Eigen::VectorXd &par){
     x({0,1}) = inp_v;
     x[2] = 1;
 
-    Eigen::Matrix3d Ki_inv  = to_K_inv(par[0]);
-    Eigen::Matrix3d Kj = to_K(par[4]);
+    Eigen::Matrix3d Ki_inv  = to_K_inv(par[0],par({1,2}));
+    Eigen::Matrix3d Kj = to_K(par[6],par({7,8}));
     Eigen::Matrix3d Ri;
     Eigen::Matrix3d Rj;
 
-    double mi[1][3] = {{par[1], par[2], par[3]}};
+    double mi[1][3] = {{par[3], par[4], par[5]}};
     cv::Mat ri(1, 3, CV_64F, mi);
-    double mj[1][3] = {{par[5], par[6], par[7]}};
+    double mj[1][3] = {{par[9], par[10], par[11]}};
     cv::Mat rj(1, 3, CV_64F, mj);
 
     cv::Mat v_rotMat;
@@ -477,7 +501,7 @@ Eigen::MatrixXd nummeric_div(const Eigen::VectorXd &inp_vf,const Eigen::VectorXd
 
 std::vector<Eigen::MatrixXd> parameters::ret_A_i_num(){
 
-    int size = 3*rot_vec.size()+focal.size();
+    int size = 3*rot_vec.size() + focal.size() + 2*principal_vec.size();
     std::vector<Eigen::MatrixXd> A_i;
 
     for (int i = 0;i < adj.rows;i++){
@@ -485,11 +509,16 @@ std::vector<Eigen::MatrixXd> parameters::ret_A_i_num(){
 
             if (.5 <= adj.at<double>(i,j)){
 
-                Eigen::VectorXd par(8);
+                Eigen::VectorXd par(12);
                 par[0] = focal[i];
-                par({1,2,3}) = rot_vec[i]({0,1,2},{0});
-                par[4] = focal[j];
-                par({5,6,7}) = rot_vec[j]({0,1,2},{0});
+                par[1] = principal_vec[i][0];
+                par[2] = principal_vec[i][1];
+                par({3,4,5}) = rot_vec[i]({0,1,2},{0});
+
+                par[6] = focal[j];
+                par[7] = principal_vec[j][0];
+                par[8] = principal_vec[j][1];
+                par({9,10,11}) = rot_vec[j]({0,1,2},{0});
 
 
                 for (int p = 0;p < measurements[i][j].size();p++){
@@ -499,7 +528,7 @@ std::vector<Eigen::MatrixXd> parameters::ret_A_i_num(){
                     Eigen::VectorXd t = measurements[i][j][p]({0,1});
                     Eigen::MatrixXd Ainum = nummeric_div(t,par);
 
-                    A_insert({0,1,2,3},{0+i*4,1+i*4,2+i*4,3+i*4,0+j*4,1+j*4,2+j*4,3+j*4}) << Ainum;
+                    A_insert({0,1,2,3},{0+i*6,1+i*6,2+i*6,3+i*6,4+i*6,5+i*6,0+j*6,1+j*6,2+j*6,3+j*6,4+j*6,5+j*6}) << Ainum;
                     A_i.push_back(A_insert);
 
                 }
@@ -535,10 +564,14 @@ void parameters::add_delta(std::vector<Eigen::VectorXd> delta_b,Eigen::VectorXd 
     std::vector<double>().swap(focal_res);
     copy(focal.begin(), focal.end(), back_inserter(focal_res));
 
+    std::vector<Eigen::Vector2d>().swap(principal_vec_res);
+    copy(principal_vec.begin(), principal_vec.end(), back_inserter(principal_vec_res));
+
 
     for(int i = 0;i < rot.size();i++){
 
-        rot_vec[i] = rot_vec[i] + delta_a({1+i*4,2+i*4,3+i*4});
+        rot_vec[i] = rot_vec[i] + delta_a({3+i*6,4+i*6,5+i*6});
+
 
 
         cv::Mat r_transform_vec;
@@ -548,11 +581,15 @@ void parameters::add_delta(std::vector<Eigen::VectorXd> delta_b,Eigen::VectorXd 
         cv::cv2eigen(r_transform_mat,rot[i]);
 
 
-        focal[i] = focal[i] + delta_a[i*4];
-        K[i] = to_K(focal[i]);
-        K_inv[i] = to_K_inv(focal[i]);
+        focal[i] = focal[i] + delta_a[i*6];
+        principal_vec[i] = principal_vec[i] + delta_a({1+i*6,2+i*6});
+
+        K[i] = to_K(focal[i],principal_vec[i]);
+        K_inv[i] = to_K_inv(focal[i],principal_vec[i]);
+
 
     }
+    std::cout<<"\n" <<"rot "<<delta_a({3+0*6,4+0*6,5+0*6})<<"\n";
 
     int c = 0;
     for (int i = 0;i < adj.rows;i++){
@@ -599,28 +636,56 @@ void parameters::reset(){
     std::vector<double>().swap(focal);
     copy(focal_res.begin(), focal_res.end(), back_inserter(focal));
 
+    std::vector<Eigen::Vector2d>().swap(principal_vec);
+    copy(principal_vec_res.begin(), principal_vec_res.end(), back_inserter(principal_vec));
+
 }
 
 
-std::vector<std::vector< cv::Matx33d >> parameters::ret_hmat(){
+std::vector<std::vector< cv::Matx33f >> parameters::ret_hmat(){
 
     //std::vector<std::vector< cv::Matx33f >> hom_mat(adj.rows, std::vector<cv::Matx33f>(adj.cols, cv::Matx33f));
-    std::vector<std::vector<cv::Matx33d>> hom_mat(adj.rows, std::vector<cv::Matx33d>(adj.cols, cv::Matx33d::eye()));
+    std::vector<std::vector<cv::Matx33f>> hom_mat(adj.rows, std::vector<cv::Matx33f>(adj.cols, cv::Matx33f::eye()));
 
     for (int i = 0;i < adj.rows;i++){
-        for(int j = i;j < adj.cols;j++){
 
-            Eigen::MatrixXd hom = ret_hom(i, j);
+        for(int j = i;j < adj.cols;j++){
 
             if (.5 <= adj.at<double>(i,j)){
 
-                cv::eigen2cv(hom,hom_mat[i][j]);
+                Eigen::MatrixXd hom = ret_hom(i, j);
+                Eigen::MatrixXd hom_inv = ret_hom(j, i);
+                Eigen::MatrixXf homf = hom.cast <float> ();
+                Eigen::MatrixXf homfinv = hom_inv.cast <float> ();
+
+                cv::eigen2cv(homf,hom_mat[i][j]);
+                cv::eigen2cv(homfinv,hom_mat[j][i]);
 
             }
         }
     }
 
     return hom_mat;
+
+}
+
+std::vector<double> parameters::ret_focal(){
+
+    return focal;
+
+}
+
+
+std::vector<Eigen::MatrixXd> parameters::ret_rot(){
+
+    return rot;
+
+}
+
+
+std::vector<Eigen::MatrixXd> parameters::ret_K(){
+
+    return K;
 
 }
 

@@ -7,12 +7,12 @@
 #include "_image.h"
 #include "_gtk_vars.h"
 #include "_main_windows.h"
-//#include "_bundle_adjust_tools.h"
+#include "_bundle_adjust_tools.h"
 #include <Eigen/Dense>
-//#include "_gain_compensation.h"
-//#include "_blending.h"
+#include "_gain_compensation.h"
+#include "_blending.h"
 #include <opencv2/core/eigen.hpp>
-//#include "_bundle_adjust_main.h"
+#include "_bundle_adjust_main.h"
 
 namespace fs = std::filesystem;
 /*
@@ -33,13 +33,16 @@ struct approx{
 int main(int argc, char **argv) {
 
 
-        build_window(argc,argv,&main_window);
-        gtk_main();
+        //build_window(argc,argv,&main_window);
+        //gtk_main();
+
+            pan::config conf;
+            conf.focal = 2000;
 
 
 
 
-/*
+
             std::string path = "/home/sd_bert/projects/Panorama/test";
             std::vector<std::string> path_list;
 
@@ -49,6 +52,68 @@ int main(int argc, char **argv) {
                 path_list.push_back(temp_string);
 
             }
+/*
+
+            cv::Mat img1 = imgm::file_to_cv(path_list[0]);
+            cv::Mat img2 = imgm::file_to_cv(path_list[1]);
+
+            cv::Mat diff;// = img1 - .5 * img2;
+            cv::absdiff(img1, img2, diff);
+
+
+            cv::imshow("Image Display", diff);
+            cv::waitKey(0);
+            */
+
+
+
+            pan::panorama test(path_list);
+
+            test.load_resized(800);
+
+            test.calculate_keypoints(1);
+            test.get_adj_par();
+
+            //test.create_panorama(1,conf);
+
+
+            std::vector<maths::keypoints> key_p = test.get_keypoints();
+            std::vector<cv::Mat> imags = test.get_images();
+
+            cv::Mat adj = test.get_adj();
+            std::vector<std::vector< cv::Matx33f >> hom_mat = test.get_hom_mat();
+            std::vector<std::vector<std::vector<cv::DMatch>>> matchMat = test.get_match_mat();
+            //std::cout<<"numeric: "<<"\n"<<adj<<"\n";
+
+
+            imgm::pan_img_transform Tr(&adj,&imags);
+            Tr.focal = 1000;
+            imgm::calc_stitch_from_adj(Tr,hom_mat);
+            class bund::parameters sanity(key_p,matchMat,Tr);
+
+            std::vector<Eigen::MatrixXd> ai = sanity.ret_A_i();
+            std::vector<Eigen::MatrixXd> ainum = sanity.ret_A_i_num();
+
+
+
+            std::cout<<"numeric: "<<"\n"<<ainum[0]<<"\n";
+            std::cout<<"exact: "<<"\n"<<ai[0]<<"\n";
+   /*
+
+            std::vector<maths::keypoints> key_p = test.get_keypoints();
+            std::vector<cv::Mat> imags = test.get_images();
+
+            test.get_adj_par(2);
+            cv::Mat adj = test.get_adj();
+            std::vector<std::vector< cv::Matx33f >> hom_mat = t1.return_Hom_mat();
+            std::vector<std::vector<std::vector<cv::DMatch>>> matchMat = t1.return_match_mat();
+
+
+
+
+            std::cout << adj ;
+            /*
+
 
 
             img::images test(path_list);

@@ -17,6 +17,11 @@
 
 namespace maths {
 
+    struct adj_str {
+            cv::Mat adj;
+            int nodes;
+        };
+
     struct keypoints{
 
         std::vector<cv::KeyPoint> keypoint;
@@ -47,7 +52,7 @@ namespace maths {
 
     using thread = std::vector<std::vector<std::vector<int>>>;
 
-    struct keypoints extract_keypoints(const cv::Mat &img,int nfeatures = 0,int nOctaveLayers = 3,double contrastThreshold = 0.04,double edgeThreshold = 10,double sigma = 1.6);
+    struct keypoints extract_keypoints(const cv::Mat &img,int nfeatures = 0,int nOctaveLayers = 3,double contrastThreshold = 0.06,double edgeThreshold = 10,double sigma = 1.6);
 
     std::pair<std::vector<cv::DMatch>, std::vector<cv::DMatch>> match_keypoints(const struct keypoints &kp1,const struct keypoints &kp2);
 
@@ -61,6 +66,8 @@ namespace maths {
 
     cv::Mat_<float> getDesignMatrix_homography2D(const std::vector<cv::Vec3f> &conditioned_base, const std::vector<cv::Vec3f> &conditioned_attach);
 
+    float N_outliers(const struct keypoints &kp1,const struct keypoints &kp2,std::vector<cv::DMatch> &match,const  cv::Matx33f &H,std::vector<float> &T);
+
     cv::Matx33f solve_homography2D(const cv::Mat_<float> &A);
 
     cv::Matx33f decondition_homography2D(const cv::Matx33f &T_base, const cv::Matx33f &T_attach, const cv::Matx33f &H);
@@ -69,7 +76,7 @@ namespace maths {
 
     double homography_loss(const struct keypoints &kp1,const struct keypoints &kp2,const std::vector<cv::DMatch> &match , const cv::Matx33f &H );
 
-    struct Homography find_homography(const struct keypoints &kp1,const struct keypoints &kp2,const std::vector<cv::DMatch> &match,int max_iter = 10,int sample = 4);
+    struct Homography find_homography(const struct keypoints &kp1,const struct keypoints &kp2,const std::vector<cv::DMatch> &match,int max_iter,int sample,const cv::Mat &img1,const cv::Mat &img2);
 
     float match_quality(const struct keypoints &kp1,const cv::Mat img1,const struct keypoints &kp2,const cv::Mat img2);
 
@@ -83,34 +90,37 @@ namespace maths {
 
     std::vector<std::pair<int, std::vector<int>>> bfs_ordered_with_neighbors(const cv::Mat& adj, int i);
 
-    float focal_from_hom(const std::vector<std::vector< cv::Matx33f >> & H_mat,const cv::Mat &adj);
+    float focal_from_hom(const std::vector<std::vector< cv::Matx33f >> & H_mat,const cv::Mat &source_adj);
 
     template <typename T>
     std::vector<std::vector<T>> splitVector(const std::vector<T>& vec, int n);
 
-    class graph_thread{
+    std::vector<struct adj_str> extract_adj(const cv::Mat &adj);
+
+
+
+    class adj_calculator{
 
     public:
 
-        static void set_mat(const std::vector<cv::Mat> & imgs,std::vector<maths::keypoints> key_p);
-        static cv::Mat return_adj_mat();
-        static std::vector<std::vector< cv::Matx33f >> return_Hom_mat();
-        static std::vector<std::vector< struct Homography >> return_Norm_mat();
-        static std::vector<std::vector<std::vector<cv::DMatch>>> return_match_mat();
-        static thread get_threads(int n);
+        adj_calculator(const std::vector<cv::Mat> & imgs,const std::vector<maths::keypoints> &key_p);
 
-        void cal_adj(const std::vector<cv::Mat> & imgs,const std::vector<std::vector<int>> idx);
+        void cal_adj(const std::vector<cv::Mat> & imgs,int T);
 
-    private:
+        float match_quality(const struct maths::keypoints &kp1,const cv::Mat img1,const struct maths::keypoints &kp2,const cv::Mat img2,int row,int col);
 
-        float match_quality(const struct keypoints &kp1,const cv::Mat img1,const struct keypoints &kp2,const cv::Mat img2,int row,int col);
-        static inline cv::Mat adj;
-        static inline std::vector<std::vector< cv::Matx33f >> hom_mat;
-        static inline std::vector<std::vector< struct Homography >> norm_mat;
-        static inline std::vector<std::vector<std::vector<cv::DMatch>>> match_mat;
-        static inline std::vector<maths::keypoints> kpmat;
+
+        void get_threads(int n);
+
+
+        cv::Mat adj;
+        std::vector<maths::keypoints> kpmat;
+        std::vector<std::vector< cv::Matx33f >> hom_mat;
+        std::vector<std::vector<std::vector<cv::DMatch>>> match_mat;
+        thread TR;
 
 };
+
 
 }
 
