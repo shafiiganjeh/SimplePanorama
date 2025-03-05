@@ -233,7 +233,91 @@ double homography_loss(const struct keypoints &kp1,const struct keypoints &kp2,c
 }
 
 
-struct Homography find_homography(const struct keypoints &kp1,const struct keypoints &kp2,const std::vector<cv::DMatch> &match,int max_iter,int sample){
+bool isTransformationConsistent(const cv::Matx33f& H, int wide_source, int height_source,
+                                int wide_target, int height_target, float margin_ratio = 0.5f){
+
+    const std::vector<cv::Point2f> target_corners = {
+        cv::Point2f(0, 0),                      // Top-left
+        cv::Point2f(wide_target - 1, 0),        // Top-right
+        cv::Point2f(wide_target - 1, height_target - 1), // Bottom-right
+        cv::Point2f(0, height_target - 1)       // Bottom-left
+    };
+
+    // Transform all corners using homography
+    std::vector<cv::Point2f> source_corners;
+    cv::perspectiveTransform(target_corners, source_corners, H);
+
+    // Calculate margin boundaries
+    const float margin_x = margin_ratio * wide_source;
+    const float margin_y = margin_ratio * height_source;
+
+    // Check validity of all transformed points
+    for (const auto& p : source_corners) {
+        // Check for numerical validity
+        if (!std::isfinite(p.x) || !std::isfinite(p.y)) {
+            return false;
+        }
+
+        // Check bounds with margin
+        const bool x_ok = (p.x >= -margin_x) && (p.x <= wide_source + margin_x);
+        const bool y_ok = (p.y >= -margin_y) && (p.y <= height_source + margin_y);
+
+        if (!x_ok || !y_ok) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+bool hom_sanity(cv::Matx33f hom,const cv::Mat &img1,const cv::Mat &img2){
+
+    //validate
+    if(hom(2,2) < 1e-6 ){
+
+        return false;
+
+    }
+
+    hom = hom / hom(2,2);
+
+    cv::Matx22f upper_square;
+    upper_square(0,0) = hom(0,0);
+    upper_square(1,0) = hom(1,0);
+    upper_square(1,1) = hom(1,1);
+    upper_square(0,1) = hom(0,1);
+
+    double upper_det = cv::determinant(upper_square);
+
+    //orientation
+    if(upper_det <= 0){
+        //std::cout <<"\n"<< "orientation: ";
+        return false;
+
+    }
+    //area scaling
+    if((abs(upper_det) < 0.1 ) or ( abs(upper_det) > 10)){
+        //std::cout <<"\n"<< "area scaling: ";
+        return false;
+
+    }
+    //skew factor
+    if((abs(hom(2,0)) > 0.002 ) or ( abs(hom(2,1)) > 0.002)){
+        //std::cout <<"\n"<< "skew factor: ";
+        return false;
+
+    }
+
+
+    bool trcheck = isTransformationConsistent(hom, img1.cols, img1.rows,img2.cols, img2.rows, .8);
+
+
+    return trcheck;
+}
+
+
+struct Homography find_homography(const struct keypoints &kp1,const struct keypoints &kp2,const std::vector<cv::DMatch> &match,int max_iter,int sample,const cv::Mat &img1,const cv::Mat &img2){
 
         struct Homography Hom;
         cv::Matx33f H(1, 0, 0,
@@ -278,19 +362,25 @@ struct Homography find_homography(const struct keypoints &kp1,const struct keypo
 
             H_temp = decondition_homography2D(T_b, T_a, H_temp);
 
-            double temp_loss = homography_loss(kp1,kp2,match ,H_temp);
+            //if(hom_sanity(H_temp,img1,img2)){
+            if(1){
 
-            if (temp_loss < loss){
-                //std::cout << loss <<"\n";
-                loss = temp_loss;
+                double temp_loss = homography_loss(kp1,kp2,match ,H_temp);
 
-                Hom.H = H_temp;
+                if (temp_loss < loss){
+                    //std::cout << loss <<"\n";
+                    loss = temp_loss;
 
+                    Hom.H = H_temp;
+
+                }
             }
 
         }
         return Hom;
 }
+
+
 
 float N_outliers(const struct keypoints &kp1,const struct keypoints &kp2,std::vector<cv::DMatch> &match,const  cv::Matx33f &H,std::vector<float> &T){
 
@@ -324,35 +414,6 @@ float N_outliers(const struct keypoints &kp1,const struct keypoints &kp2,std::ve
 }
 
 
-float graph_thread::match_quality(const struct keypoints &kp1,const cv::Mat img1,const struct keypoints &kp2,const cv::Mat img2,int row,int col){
-
-        std::vector<float> T12 = {(float)img1.cols/350,(float)img1.rows/350};
-
-        std::pair<std::vector<cv::DMatch>, std::vector<cv::DMatch>> match12 = match_keypoints(kp1,kp2);
-
-        match_mat[row][col].resize(match12.first.size());
-        match_mat[row][col] = match12.first;
-        match_mat[col][row].resize(match12.second.size());
-        match_mat[col][row] = match12.second;
-
-        if (match12.first.size() < 16){
-
-            return 0;
-        }
-
-        std::vector<cv::Point2f> obj;
-        std::vector<cv::Point2f> scene;
-
-        struct Homography H12 = find_homography(kp1,kp2,match12.first,1000,4);
-        hom_mat[row][col] = H12.H;
-        hom_mat[col][row] = H12.H.inv();
-
-        int out = N_outliers(kp1,kp2,match12.first,H12.H,T12);
-
-        return 1-out/((float)match12.first.size());
-
-}
-
 
 std::vector<maths::keypoints> extrace_kp_vector(const std::vector<cv::Mat> & imgs,std::vector<int> idx){
 
@@ -367,70 +428,6 @@ std::vector<maths::keypoints> extrace_kp_vector(const std::vector<cv::Mat> & img
 }
 
 
-void graph_thread::set_mat(const std::vector<cv::Mat> & imgs,std::vector<maths::keypoints> key_p){
-
-        adj.create(imgs.size(), imgs.size(), CV_64F);
-        adj = cv::Mat::zeros(imgs.size(), imgs.size(), CV_64F);
-
-        kpmat.resize(key_p.size());
-        kpmat = key_p;
-
-        hom_mat.resize(imgs.size(), std::vector<cv::Matx33f>(imgs.size()));
-
-        match_mat.resize(imgs.size(), std::vector<std::vector<cv::DMatch>>(imgs.size()));
-
-
-}
-
-cv::Mat graph_thread::return_adj_mat(){
-
-            return adj + adj.t();
-
-}
-
-
-std::vector<std::vector<std::vector<cv::DMatch>>> graph_thread::return_match_mat(){
-
-    return match_mat;
-
-}
-
-
-std::vector<std::vector< cv::Matx33f >> graph_thread::return_Hom_mat(){
-
-    return hom_mat;
-
-}
-
-
-std::vector<std::vector< struct Homography >> graph_thread::return_Norm_mat(){
-
-    return norm_mat;
-
-}
-
-
-void graph_thread::cal_adj(const std::vector<cv::Mat> & imgs,const std::vector<std::vector<int>> idx){
-
-    for(const std::vector<int> & i : idx){
-
-        if (i[0] == i[1]){
-
-            adj.at<double>(i[0],i[1]) = 0;
-
-        }else{
-            double q = match_quality(kpmat[i[0]],imgs[i[0]],kpmat[i[1]],imgs[i[1]],i[0],i[1]);
-            if(q >= .5){
-
-                adj.at<double>(i[0],i[1]) = q;
-
-            }else{adj.at<double>(i[0],i[1]) = 0;}
-
-        }
-
-    }
-
-}
 
 template <typename T>
 std::vector<std::vector<T>> splitVector(const std::vector<T>& vec, int n) {
@@ -466,27 +463,6 @@ void _(){
     int n = 1;
     std::vector<int> idx;
     std::vector<std::vector<int>> split_id = splitVector(idx, n);
-}
-
-thread graph_thread::get_threads(int n){
-
-        std::cout <<"vector size: "<<n<<"\n";
-
-        int size = adj.rows;
-        std::vector<std::vector<int>> calcs;
-
-        for (int i = 0;i < size;i++){
-
-            for (int j = i;j < size;j++){
-
-                calcs.push_back({i,j});
-
-            }
-        }
-
-        thread TR = splitVector(calcs, n);
-        return TR;
-
 }
 
 
@@ -721,6 +697,163 @@ float focal_from_hom(const std::vector<std::vector< cv::Matx33f >> & H_mat,const
 
     return mean;
 }
+
+
+    void adj_calculator::get_threads(int n){
+
+            int size = adj.rows;
+            std::vector<std::vector<int>> calcs;
+
+            for (int i = 0;i < size;i++){
+
+                for (int j = i;j < size;j++){
+
+                    calcs.push_back({i,j});
+
+                }
+            }
+
+            TR = maths::splitVector(calcs, n);
+
+        }
+
+
+    adj_calculator::adj_calculator(const std::vector<cv::Mat> & imgs,const std::vector<maths::keypoints> &key_p){
+
+            adj.create(imgs.size(), imgs.size(), CV_64F);
+            adj = cv::Mat::zeros(imgs.size(), imgs.size(), CV_64F);
+
+            kpmat.resize(key_p.size());
+            kpmat = key_p;
+
+            hom_mat.resize(imgs.size(), std::vector<cv::Matx33f>(imgs.size()));
+
+            match_mat.resize(imgs.size(), std::vector<std::vector<cv::DMatch>>(imgs.size()));
+
+        }
+
+
+    void adj_calculator::cal_adj(const std::vector<cv::Mat> & imgs,int T){
+
+            for(const std::vector<int> & i : TR[T]){
+
+                if (i[0] == i[1]){
+
+                    adj.at<double>(i[0],i[1]) = 0;
+
+                }
+
+                else{
+                    double q = match_quality(kpmat[i[0]],imgs[i[0]],kpmat[i[1]],imgs[i[1]],i[0],i[1]);
+
+                    if(q >= .5){
+
+                        adj.at<double>(i[0],i[1]) = q;
+
+                    }else{adj.at<double>(i[0],i[1]) = 0;}
+
+                }
+
+            }
+
+        }
+
+        float adj_calculator::match_quality(const struct maths::keypoints &kp1,const cv::Mat img1,const struct maths::keypoints &kp2,const cv::Mat img2,int row,int col){
+
+            std::vector<float> T12 = {(float)img1.cols/150,(float)img1.rows/100};
+
+            std::pair<std::vector<cv::DMatch>, std::vector<cv::DMatch>> match12 = maths::match_keypoints(kp1,kp2);
+
+            match_mat[row][col].resize(match12.first.size());
+            match_mat[row][col] = match12.first;
+            match_mat[col][row].resize(match12.second.size());
+            match_mat[col][row] = match12.second;
+
+            if (match12.first.size() < 16){
+
+                return 0;
+            }
+
+            std::vector<cv::Point2f> obj;
+            std::vector<cv::Point2f> scene;
+
+            struct maths::Homography H12 = maths::find_homography(kp1,kp2,match12.first,1000,10,img1,img2);
+            H12.H = H12.H / H12.H(2,2);
+            //std::cout <<"homography: "<<H12.H<<"\n";
+
+/*
+            struct maths::Homography H12;
+            std::vector<cv::Point2f> points1, points2;
+            for (int i = 0; i < match12.first.size(); i++)
+                {
+                        //-- Get the keypoints from the good matches
+
+                    points1.push_back(kp1.keypoint[match_mat[row][col][i].queryIdx].pt);
+
+                    points2.push_back(kp2.keypoint[match_mat[row][col][i].trainIdx].pt);
+                }
+
+            H12.H = findHomography(cv::Mat(points2), cv::Mat(points1), cv::RANSAC);
+            std::cout<<"homog: "<<H12.H;
+*/
+            hom_mat[row][col] = H12.H;
+            hom_mat[col][row] = H12.H.inv();
+
+            int out = maths::N_outliers(kp1,kp2,match12.first,H12.H,T12);
+            std::cout<<"out: "<<out;
+
+            return 1-out/((float)match12.first.size());
+
+        }
+
+
+        bool compareDescending(const struct adj_str& a, const struct adj_str& b) {
+            return a.nodes > b.nodes;
+        }
+
+        std::vector<struct adj_str> extract_adj(const cv::Mat &source_adj){
+
+            cv::Mat adj;
+            source_adj.copyTo(adj);
+            adj = adj + adj.t();
+            cv::Mat zeromat = cv::Mat::zeros(1,adj.cols,adj.type());
+
+            std::vector<struct adj_str> adj_mats;
+
+            for(int i = 0; i < adj.rows; i++){
+
+                if(cv::countNonZero(adj.row(i))){
+                    //std::cout <<"\n"<<"row : "<<i<<"\n";
+
+                    std::vector<int> graph = dfs(adj, i);
+                    cv::Mat sub_graph = cv::Mat::zeros(adj.size(),adj.type());
+
+                    for(int nodes : graph){
+
+                        adj.row(nodes).copyTo(sub_graph.row(nodes));
+                        zeromat.row(0).copyTo(adj.row(nodes));
+                    }
+
+                    //std::cout <<"\n"<<"newadj : "<<adj<<"\n";
+                    //std::cout <<"\n"<<"adjextracted : "<<sub_graph<<"\n";
+                    struct adj_str temp;
+                    temp.adj = sub_graph;
+                    temp.nodes = graph.size();
+                    adj_mats.push_back(temp);
+
+                    //std::cout <<"grap "<<sub_graph<<"\n";
+                    //std::cout <<"nodes "<<graph.size()<<"\n";
+
+                }
+
+            }
+
+            std::sort(adj_mats.begin(), adj_mats.end(), compareDescending);
+
+            return adj_mats;
+
+        }
+
 
 
 }

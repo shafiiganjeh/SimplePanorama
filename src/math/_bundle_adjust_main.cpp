@@ -63,7 +63,7 @@ std::vector<Eigen::VectorXd> adjuster::ret_Eb(const std::vector<Eigen::MatrixXd>
 }
 
 
-adjuster::adjuster(const std::vector<maths::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match,const cv::Mat &adj,float foc,float lmbd,const std::vector<std::vector< cv::Matx33f >> &hom_mat,const imgm::pan_img_transform &Tr){
+adjuster::adjuster(const std::vector<maths::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match,const cv::Mat &adj,float lmbd,const imgm::pan_img_transform &Tr){
 
     par_er = std::make_shared<class bund::E_func>(kp,match,adj);
     par_img = std::make_shared<class bund::parameters>(kp,match,Tr);
@@ -75,11 +75,11 @@ adjuster::adjuster(const std::vector<maths::keypoints> &kp,const std::vector<std
 
 void adjuster::get_iter_par(){
 
-    std::vector<Eigen::MatrixXd> avec = par_img -> ret_A_i_num();
+    std::vector<Eigen::MatrixXd> avec = par_img -> ret_A_i();
 
     iter.u_vecf = ret_uf(avec);
 
-    std::vector<Eigen::MatrixXd> bvec = par_img -> ret_B_i_num();
+    std::vector<Eigen::MatrixXd> bvec = par_img -> ret_B_i();
     iter.v_vec = sum_transpose(bvec,bvec);
 
     iter.w_vec = sum_transpose(bvec,avec);
@@ -155,7 +155,7 @@ struct inter_par adjuster::iterate(){
 
 
     int break_counter = 0;
-    for (int it = 0;it<20;it++){
+    for (int it = 0;it<30;it++){
 
         get_iter_par();
         augment();
@@ -182,7 +182,7 @@ struct inter_par adjuster::iterate(){
 
         }
 
-        std::cout<<"\n" <<"test error: " << error_new<<"\n";
+        //std::cout<<"\n" <<"test error: " << error_new<<"\n";
         if( error_start > error_new ){
 
             iter.lambda = iter.lambda / 10;
@@ -193,7 +193,7 @@ struct inter_par adjuster::iterate(){
         }else{
 
             iter.lambda = iter.lambda * 10;
-            std::cout <<"lambda: "<< iter.lambda<< " old error: " << error_start<<"\n";
+            //std::cout <<"lambda: "<< iter.lambda<< " old error: " << error_start<<"\n";
             par_img -> reset();
             break_counter++;
         }
@@ -206,20 +206,26 @@ struct inter_par adjuster::iterate(){
 
     }
 
+    iter.focal = par_img -> ret_focal();
     iter.hom = par_img -> ret_hmat();
     return iter;
 
 }
 
-/*
-std::vector<std::vector< cv::Matx33d >> adjuster::ret_k(){
 
-    std::vector<std::vector< cv::Matx33d >> k;
-    k = par_img -> ret_kmat();
+std::vector<Eigen::MatrixXd> adjuster::ret_K(){
 
-    return k;
+    return par_img -> ret_K();
+
 }
-*/
+
+std::vector<Eigen::MatrixXd> adjuster::ret_rot(){
+
+    return par_img -> ret_rot();
+
+}
+
+
 
 }
 

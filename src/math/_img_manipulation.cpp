@@ -1,6 +1,6 @@
 
 #include "_img_manipulation.h"
-
+#include <math.h>
 
 namespace imgm {
 
@@ -177,15 +177,15 @@ namespace imgm {
                 map_x(i) = tan((map_x(i)-xc)/f) * f + xc;
 
             }
+/*
 
-  /*
         for (int i = 0 ; i<rows*cols;i++){
 
             map_x(i) =f/(cos((map_y(i)-yc)/f)*cos((map_x(i)-xc)/f))  * ((cos((map_y(i)-yc)/f)*sin((map_x(i)-xc)/f))) + xc;
             map_y(i)= f/(cos((map_y(i)-yc)/f)*cos((temp_x(i)-xc)/f))  * sin((map_y(i)-yc)/f) + yc;
 
         }
- */
+*/
             cv::Mat dst(imags.size(), imags.type());
             cv::Mat vec_x(imags.size(), CV_32FC1,map_x.data());
             cv::Mat vec_y(imags.size(), CV_32FC1,map_y.data());
@@ -198,62 +198,65 @@ namespace imgm {
             return dst;
 }
 
-//imags
-//adj
+
+std::vector<double> computeRowSumDividedByZeroCount(const cv::Mat& mat) {
+
+    const int rows = mat.rows;
+    const int cols = mat.cols;
+    std::vector<double> results;
+    results.reserve(rows);
+
+    for (int i = 0; i < rows; ++i) {
+        const cv::Mat row = mat.row(i);
+        const double row_sum = cv::sum(row)[0];
+        const int zero_count = cols - cv::countNonZero(row);
+        results.push_back(row_sum / zero_count);
+    }
+
+    return results;
+}
+
+
+
 void calc_stitch_from_adj(pan_img_transform &T,const std::vector<std::vector< cv::Matx33f >> &Hom){
 
-    pan_img_transform pan_var(T.adj,T.img_address );
-
     std::unordered_set<int> visited;
-    cv::Mat row_sum;
+    cv::Mat path_mat = (*T.adj) + (*T.adj).t();
 
-    cv::reduce(*T.adj, row_sum, 1, cv::REDUCE_SUM, CV_64F);
-    double min=0, max=0;
-    cv::Point minLoc, maxLoc;
-    cv::minMaxLoc(row_sum, &min, &max, &minLoc, &maxLoc);
+    std::vector<double> connectivity = computeRowSumDividedByZeroCount(path_mat);
 
-    std::vector<std::pair<int, std::vector<int>>> tree = maths::bfs_ordered_with_neighbors(*T.adj, maxLoc.y);
-    std::map<int, std::pair<int,double>> paths = maths::path_table(*T.adj,tree ,maxLoc.y);
+    int maxLoc = std::distance(connectivity.begin(),std::max_element(connectivity.begin(), connectivity.end()));
 
-    cv::Mat panorama((*T.img_address)[maxLoc.y].size(),(*T.img_address)[maxLoc.y].type());//placeholder
-    panorama = (*T.img_address)[maxLoc.y];
-    //Mat1f m(rows, cols);
 
-    T.stitch_order.push_back(maxLoc.y);
-    T.img2pan[maxLoc.y] = cv::Matx33f::eye();
-    T.pan2img[maxLoc.y] = cv::Matx33f::eye();
-    T.translation[maxLoc.y].T = cv::Matx33f::eye();
-    T.translation[maxLoc.y].xstart = 0;
-    T.translation[maxLoc.y].xend = (*T.img_address)[maxLoc.y].cols;
-    T.translation[maxLoc.y].ystart = 0;
-    T.translation[maxLoc.y].yend = (*T.img_address)[maxLoc.y].rows;
+    std::vector<std::pair<int, std::vector<int>>> tree = maths::bfs_ordered_with_neighbors(path_mat, maxLoc);
+
+    std::map<int, std::pair<int,double>> paths = maths::path_table(*T.adj,tree ,maxLoc);
+
+    cv::Mat panorama((*T.img_address)[maxLoc].size(),(*T.img_address)[maxLoc].type());//placeholder
+
+    T.stitch_order.push_back(maxLoc);
+    T.img2pan[maxLoc] = cv::Matx33f::eye();
+    T.pan2img[maxLoc] = cv::Matx33f::eye();
+    T.translation[maxLoc].T = cv::Matx33f::eye();
+    T.translation[maxLoc].xstart = 0;
+    T.translation[maxLoc].xend = (*T.img_address)[maxLoc].cols;
+    T.translation[maxLoc].ystart = 0;
+    T.translation[maxLoc].yend = (*T.img_address)[maxLoc].rows;
 
     Eigen::MatrixXd K(3,3);
     K << T.focal,0,0,0,T.focal,0,0,0,1;
 
     cv::Mat translation = cv::Mat::eye(3,3, CV_32F);
     std::map<int, Eigen::MatrixXd> rotations;
-    rotations[tree[0].first] = Eigen::MatrixXd::Identity(3,3);
-
+    rotations[tree[0].first] = Eigen::MatrixXd::Identity(3,3) ;
+    std::cout<<"tree[0].first "<<tree[0].first<<"\n";
     for (const std::pair<int, std::vector<int>> &node : tree){
         visited.insert(node.first);
 
         //std::cout <<"node.first "<<node.first<<"\n";
 
+
         for (const int &node_visit : node.second){
-
-            if (!(rotations.count(node_visit))){
-
-                //std::cout <<"node_visit "<<node_visit<<"\n";
-                Eigen::MatrixXd H_eigen;
-
-                cv::cv2eigen(static_cast<cv::Matx33d>(Hom[node.first][node_visit]),H_eigen);
-
-                Eigen::MatrixXd R_H = K.inverse() * H_eigen * K ;//* rotations[node.first];
-                //std::cout <<"rh "<<K<<"\n";
-                R_H = ( R_H * R_H.transpose() ).pow(0.5) * (R_H.transpose()).inverse();
-                rotations[node_visit] = R_H;
-            }
 
             if(visited.count(node_visit) == 0){
                 cv::Mat H = cv::Mat::eye(3,3, CV_32F);
@@ -264,9 +267,28 @@ void calc_stitch_from_adj(pan_img_transform &T,const std::vector<std::vector< cv
                 while(-1 != paths[node_current].first){
 
                     H = (Hom[paths[node_current].first][node_current])*H;
+                    std::cout<<"paths[node_current].first "<<paths[node_current].first<<"nodevisit "<<node_current<<"\n";
+
+                    if (!(rotations.count(node_visit))){
+
+                        std::cout <<"node_visit "<<node_visit<<"\n";
+                        Eigen::MatrixXd H_eigen;
+
+
+                        cv::cv2eigen(static_cast<cv::Matx33d>(Hom[node.first][node_visit]),H_eigen);
+
+                        Eigen::MatrixXd R_H = K.inverse() * H_eigen * K ;//* rotations[node.first];
+                        std::cout <<"rh "<<K<<"\n";
+                        R_H = ( R_H * R_H.transpose() ).pow(0.5) * (R_H.transpose()).inverse();
+                        std::cout<<"\n"<<"rotation: "<<node_visit<<" "<<R_H<<"\n";
+                        rotations[node_visit] = R_H;
+                    }
+
                     node_current = paths[node_current].first;
 
+
                 }
+
                 T.H_1j[node_visit] = H;
 
                 maths::translation Tr;
@@ -274,8 +296,11 @@ void calc_stitch_from_adj(pan_img_transform &T,const std::vector<std::vector< cv
 
                 T.stitch_order.push_back(node_visit);
 
+                H = H / H.at<float>(2,2);
                 Tr = maths::get_translation(panorama, (*T.img_address)[node_current],H);
                 panorama.create(Tr.yend - Tr.ystart + 1, Tr.xend - Tr.xstart + 1, panorama.type());
+
+                std::cout<<"\n"<<"size"<<panorama.size()<<"\n";
 
                 cv::Mat Hinv = Tr.T*H;
                 T.img2pan[node_visit] = Hinv;
@@ -302,11 +327,26 @@ void calc_stitch_from_adj(pan_img_transform &T,const std::vector<std::vector< cv
         }
     }
 
-    for(int i = 0 ; i < rotations.size();i++ ){
-
-        T.rot.push_back( rotations[i] );
+    for(int i = 0 ; i < path_mat.rows;i++ ){
+        if (rotations.count(i)){
+            T.rot.push_back( rotations[i] );
+        }else{
+            T.rot.push_back( Eigen::Matrix3d::Zero() );
+        }
 
     }
+
+}
+
+
+pan_img_transform bundleadjust_stitching(pan_img_transform &T,const std::vector<std::vector< cv::Matx33f >> &Hom){
+
+    pan_img_transform T_bundle(T.adj,T.img_address);
+
+
+
+
+    return T_bundle;
 
 }
 

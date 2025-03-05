@@ -37,6 +37,7 @@ namespace img {
 
     void images::calculate_keypoints(int threads){
 
+
         std::vector<maths::keypoints> kpmat;
         kpmat.resize( img_data.size() );
         std::vector<int> idx( img_data.size() );
@@ -78,13 +79,26 @@ void images::images_to_cylinder(float f){
 
     for(int i = 0;i<img_data.size();i++){
 
-        img_data[i] = imgm::project(img_data[i],400.0,300.0,f);
+        float h_size = img_data[i].cols /2;
+        float v_size = img_data[i].rows / 2;
+        img_data[i] = imgm::project(img_data[i],h_size,v_size,f);
 
     }
 
 }
 
 
+void images::images_to_cylinder(std::vector<double> f){
+
+    for(int i = 0;i<img_data.size();i++){
+
+        float h_size = img_data[i].cols /2;
+        float v_size = img_data[i].rows / 2;
+        img_data[i] = imgm::project(img_data[i],h_size,v_size,(float)f[i]);
+
+    }
+
+
 }
 
-
+}

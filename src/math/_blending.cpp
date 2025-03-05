@@ -52,6 +52,51 @@ void simple_blend(const class imgm::pan_img_transform &Tr,const std::vector<cv::
 
 }
 
+void no_blend(const class imgm::pan_img_transform &Tr,const std::vector<cv::Mat> &imags){
+
+    float cnst = 1e-4;
+    int height = Tr.translation[Tr.stitch_order[Tr.stitch_order.size()-1]].yend - Tr.translation[Tr.stitch_order[Tr.stitch_order.size()-1]].ystart + 1;
+    int wide = Tr.translation[Tr.stitch_order[Tr.stitch_order.size()-1]].xend - Tr.translation[Tr.stitch_order[Tr.stitch_order.size()-1]].xstart + 1;
+
+    cv::Mat panorama = cv::Mat::zeros(height,wide,CV_32FC3);
+    cv::Mat img;
+    for (int i = 0;i < imags.size();i++){
+        std::cout<<Tr.img2pan[i];
+        cv::warpPerspective(imags[i],img, Tr.img2pan[i],panorama.size(),cv::INTER_LINEAR);
+        img.copyTo(panorama, img);
+
+    }
+
+
+
+    cv::imshow("Image Display",panorama);
+    cv::waitKey(0);
+
+}
+
+
+void graph_blend(const class imgm::pan_img_transform &Tr,const std::vector<cv::Mat> &imags){
+
+    float cnst = 1e-4;
+    int height = Tr.translation[Tr.stitch_order[Tr.stitch_order.size()-1]].yend - Tr.translation[Tr.stitch_order[Tr.stitch_order.size()-1]].ystart + 1;
+    int wide = Tr.translation[Tr.stitch_order[Tr.stitch_order.size()-1]].xend - Tr.translation[Tr.stitch_order[Tr.stitch_order.size()-1]].xstart + 1;
+
+    cv::Mat panorama = cv::Mat::zeros(height,wide,CV_32FC3);
+    cv::Mat img;
+    for (int i = 1;i < imags.size();i++){
+        std::cout<<Tr.img2pan[i];
+        cv::warpPerspective(imags[i],img, Tr.img2pan[i],panorama.size(),cv::INTER_LINEAR);
+        img.copyTo(panorama, img);
+
+    }
+
+
+
+    cv::imshow("Image Display",panorama);
+    cv::waitKey(0);
+
+}
+
 
 }
 

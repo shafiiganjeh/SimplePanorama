@@ -34,6 +34,7 @@ namespace imgm {
 
             std::vector<Eigen::MatrixXd> rot;
             double focal = 1000;
+            std::vector<double> focal_vec;
 
     };
 
@@ -47,6 +48,8 @@ namespace imgm {
     cv::Mat stitch(const cv::Mat &base, const cv::Mat &attach, const cv::Matx33f &H);
 
     void calc_stitch_from_adj(pan_img_transform &T,const std::vector<std::vector< cv::Matx33f >> &Hom);
+
+    void re_calc_stitch(pan_img_transform &T,const std::vector<std::vector< cv::Matx33f >> &Hom);
 
     cv::Mat project(const cv::Mat& imags,float xc,float yc,float f);
 

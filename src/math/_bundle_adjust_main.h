@@ -26,7 +26,8 @@ namespace bundm {
         std::vector<Eigen::VectorXd> delta_b;
         Eigen::VectorXd delta_a;
 
-        std::vector<std::vector< cv::Matx33d >> hom;
+        std::vector<std::vector< cv::Matx33f >> hom;
+        std::vector<double> focal;
 
     };
 
@@ -34,10 +35,11 @@ namespace bundm {
 
         public:
 
-            adjuster(const std::vector<maths::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match,const cv::Mat &adj,float foc,float lmbd,const std::vector<std::vector< cv::Matx33f >> &hom_mat,const imgm::pan_img_transform &Tr);
+            adjuster(const std::vector<maths::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match,const cv::Mat &adj,float lmbd,const imgm::pan_img_transform &Tr);
 
             struct inter_par iterate();
-            std::vector<std::vector< cv::Matx33d >> ret_k();
+            std::vector<Eigen::MatrixXd> ret_rot();
+            std::vector<Eigen::MatrixXd> ret_K();
 
         private:
 
