@@ -362,8 +362,8 @@ struct Homography find_homography(const struct keypoints &kp1,const struct keypo
 
             H_temp = decondition_homography2D(T_b, T_a, H_temp);
 
-            //if(hom_sanity(H_temp,img1,img2)){
-            if(1){
+            if(hom_sanity(H_temp,img1,img2)){
+            //if(1){
 
                 double temp_loss = homography_loss(kp1,kp2,match ,H_temp);
 
@@ -758,18 +758,129 @@ float focal_from_hom(const std::vector<std::vector< cv::Matx33f >> & H_mat,const
 
         }
 
-        float adj_calculator::match_quality(const struct maths::keypoints &kp1,const cv::Mat img1,const struct maths::keypoints &kp2,const cv::Mat img2,int row,int col){
 
-            std::vector<float> T12 = {(float)img1.cols/150,(float)img1.rows/100};
+    std::vector<cv::DMatch> adj_calculator::clean_matches(const struct maths::keypoints &kp1,const struct maths::keypoints &kp2,std::vector<cv::DMatch> match,const  cv::Matx33f &H,const std::vector<float> &T){
+
+        std::vector<cv::DMatch> clean_match;
+        std::vector<cv::Vec2f> true_;
+        std::vector<cv::Vec2f> pred_;
+
+        for (int i = 0;i < match.size();i++){
+
+            true_.push_back(kp1.keypoint[match[i].queryIdx ].pt);
+            pred_.push_back(kp2.keypoint[match[i].trainIdx ].pt);
+        }
+
+        cv::perspectiveTransform(pred_, pred_, H);
+
+        std::vector<cv::Vec2f> val;
+        cv::absdiff(true_,pred_,val);
+
+        int out = 0;
+
+        for (int i = 0; i < val.size();i++){
+
+            if (( val[i][0] < T[0] ) and ( val[i][1] < T[1] )){
+
+                clean_match.push_back(match[i]);
+
+            }
+
+        }
+
+        return clean_match;
+    }
+
+
+    std::vector<cv::DMatch> adj_calculator::filterOutliersWithMahalanobis(const std::vector<cv::KeyPoint>& kp1,const std::vector<cv::KeyPoint>& kp2,const std::vector<cv::DMatch>& matches,const std::vector<cv::DMatch>& ransac_matches,const cv::Matx33f& H, float chi2_threshold) {
+    // Step 1: Compute residuals from RANSAC inliers
+
+    std::vector<cv::Point2f> residuals;
+    std::vector<cv::DMatch> clean_matches;
+
+    for (const auto& m : ransac_matches) {
+        const cv::Point2f& pt1 = kp1[m.queryIdx].pt;
+        const cv::Point2f& pt2 = kp2[m.trainIdx].pt;
+
+        // Transform pt1 through homography
+        cv::Mat pt1_h = (cv::Mat_<float>(3,1) << pt1.x, pt1.y, 1.0);
+        cv::Mat pt2_proj_h = H * pt1_h;
+        pt2_proj_h /= pt2_proj_h.at<float>(2); // Normalize
+
+        cv::Point2f residual(
+            pt2.x - pt2_proj_h.at<float>(0),
+            pt2.y - pt2_proj_h.at<float>(1)
+        );
+        residuals.push_back(residual);
+    }
+
+    // Step 2: Compute mean and covariance matrix
+    cv::Mat residuals_mat(residuals.size(), 2, CV_32F);
+    for (size_t i = 0; i < residuals.size(); ++i) {
+        residuals_mat.at<float>(i, 0) = residuals[i].x;
+        residuals_mat.at<float>(i, 1) = residuals[i].y;
+    }
+
+    cv::Mat mean, cov;
+    cv::calcCovarMatrix(residuals_mat, cov, mean,
+                       cv::COVAR_NORMAL | cv::COVAR_ROWS | cv::COVAR_SCALE);
+    cov /= residuals_mat.rows - 1; // Correct for sample covariance
+
+    // Step 3: Regularize covariance matrix if needed
+    float det = cv::determinant(cov);
+    if (det < 1e-6) { // Near-singular covariance
+        cov += cv::Mat::eye(cov.size(), cov.type()) * 1e-6;
+    }
+
+    // Step 4: Compute Mahalanobis distance for all matches
+    cv::Mat inv_cov = cov.inv();
+    inv_cov.convertTo(inv_cov, CV_32FC1);
+
+    for (const auto& m : matches) {
+        const cv::Point2f& pt1 = kp1[m.queryIdx].pt;
+        const cv::Point2f& pt2 = kp2[m.trainIdx].pt;
+
+        // Project pt1 through homography
+        cv::Mat pt1_h = (cv::Mat_<float>(3,1) << pt1.x, pt1.y, 1.0);
+        cv::Mat pt2_proj_h = H * pt1_h;
+        pt2_proj_h /= pt2_proj_h.at<float>(2);
+
+        // Compute residual
+        cv::Mat residual = (cv::Mat_<float>(1,2) <<
+            pt2.x - pt2_proj_h.at<float>(0),
+            pt2.y - pt2_proj_h.at<float>(1));
+
+        // Subtract mean
+        residual -= mean;
+
+        // Compute Mahalanobis distance
+        cv::Mat dist_sq_mat = residual * inv_cov * residual.t();
+        float dist = dist_sq_mat.at<float>(0, 0);
+
+        dist = std::sqrt(dist);
+
+        if (dist <= chi2_threshold) {
+            clean_matches.push_back(m);
+        }
+
+    }
+
+    return clean_matches;
+}
+
+
+    float adj_calculator::match_quality(const struct maths::keypoints &kp1,const cv::Mat img1,const struct maths::keypoints &kp2,const cv::Mat img2,int row,int col){
+
+            std::vector<cv::DMatch> ransac_matchf;
+            std::vector<cv::DMatch> ransac_matchs;
+            float rows = img1.rows;
+            float cols = img1.cols;
+
+            std::vector<float> T12 = {cols / 300,rows / 300};
 
             std::pair<std::vector<cv::DMatch>, std::vector<cv::DMatch>> match12 = maths::match_keypoints(kp1,kp2);
 
-            match_mat[row][col].resize(match12.first.size());
-            match_mat[row][col] = match12.first;
-            match_mat[col][row].resize(match12.second.size());
-            match_mat[col][row] = match12.second;
-
-            if (match12.first.size() < 16){
+            if (match12.first.size() < 25){
 
                 return 0;
             }
@@ -777,20 +888,20 @@ float focal_from_hom(const std::vector<std::vector< cv::Matx33f >> & H_mat,const
             std::vector<cv::Point2f> obj;
             std::vector<cv::Point2f> scene;
 
-            struct maths::Homography H12 = maths::find_homography(kp1,kp2,match12.first,1000,10,img1,img2);
+            struct maths::Homography H12 = maths::find_homography(kp1,kp2,match12.first,3000,4,img1,img2);
             H12.H = H12.H / H12.H(2,2);
             //std::cout <<"homography: "<<H12.H<<"\n";
-
 /*
+
             struct maths::Homography H12;
             std::vector<cv::Point2f> points1, points2;
             for (int i = 0; i < match12.first.size(); i++)
                 {
                         //-- Get the keypoints from the good matches
 
-                    points1.push_back(kp1.keypoint[match_mat[row][col][i].queryIdx].pt);
+                    points1.push_back(kp1.keypoint[match12.first[i].queryIdx].pt);
 
-                    points2.push_back(kp2.keypoint[match_mat[row][col][i].trainIdx].pt);
+                    points2.push_back(kp2.keypoint[match12.first[i].trainIdx].pt);
                 }
 
             H12.H = findHomography(cv::Mat(points2), cv::Mat(points1), cv::RANSAC);
@@ -800,10 +911,36 @@ float focal_from_hom(const std::vector<std::vector< cv::Matx33f >> & H_mat,const
             hom_mat[col][row] = H12.H.inv();
 
             int out = maths::N_outliers(kp1,kp2,match12.first,H12.H,T12);
-            std::cout<<"out: "<<out;
+            int n_in = match12.first.size() - out;
 
-            return 1-out/((float)match12.first.size());
+            if(n_in > ( 8 + .3 * match12.first.size())){
 
+
+                ransac_matchf = clean_matches(kp1,kp2,match12.first,H12.H,T12);
+                ransac_matchs = clean_matches(kp2,kp1,match12.second,H12.H.inv(),T12);
+
+                match_mat[row][col].resize(ransac_matchf.size());
+                match_mat[row][col] = ransac_matchf;
+                match_mat[col][row].resize(ransac_matchs.size());
+                match_mat[col][row] = ransac_matchs;
+                std::cout<<"\n"<<"-------------in: "<<ransac_matchf.size()<<"\n";
+
+                std::cout<<"\n"<<"out: "<<out<<"\n";
+                float orat = 1-out/((float)match12.first.size());
+                if((.4 < orat) and ( orat < .5)){
+                    orat = .50;
+                }
+
+                return orat;
+
+
+            }else{
+                std::cout<<"\n"<<"in: "<<n_in<<"\n";
+                std::cout<<"\n"<<"------------out: "<<out<<"\n";
+                return 0;
+
+            }
+            return 0;
         }
 
 

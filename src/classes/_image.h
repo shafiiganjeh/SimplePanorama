@@ -33,7 +33,7 @@ namespace img {
 
             void images_to_cylinder(float f);
 
-            void images_to_cylinder(std::vector<double> f);
+            void images_to_cylinder(std::vector<double> f , std::vector<cv::Vec2f> im_center);
 
             void gain_compensation(std::vector<cv::Mat> &imags,const cv::Mat& adj,std::vector<std::vector< cv::Matx33f >>& Hom_mat);
 

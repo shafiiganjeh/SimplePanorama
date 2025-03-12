@@ -79,7 +79,7 @@ void images::images_to_cylinder(float f){
 
     for(int i = 0;i<img_data.size();i++){
 
-        float h_size = img_data[i].cols /2;
+        float h_size = img_data[i].cols;
         float v_size = img_data[i].rows / 2;
         img_data[i] = imgm::project(img_data[i],h_size,v_size,f);
 
@@ -88,11 +88,11 @@ void images::images_to_cylinder(float f){
 }
 
 
-void images::images_to_cylinder(std::vector<double> f){
+void images::images_to_cylinder(std::vector<double> f , std::vector<cv::Vec2f> im_center){
 
     for(int i = 0;i<img_data.size();i++){
-
-        float h_size = img_data[i].cols /2;
+        std::cout <<" im c " <<im_center[i][0]<<"\n";
+        float h_size = img_data[i].cols / 2 + im_center[i][0];
         float v_size = img_data[i].rows / 2;
         img_data[i] = imgm::project(img_data[i],h_size,v_size,(float)f[i]);
 
