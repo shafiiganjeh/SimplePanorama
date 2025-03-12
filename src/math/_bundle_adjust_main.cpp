@@ -72,6 +72,17 @@ adjuster::adjuster(const std::vector<maths::keypoints> &kp,const std::vector<std
 
 }
 
+void printvec(const std::vector<Eigen::VectorXd> &vec){
+
+    std::cout<<"\n" << "err vec: ";
+
+    for(int i = 0;i<vec.size();i++){
+
+        std::cout << " :"<<vec[i]<< ": "<<"\n";
+
+    }
+    std::cout<<"\n" << "err end "<<"\n";
+}
 
 void adjuster::get_iter_par(){
 
@@ -88,6 +99,7 @@ void adjuster::get_iter_par(){
     //struct bund::approx normalizer = par_img -> ret_all();
 
     iter.e_vec = par_er -> error(ms);
+
     iter.eA_vec = ret_Ea(avec,iter.e_vec);
 
     iter.eB_vec = ret_Eb(bvec,iter.e_vec);
@@ -99,12 +111,28 @@ void adjuster::get_iter_par(){
 void adjuster::augment(){
 
     iter.u_vecf_augmented = iter.u_vecf;
-    iter.u_vecf_augmented.diagonal() = iter.u_vecf_augmented.diagonal()*(1 + iter.lambda);
+    //iter.u_vecf_augmented.diagonal() = iter.u_vecf_augmented.diagonal()*(1 + iter.lambda);
+
+    std::vector<double> foc_vec = par_img->ret_focal();
+    double ang_ = (3.141/16);
+
+    for(int i = 0; i < (par_img->adj).rows;i++){
+
+        Eigen::VectorXd augmvec(6);
+        augmvec <<foc_vec[i]/10,1,1,ang_,ang_,ang_;
+
+        for(int j = 0 ; j < 6;j++){
+
+            iter.u_vecf_augmented.diagonal()[6*i + j] = iter.u_vecf_augmented.diagonal()[6*i + j]*(1 + iter.lambda * augmvec[j]);
+
+        }
+
+    }
 
     iter.v_vec_augmented = iter.v_vec;
     for (int p = 0;p < iter.v_vec_augmented.size();p++){
 
-        iter.v_vec_augmented[p].diagonal() = iter.v_vec_augmented[p].diagonal()*(1 + iter.lambda);
+        iter.v_vec_augmented[p].diagonal() = iter.v_vec_augmented[p].diagonal()*(1 + iter.lambda );
         iter.v_vec_augmented[p] = iter.v_vec_augmented[p].inverse().eval();
         iter.Y_vec.push_back(iter.w_vec[p]*iter.v_vec_augmented[p]);
 
@@ -150,16 +178,17 @@ struct inter_par adjuster::iterate(){
 
     std::vector<Eigen::VectorXd> new_error = par_er -> error(ms);
 
-
+    bool addrot = true;
 
 
 
     int break_counter = 0;
-    for (int it = 0;it<30;it++){
+    for (int it = 0;it<50;it++){
 
         get_iter_par();
         augment();
         get_error();
+
 
         error_start = 0;
         for (Eigen::VectorXd e : iter.e_vec){
@@ -167,12 +196,12 @@ struct inter_par adjuster::iterate(){
             error_start = error_start + e.norm();
 
         }
-        std::cout <<"error "<<error_start<<"\n";
+        //std::cout <<"error "<<error_start<<"\n";
 
-        par_img -> add_delta(iter.delta_b,iter.delta_a);
+
+        par_img -> add_delta(iter.delta_b,iter.delta_a,addrot);
 
         std::vector<Eigen::VectorXd> ms = par_img -> ret_measurements();
-        //struct bund::approx normalizer = par_img -> ret_all();
         std::vector<Eigen::VectorXd> new_error = par_er -> error(ms);
 
         error_new = 0;
@@ -197,8 +226,19 @@ struct inter_par adjuster::iterate(){
             par_img -> reset();
             break_counter++;
         }
+        //std::cout <<"\n"<<"ddrot: "<< addrot<<"\n";
+        if (break_counter > 5){
+            if(addrot == false){
+                addrot = true;
+                break_counter = 0;
+                std::cout <<"\n"<<"set addrot: "<< iter.lambda<< "error: " << error_new<<"\n";
+                iter.lambda = 0.0001;
+            }else{
+                break;
 
-        if (break_counter > 5){ break;};
+            }
+
+        };
 
         lambda = iter.lambda;
         iter = inter_par();

@@ -29,8 +29,10 @@ namespace bund {
             Eigen::MatrixXd ret_hom(int i, int j);
             std::vector<Eigen::MatrixXd> ret_rot();
             std::vector<Eigen::MatrixXd> ret_K();
-            void add_delta(std::vector<Eigen::VectorXd> delta_b,Eigen::VectorXd delta_a);
+            void add_delta(std::vector<Eigen::VectorXd> delta_b,Eigen::VectorXd delta_a,bool add_rot);
             void reset();
+
+            cv::Mat adj;
 
         private:
 
@@ -53,9 +55,6 @@ namespace bund {
             std::vector<Eigen::MatrixXd> K_inv;
             std::vector<Eigen::MatrixXd> K_inv_res;
             std::vector<Eigen::MatrixXd> K_res;
-
-            cv::Mat adj;
-
     };
 
 

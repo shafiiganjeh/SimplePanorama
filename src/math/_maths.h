@@ -98,10 +98,11 @@ namespace maths {
     std::vector<struct adj_str> extract_adj(const cv::Mat &adj);
 
 
-
     class adj_calculator{
 
     public:
+
+        const double MAHALANOBIS_THRESHOLD = std::sqrt(5.991);
 
         adj_calculator(const std::vector<cv::Mat> & imgs,const std::vector<maths::keypoints> &key_p);
 
@@ -109,9 +110,11 @@ namespace maths {
 
         float match_quality(const struct maths::keypoints &kp1,const cv::Mat img1,const struct maths::keypoints &kp2,const cv::Mat img2,int row,int col);
 
-
         void get_threads(int n);
 
+        std::vector<cv::DMatch> clean_matches(const struct maths::keypoints &kp1,const struct maths::keypoints &kp2,std::vector<cv::DMatch> match,const  cv::Matx33f &H,const std::vector<float> &T12);
+
+        std::vector<cv::DMatch> filterOutliersWithMahalanobis(const std::vector<cv::KeyPoint>& kp1,const std::vector<cv::KeyPoint>& kp2,const std::vector<cv::DMatch>& matches,const std::vector<cv::DMatch>& ransac_matches,const cv::Matx33f& H, float chi2_threshold = 10 );
 
         cv::Mat adj;
         std::vector<maths::keypoints> kpmat;

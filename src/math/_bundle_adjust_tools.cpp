@@ -130,12 +130,11 @@ parameters::parameters(const std::vector<maths::keypoints> &kp,const std::vector
         cv::cv2eigen(r_transform_vec,rot_v);
         rot_vec.push_back(rot_v);
 
-
         //principal_vec
         Eigen::Vector2d pvec;
+
         pvec <<0,0;
         principal_vec.push_back(pvec);
-        //
         K.push_back(to_K(focal[i],pvec));
         K_inv.push_back(to_K_inv(focal[i],pvec));
 
@@ -444,12 +443,14 @@ Eigen::VectorXd d_func(const Eigen::VectorXd &inp_v,const Eigen::VectorXd &par){
     double mj[1][3] = {{par[9], par[10], par[11]}};
     cv::Mat rj(1, 3, CV_64F, mj);
 
-    cv::Mat v_rotMat;
-    cv::Rodrigues(ri,v_rotMat);
-    cv::cv2eigen(v_rotMat,Ri);
+    Eigen::MatrixXd tri(3,1);
+    tri <<par[3], par[4], par[5];
 
-    cv::Rodrigues(rj,v_rotMat);
-    cv::cv2eigen(v_rotMat,Rj);
+    Eigen::MatrixXd trj(3,1);
+    trj <<par[9], par[10], par[11];
+
+    Ri = get_rot(tri);
+    Rj = get_rot(trj);
 
     Eigen::MatrixXd Hom = Kj * Rj * Ri.transpose() * Ki_inv;
 
@@ -544,7 +545,7 @@ std::vector<Eigen::MatrixXd> parameters::ret_A_i_num(){
 
 
 
-void parameters::add_delta(std::vector<Eigen::VectorXd> delta_b,Eigen::VectorXd delta_a){
+void parameters::add_delta(std::vector<Eigen::VectorXd> delta_b,Eigen::VectorXd delta_a,bool add_rot){
 
     std::vector<Eigen::MatrixXd>().swap(rot_res);
     copy(rot.begin(), rot.end(), back_inserter(rot_res));
@@ -567,35 +568,36 @@ void parameters::add_delta(std::vector<Eigen::VectorXd> delta_b,Eigen::VectorXd 
     std::vector<Eigen::Vector2d>().swap(principal_vec_res);
     copy(principal_vec.begin(), principal_vec.end(), back_inserter(principal_vec_res));
 
-
+    double kl = 1;
+    double kl2 = 1;
+    double kl3 = 1;
     for(int i = 0;i < rot.size();i++){
 
-        rot_vec[i] = rot_vec[i] + delta_a({3+i*6,4+i*6,5+i*6});
+        if(add_rot){
+            //rot_vec[i] = rot_vec[i] + delta_a({3+i*6,4+i*6,5+i*6});
+            rot_vec[i](0,0) = rot_vec[i](0,0) + delta_a[3+i*6]*kl;
+            rot_vec[i](1,0) = rot_vec[i](1,0) + delta_a[4+i*6]*kl;
+            rot_vec[i](2,0) = rot_vec[i](2,0) + delta_a[5+i*6]*kl;
+            //std::cout <<"rot_vec[i] " <<rot_vec[i]<<"\n";
 
+        }
 
-
-        cv::Mat r_transform_vec;
-        cv::eigen2cv(rot_vec[i],r_transform_vec);
-        cv::Mat r_transform_mat;
-        cv::Rodrigues(r_transform_vec, r_transform_mat);
-        cv::cv2eigen(r_transform_mat,rot[i]);
-
-
-        focal[i] = focal[i] + delta_a[i*6];
-        principal_vec[i] = principal_vec[i] + delta_a({1+i*6,2+i*6});
+        rot[i] = get_rot(rot_vec[i]);
+        focal[i] = focal[i] + delta_a[i*6]*kl3;
+        principal_vec[i] = principal_vec[i] + delta_a({1+i*6,2+i*6})*kl2;
 
         K[i] = to_K(focal[i],principal_vec[i]);
         K_inv[i] = to_K_inv(focal[i],principal_vec[i]);
 
 
     }
-    std::cout<<"\n" <<"rot "<<delta_a({3+0*6,4+0*6,5+0*6})<<"\n";
 
     int c = 0;
     for (int i = 0;i < adj.rows;i++){
         for(int j = i;j < adj.cols;j++){
 
             if (.5 <= adj.at<double>(i,j)){
+
                 Eigen::MatrixXd hom = ret_hom(i, j);
                 for (int p = 0;p < measurements[i][j].size();p++){
 

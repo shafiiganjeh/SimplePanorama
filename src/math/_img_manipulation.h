@@ -26,6 +26,7 @@ namespace imgm {
             std::vector<int> stitch_order;
             std::vector<struct maths::translation> translation;
             std::pair<int,int> pan_dim;
+            std::vector<cv::Vec2f> im_center;
 
             const cv::Mat *adj;
             const std::vector<cv::Mat> *img_address;
@@ -33,6 +34,8 @@ namespace imgm {
             std::vector<std::vector<float>> img_dimensions;
 
             std::vector<Eigen::MatrixXd> rot;
+            std::vector<Eigen::MatrixXd> K;
+
             double focal = 1000;
             std::vector<double> focal_vec;
 

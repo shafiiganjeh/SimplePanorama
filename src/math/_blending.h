@@ -8,6 +8,7 @@
 #include <Eigen/Dense>
 #include "_img_manipulation.h"
 
+
 namespace blnd {
 
 void simple_blend(const class imgm::pan_img_transform &Tr,const std::vector<cv::Mat> &imags);

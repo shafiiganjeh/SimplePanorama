@@ -11,6 +11,10 @@
 #include "_blending.h"
 #include "_bundle_adjust_main.h"
 
+#include <cmath>      /* sin */
+
+#define PI 3.14159265
+
 #define ORDER_AS_IS 1
 using thread = std::vector<std::vector<std::vector<int>>>;
 

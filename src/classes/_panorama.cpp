@@ -5,6 +5,7 @@
 #include "_panorama.h"
 #include <opencv2/core/eigen.hpp>
 
+
 namespace pan{
 
     void panorama::load_resized(int width){
@@ -70,6 +71,27 @@ namespace pan{
         }
 
 
+    Eigen::MatrixXd rotate(double angle,double x,double y){
+
+        double sinus = sin(angle);
+        double cosinus = cos(angle);
+
+        Eigen::Matrix3d tr;
+        tr << 1,0,x,0,1,y,0,0,1;
+
+        Eigen::Matrix3d mtr;
+        mtr << 1,0,-x,0,1,-y,0,0,1;
+
+        Eigen::Matrix3d rot;
+        rot << cosinus,-sinus, 0 , sinus, cosinus,0,0,0,1;
+
+        rot = tr * rot * mtr;
+
+        return rot;
+
+    }
+
+
     void panorama::create_panorama(int threads,struct config conf){
 
 
@@ -77,10 +99,10 @@ namespace pan{
 
         if (conf.bundle_adjust == false){
 
-            //images_to_cylinder(1200);
+
 
         }
-        //images_to_cylinder(3000);
+    //images_to_cylinder(1500);
         calculate_keypoints(threads);
         get_adj_par(threads);
 
@@ -93,60 +115,72 @@ namespace pan{
         //std::cout <<"\n"<<"ad size: "<<adddd[0].adj<<"\n";
 
         imgm::pan_img_transform Tr(&adj,&img_data);
+
         imgm::pan_img_transform Tr2(&adj,&img_data);
 
-
+        Eigen::Matrix3d tr;
+        tr << 1,0,0,0,1,50,0,0,1;
 
         Tr.focal = conf.focal;
         imgm::calc_stitch_from_adj(Tr,hom_mat);
-
-       class bundm::adjuster testad(keypnts,match_mat,adj,conf.lambda,Tr);
-       struct bundm::inter_par teees = testad.iterate();
-       std::vector<Eigen::MatrixXd> Ks = testad.ret_K();
-       std::vector<Eigen::MatrixXd> rot = testad.ret_rot();
-
-       Eigen::MatrixXd homeig = rot[0] * Ks[0].inverse();
-       std::cout<<"\n" <<"rot: " <<rot[0]<<"\n";
-       std::cout<<"\n" <<"k: " <<Ks[0]<<"\n";
-
-       cv::Mat cvhom;
-       cv::eigen2cv(homeig,cvhom);
-
-       cv::Mat dest;
-
-
 /*
-       std::vector<cv::Vec2f> cor;
-        cor.push_back(cv::Vec2f(0,0));
-        cor.push_back(cv::Vec2f(0,img_data[0].rows));
-        cor.push_back(cv::Vec2f(img_data[0].cols,0));
-        cor.push_back(cv::Vec2f(img_data[0].cols,img_data[0].rows));
+        class bundm::adjuster testad(keypnts,match_mat,adj,conf.lambda,Tr);
+        struct bundm::inter_par teees = testad.iterate();
 
-        cv::perspectiveTransform(cor, cor, cvhom);
+        imgm::calc_stitch_from_adj(Tr2,teees.hom);
 
-        float xstart = std::min( std::min( cor[0][0], cor[1][0]), (float)0);
-        float xend   = std::max( std::max( cor[2][0], cor[3][0]), (float)img_data[0].cols);
-        float ystart = std::min( std::min( cor[0][1], cor[2][1]), (float)0);
-        float yend   = std::max( std::max( cor[1][1], cor[3][1]), (float)img_data[0].rows);
-
-        std::cout<<"\n" <<"size: " <<cv::Size(xend - xstart + 1, yend - ystart + 1)<<"\n";
+        std::vector<Eigen::MatrixXd> Ksd = testad.ret_K();
 
 
 
 
-       cv::warpPerspective(img_data[0],dest,cvhom,cv::Size(img_data[0].cols+100, img_data[0].rows +100), cv::INTER_LINEAR);
-       cv::imshow("Image Display", dest);
-       cv::waitKey(0);
+        std::vector<Eigen::MatrixXd> Ks = testad.ret_K();
+        std::vector<Eigen::MatrixXd> rot = testad.ret_rot();
+
+        //Ks[0](0,2) = 0;
+        //Ks[0](1,2) = 0;
+        //Ks[1](0,2) = 0;
+        //Ks[1](1,2) = 0;
+
+        Eigen::MatrixXd homeig =   Ks[1] * rot[1] * rot[0].transpose() * Ks[0].inverse();
+        homeig = homeig / homeig(2,2);
+
+
+
+        std::cout<<"\n"<< "Ks[0]: "<<Ks[0]<<"\n";
+        std::cout<<"\n"<< "rot[0]: "<<rot[0]<<"\n";
+        std::cout<<"\n"<< "rot[1]: "<<rot[1]<<"\n";
+        std::cout<<"\n"<< "Ks[1].inverse(): "<<Ks[1].inverse()<<"\n";
+
+        Eigen::Vector3d p0;
+        p0 <<0,0,1;
+
+        p0 = homeig * p0;
+
+        std::cout<<"\n"<<"zeropo"<< p0;
+
+        cv::Mat cvhom2;
+
+        cv::eigen2cv(homeig,cvhom2);
+
+        cv::Mat dest2;
+        std::cout<<"\n"<< "cvhom2: "<<cvhom2<<"\n";
+
+        dest2 = imgm::stitch(img_data[0], img_data[1],cvhom2);
 */
+/*
+        cv::imshow("Image Display", dest2);
+        cv::waitKey(0);
 
-       teees.focal;
+*/
+      // teees.focal;
 
-     imgm::calc_stitch_from_adj(Tr2,teees.hom);
+     //imgm::calc_stitch_from_adj(Tr2,teees.hom);
     // for(int i = 0;i<teees.focal.size();i++){
   //       std::cout <<"\n"<<"focal: "<<teees.focal[i]<<"\n";
 
   //  }
-     //images_to_cylinder(2000);
+
 
 
 
@@ -171,10 +205,11 @@ for (int i =0;i<teees.focal.size();i++){
 
         }
 */
+        images_to_cylinder(1500);
         switch(conf.blend) {
             case SIMPLE_BLEND:
 
-                blnd::no_blend(Tr2,img_data);
+                blnd::simple_blend(Tr,img_data);
 
             case NO_BLEND:
 

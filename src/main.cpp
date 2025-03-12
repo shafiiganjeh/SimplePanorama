@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
         //gtk_main();
 
             pan::config conf;
-            conf.focal = 2000;
+            conf.focal = 1500;
 
 
 
@@ -69,13 +69,13 @@ int main(int argc, char **argv) {
 
             pan::panorama test(path_list);
 
-            test.load_resized(800);
+            //test.load_resized(800);
 
-            test.calculate_keypoints(1);
-            test.get_adj_par();
+            //test.calculate_keypoints(1);
+            //test.get_adj_par();
 
-            //test.create_panorama(1,conf);
-
+            test.create_panorama(1,conf);
+/*
 
             std::vector<maths::keypoints> key_p = test.get_keypoints();
             std::vector<cv::Mat> imags = test.get_images();
@@ -89,6 +89,7 @@ int main(int argc, char **argv) {
             imgm::pan_img_transform Tr(&adj,&imags);
             Tr.focal = 1000;
             imgm::calc_stitch_from_adj(Tr,hom_mat);
+
             class bund::parameters sanity(key_p,matchMat,Tr);
 
             std::vector<Eigen::MatrixXd> ai = sanity.ret_A_i();
@@ -96,9 +97,11 @@ int main(int argc, char **argv) {
 
 
 
-            std::cout<<"numeric: "<<"\n"<<ainum[0]<<"\n";
-            std::cout<<"exact: "<<"\n"<<ai[0]<<"\n";
-   /*
+            std::cout<<"numeric: "<<"\n"<<ai.size()<<"\n";
+            std::cout<<"exact: "<<"\n"<<ai.size()<<"\n";
+
+
+
 
             std::vector<maths::keypoints> key_p = test.get_keypoints();
             std::vector<cv::Mat> imags = test.get_images();
