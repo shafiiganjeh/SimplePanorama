@@ -76,7 +76,7 @@ void no_blend(const class imgm::pan_img_transform &Tr,const std::vector<cv::Mat>
 }
 
 
-cv::Mat createSurroundingMask(const cv::Mat& inputImage, bool invert = false, uchar thresholdValue = 10) {
+cv::Mat createSurroundingMask(const cv::Mat& inputImage, bool invert, uchar thresholdValue) {
     if (inputImage.empty()) {
         return cv::Mat();
     }

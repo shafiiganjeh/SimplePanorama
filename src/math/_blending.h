@@ -11,6 +11,8 @@
 
 namespace blnd {
 
+cv::Mat createSurroundingMask(const cv::Mat& inputImage, bool invert = false, uchar thresholdValue = 1);
+
 void simple_blend(const class imgm::pan_img_transform &Tr,const std::vector<cv::Mat> &imags);
 
 void no_blend(const class imgm::pan_img_transform &Tr,const std::vector<cv::Mat> &imags);

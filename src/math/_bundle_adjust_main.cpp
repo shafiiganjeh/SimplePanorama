@@ -4,20 +4,57 @@
 
 namespace bundm {
 
+adjuster::adjuster(const std::vector<maths::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match,float lmbd,const imgm::pan_img_transform &Tr,int threads){
 
-Eigen::MatrixXd adjuster::ret_uf(const std::vector<Eigen::MatrixXd> &avec){
+    thr = threads;
+    par_er = std::make_shared<class bund::E_func>(kp,match,*Tr.adj);
+    par_img = std::make_shared<class bund::parameters>(kp,match,Tr,thr);
+    iter.lambda = lmbd;
+    iter.hom = par_img -> ret_hmat();
 
-    Eigen::MatrixXd U;
-    int c = avec[0].cols();
-    U = Eigen::MatrixXd::Zero(c,c);
+}
 
-     for(int i = 0;i < avec.size();i++){
 
-         U = U + avec[i].transpose()*avec[i];
+void adjuster::calc_uf(int thread,const std::vector<bund::A_vec>& avec,std::vector<Eigen::MatrixXd>& thread_accumulators){
 
-     }
+    for(const int & i : threads_vector[thread]){
 
-     return U;
+        const bund::A_vec& a = avec[i];
+
+        thread_accumulators[thread].block<6, 6>(a.idx_i * 6, a.idx_i * 6).noalias() += a.Ai.transpose() * a.Ai;
+        thread_accumulators[thread].block<6, 6>(a.idx_i * 6, a.idx_j * 6).noalias() += a.Ai.transpose() * a.Aj;
+        thread_accumulators[thread].block<6, 6>(a.idx_j * 6, a.idx_i * 6).noalias() += a.Aj.transpose() * a.Ai;
+        thread_accumulators[thread].block<6, 6>(a.idx_j * 6, a.idx_j * 6).noalias() += a.Aj.transpose() * a.Aj;
+    }
+
+}
+
+Eigen::MatrixXd adjuster::ret_uf(const std::vector<bund::A_vec>& avec, int total_cols) {
+
+    std::vector<Eigen::MatrixXd> thread_accumulators(thr);
+    std::vector<std::thread> thread_objects;
+
+    for (auto& mat : thread_accumulators) {
+        mat = Eigen::MatrixXd::Zero(total_cols, total_cols);
+    }
+
+    for(int k = 0;k < threads_vector.size();k++){
+
+        std::thread tobj(&adjuster::calc_uf,this,k,std::ref(avec),std::ref(thread_accumulators));
+        thread_objects.push_back(std::move(tobj));
+
+    }
+
+    for (auto& t : thread_objects) {
+        t.join();
+    }
+
+    Eigen::MatrixXd U = Eigen::MatrixXd::Zero(total_cols, total_cols);
+    for (auto& accum : thread_accumulators) {
+        U.noalias() += accum;
+    }
+
+    return U;
 }
 
 
@@ -35,14 +72,80 @@ std::vector<Eigen::MatrixXd> adjuster::sum_transpose(const std::vector<Eigen::Ma
 }
 
 
-Eigen::VectorXd adjuster::ret_Ea(const std::vector<Eigen::MatrixXd> &avec,const std::vector<Eigen::VectorXd> &e_vec){
+void adjuster::sum_transposeAB_calc(int thread,const std::vector<bund::A_vec>& avec,const std::vector<Eigen::MatrixXd>& bvec,std::vector<Eigen::MatrixXd> &W){
 
-    Eigen::VectorXd Ev = Eigen::VectorXd::Zero(avec[0].cols());
+    for(const int & i : threads_vector[thread]){
 
-    for(int i = 0;i < avec.size();i++){
+        const bund::A_vec& a = avec[i];
+        const int total_rows = 6 * a.size;
+        Eigen::MatrixXd Wi = Eigen::MatrixXd::Zero(total_rows, 2);
 
-        Ev = Ev + avec[i].transpose() * e_vec[i];
+        Wi.middleRows(a.idx_i * 6, 6) = a.Ai.transpose() * bvec[i];
+        Wi.middleRows(a.idx_j * 6, 6) = a.Aj.transpose() * bvec[i];
 
+        W[i] = std::move(Wi);
+
+    }
+
+}
+
+
+std::vector<Eigen::MatrixXd> adjuster::sum_transposeAB(const std::vector<Eigen::MatrixXd>& bvec,const std::vector<bund::A_vec>& avec){
+
+    std::vector<Eigen::MatrixXd> W(avec.size());
+    std::vector<std::thread> thread_objects;
+
+    for(int k = 0;k < threads_vector.size();k++){
+
+        std::thread tobj(&adjuster::sum_transposeAB_calc,this,k,std::ref(avec),std::ref(bvec),std::ref(W));
+        thread_objects.push_back(std::move(tobj));
+
+    }
+
+    for (auto& t : thread_objects) {
+        t.join();
+    }
+
+    return W;
+}
+
+
+void adjuster::ret_Ea_calc(int thread,const std::vector<bund::A_vec>& avec,const std::vector<Eigen::VectorXd>& e_vec,std::vector<Eigen::VectorXd> &thread_Ev){
+
+    auto& local_Ev = thread_Ev[thread];
+    for(const int & i : threads_vector[thread]){
+
+        const bund::A_vec& a = avec[i];
+        const Eigen::VectorXd& e = e_vec[i];
+
+        local_Ev.segment<6>(a.idx_i * 6).noalias() += a.Ai.transpose() * e;
+        local_Ev.segment<6>(a.idx_j * 6).noalias() += a.Aj.transpose() * e;
+
+    }
+
+}
+
+
+Eigen::VectorXd adjuster::ret_Ea(const std::vector<bund::A_vec>& avec,const std::vector<Eigen::VectorXd>& e_vec){
+
+    const int total_cols = avec[0].size * 6;
+    std::vector<Eigen::VectorXd> thread_Ev(thr,Eigen::VectorXd::Zero(total_cols));
+    std::vector<std::thread> thread_objects;
+    Eigen::VectorXd Ev = Eigen::VectorXd::Zero(total_cols);
+
+    for(int k = 0;k < threads_vector.size();k++){
+
+        std::thread tobj(&adjuster::ret_Ea_calc,this,k,std::ref(avec),std::ref(e_vec),std::ref(thread_Ev));
+        thread_objects.push_back(std::move(tobj));
+
+    }
+
+    for (auto& t : thread_objects) {
+        t.join();
+    }
+
+    for (auto& vec : thread_Ev) {
+        Ev.noalias() += vec;
     }
 
     return Ev;
@@ -63,63 +166,97 @@ std::vector<Eigen::VectorXd> adjuster::ret_Eb(const std::vector<Eigen::MatrixXd>
 }
 
 
-adjuster::adjuster(const std::vector<maths::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match,const cv::Mat &adj,float lmbd,const imgm::pan_img_transform &Tr){
+std::vector<bund::A_vec> adjuster::get_iter_par() {
 
-    par_er = std::make_shared<class bund::E_func>(kp,match,adj);
-    par_img = std::make_shared<class bund::parameters>(kp,match,Tr);
-    iter.lambda = lmbd;
-    iter.hom = par_img -> ret_hmat();
+    auto avec_fut = std::async(std::launch::async, [this]() {
+        return par_img->ret_A_i();
+    });
 
+    auto bvec_fut = std::async(std::launch::async, [this]() {
+        return par_img->ret_B_i();
+    });
+
+    auto ms_fut = std::async(std::launch::async, [this]() {
+        return par_img->ret_measurements();
+    });
+
+    std::vector<bund::A_vec> avec = avec_fut.get();
+    int size_tot = avec[0].size * 6;
+    std::vector<Eigen::MatrixXd> bvec = bvec_fut.get();
+    std::vector<Eigen::VectorXd> ms = ms_fut.get();
+
+    auto uf_fut = std::async(std::launch::async, [this, &avec, size_tot]() {
+        return ret_uf(avec, size_tot);
+    });
+
+    auto vvec_fut = std::async(std::launch::async, [this, &bvec]() {
+        return sum_transpose(bvec, bvec);
+    });
+
+    auto wvec_fut = std::async(std::launch::async, [this, &bvec, &avec]() {
+        return sum_transposeAB(bvec, avec);
+    });
+
+    auto evec_fut = std::async(std::launch::async, [this, &ms]() {
+        return par_er->error(ms);
+    });
+
+    iter.e_vec = evec_fut.get();
+
+    auto eA_fut = std::async(std::launch::async, [this, &avec]() {
+        return ret_Ea(avec, iter.e_vec);
+    });
+
+    auto eB_fut = std::async(std::launch::async, [this, &bvec]() {
+        return ret_Eb(bvec, iter.e_vec);
+    });
+
+    iter.u_vecf = uf_fut.get();
+    iter.v_vec = vvec_fut.get();
+    iter.w_vec = wvec_fut.get();
+    iter.eA_vec = eA_fut.get();
+    iter.eB_vec = eB_fut.get();
+
+    return avec;
 }
 
-void printvec(const std::vector<Eigen::VectorXd> &vec){
 
-    std::cout<<"\n" << "err vec: ";
+void adjuster::augment_calc(int thread,double aug_lamda,const std::vector<bund::A_vec> &avec,struct inter_par& iter){
 
-    for(int i = 0;i<vec.size();i++){
+    Eigen::Matrix2d temp;
+    for(const int & p : threads_vector[thread]){
 
-        std::cout << " :"<<vec[i]<< ": "<<"\n";
+            const bund::A_vec& a = avec[p];
+            iter.v_vec_augmented[p].diagonal() =iter.v_vec_augmented[p].diagonal()*aug_lamda;
+
+            double denom = 1/(iter.v_vec_augmented[p](0,0)*iter.v_vec_augmented[p](1,1) - iter.v_vec_augmented[p](0,1)*iter.v_vec_augmented[p](1,0));
+            temp(0,0) = iter.v_vec_augmented[p](1,1);
+            temp(0,1) = -iter.v_vec_augmented[p](0,1);
+            temp(1,0) = -iter.v_vec_augmented[p](1,0);
+            temp(1,1) = iter.v_vec_augmented[p](0,0);
+            iter.v_vec_augmented[p] = denom*temp;
+
+            iter.Y_vec[p].block<6, 2>(a.idx_i * 6,0) = iter.w_vec[p].block<6, 2>(a.idx_i * 6,0) * iter.v_vec_augmented[p];
+            iter.Y_vec[p].block<6, 2>(a.idx_j * 6,0) = iter.w_vec[p].block<6, 2>(a.idx_j * 6,0) * iter.v_vec_augmented[p];
 
     }
-    std::cout<<"\n" << "err end "<<"\n";
-}
-
-void adjuster::get_iter_par(){
-
-    std::vector<Eigen::MatrixXd> avec = par_img -> ret_A_i();
-
-    iter.u_vecf = ret_uf(avec);
-
-    std::vector<Eigen::MatrixXd> bvec = par_img -> ret_B_i();
-    iter.v_vec = sum_transpose(bvec,bvec);
-
-    iter.w_vec = sum_transpose(bvec,avec);
-
-    std::vector<Eigen::VectorXd> ms = par_img -> ret_measurements();
-    //struct bund::approx normalizer = par_img -> ret_all();
-
-    iter.e_vec = par_er -> error(ms);
-
-    iter.eA_vec = ret_Ea(avec,iter.e_vec);
-
-    iter.eB_vec = ret_Eb(bvec,iter.e_vec);
-
 
 }
 
 
-void adjuster::augment(){
+void adjuster::augment(const std::vector<bund::A_vec> &avec){
 
     iter.u_vecf_augmented = iter.u_vecf;
-    //iter.u_vecf_augmented.diagonal() = iter.u_vecf_augmented.diagonal()*(1 + iter.lambda);
 
     std::vector<double> foc_vec = par_img->ret_focal();
-    double ang_ = (3.141/16);
-
+    double ang_ = .5;
+    double foc;
     for(int i = 0; i < (par_img->adj).rows;i++){
+        foc = foc_vec[i];
+        foc = foc*.01;
 
         Eigen::VectorXd augmvec(6);
-        augmvec <<foc_vec[i]/10,1,1,ang_,ang_,ang_;
+        augmvec <<foc,foc,foc,ang_,ang_,ang_;
 
         for(int j = 0 ; j < 6;j++){
 
@@ -129,38 +266,111 @@ void adjuster::augment(){
 
     }
 
+    if(iter.Y_vec.size() != iter.v_vec.size()){
+
+        iter.Y_vec.assign(iter.v_vec.size(), Eigen::MatrixXd::Zero((par_img->adj).rows * 6, 2));
+
+    }
+
+    std::vector<std::thread> thread_objects;
     iter.v_vec_augmented = iter.v_vec;
-    for (int p = 0;p < iter.v_vec_augmented.size();p++){
+    double aug_lamda = 1 + iter.lambda*foc;
 
-        iter.v_vec_augmented[p].diagonal() = iter.v_vec_augmented[p].diagonal()*(1 + iter.lambda );
-        iter.v_vec_augmented[p] = iter.v_vec_augmented[p].inverse().eval();
-        iter.Y_vec.push_back(iter.w_vec[p]*iter.v_vec_augmented[p]);
+    for(int k = 0;k < threads_vector.size();k++){
 
+        std::thread tobj(&adjuster::augment_calc,this,k,aug_lamda,std::ref(avec),std::ref(iter));
+        thread_objects.push_back(std::move(tobj));
+
+    }
+
+    for (auto& t : thread_objects) {
+        t.join();
     }
 
 }
 
 
-void adjuster::get_error(){
+
+
+
+void adjuster::get_error(const std::vector<bund::A_vec> &avec){
+
+    int num_threads = thr;
+    std::vector<Eigen::MatrixXd> thread_accumulators_wy(num_threads);
+    std::vector<Eigen::VectorXd> thread_accumulators_YEb(num_threads);
+
+    for (auto& mat : thread_accumulators_wy) {
+        mat = Eigen::MatrixXd::Zero(iter.Y_vec[0].rows(),iter.w_vec[0].rows());
+    }
+    for (auto& mat : thread_accumulators_YEb) {
+        mat = Eigen::VectorXd::Zero(iter.Y_vec[0].rows());
+    }
+
+    std::vector<std::thread> workers;
+
+    auto worker_task = [&](unsigned thread_id, size_t start, size_t end) {
+        auto& sum_wy_loc = thread_accumulators_wy[thread_id];
+        auto& sum_YEb_loc = thread_accumulators_YEb[thread_id];
+
+        for (size_t p = start; p < end; p++) {
+            const bund::A_vec& a = avec[p];
+
+            sum_wy_loc.block<6, 6>(a.idx_i * 6, a.idx_i * 6).noalias() += iter.Y_vec[p].block<6, 2>(a.idx_i * 6,0) * iter.w_vec[p].block<6, 2>(a.idx_i * 6,0).transpose();
+            sum_wy_loc.block<6, 6>(a.idx_i * 6, a.idx_j * 6).noalias() += iter.Y_vec[p].block<6, 2>(a.idx_i * 6,0) * iter.w_vec[p].block<6, 2>(a.idx_j * 6,0).transpose();
+            sum_wy_loc.block<6, 6>(a.idx_j * 6, a.idx_i * 6).noalias() += iter.Y_vec[p].block<6, 2>(a.idx_j * 6,0) * iter.w_vec[p].block<6, 2>(a.idx_i * 6,0).transpose();
+            sum_wy_loc.block<6, 6>(a.idx_j * 6, a.idx_j * 6).noalias() += iter.Y_vec[p].block<6, 2>(a.idx_j * 6,0) * iter.w_vec[p].block<6, 2>(a.idx_j * 6,0).transpose();
+
+            sum_YEb_loc.segment<6>(a.idx_i * 6).noalias() += iter.Y_vec[p].block<6, 2>(a.idx_i * 6,0) * iter.eB_vec[p];
+            sum_YEb_loc.segment<6>(a.idx_j * 6).noalias() += iter.Y_vec[p].block<6, 2>(a.idx_j * 6,0) * iter.eB_vec[p];
+
+        }
+    };
+
 
     Eigen::MatrixXd sum_wy = Eigen::MatrixXd::Zero(iter.Y_vec[0].rows(),iter.w_vec[0].rows());
     Eigen::VectorXd sum_YEb = Eigen::VectorXd::Zero(iter.Y_vec[0].rows());
+
+    const size_t chunk_size = iter.w_vec.size() / num_threads;
+    size_t start_index = 0;
+
+    for (unsigned t = 0; t < num_threads; t++) {
+        const size_t end_index = (t == num_threads - 1)
+                              ? iter.w_vec.size()
+                              : start_index + chunk_size;
+
+        workers.emplace_back(worker_task, t, start_index, end_index);
+        start_index = end_index;
+    }
+
+    for (auto& t : workers) {
+        t.join();
+    }
+
+    for (auto& accum : thread_accumulators_wy) {
+        sum_wy.noalias() += accum;
+    }
+
+    for (auto& accum : thread_accumulators_YEb) {
+        sum_YEb.noalias() += accum;
+    }
+
+
     Eigen::MatrixXd uvecf = iter.u_vecf_augmented;
 
-    for(int i = 0;i < iter.w_vec.size();i++){
-
-        sum_wy = sum_wy + iter.Y_vec[i]*iter.w_vec[i].transpose();
-        sum_YEb = sum_YEb + iter.Y_vec[i] * iter.eB_vec[i];
-
-    }
 
     uvecf = uvecf - sum_wy;
 
     iter.delta_a = uvecf.colPivHouseholderQr().solve(iter.eA_vec - sum_YEb);
 
+    if(iter.delta_b.size() != iter.v_vec_augmented.size()){
+
+        iter.delta_b.resize(iter.v_vec_augmented.size());
+
+    }
+
     for (int p = 0;p < iter.v_vec_augmented.size();p++){
 
-        iter.delta_b.push_back( iter.v_vec_augmented[p] * (iter.eB_vec[p] - iter.w_vec[p].transpose() * iter.delta_a) );
+        iter.delta_b[p] = iter.v_vec_augmented[p] * (iter.eB_vec[p] - iter.w_vec[p].transpose() * iter.delta_a) ;
 
     }
 
@@ -174,29 +384,59 @@ struct inter_par adjuster::iterate(){
     float lambda = iter.lambda;
 
     std::vector<Eigen::VectorXd> ms = par_img -> ret_measurements();
-    //struct bund::approx normalizer = par_img -> ret_all();
-
     std::vector<Eigen::VectorXd> new_error = par_er -> error(ms);
 
+    std::vector<int> idx(ms.size());
+    std::iota(idx.begin(), idx.end(), 0);
+    thread_parts = idx;
+
+    threads_vector = maths::splitVector(thread_parts, thr);
+    std::vector<int> sizes(threads_vector.size());
+
+    sizes[0] = 0;
+    int c = 0;
+    for(int s = 1;s < sizes.size();s++){
+        c = c + threads_vector[s - 1].size();
+        sizes[s] = c;
+    }
+    thread_sizes = sizes;
+
+    std::vector<bund::A_vec> avec = get_iter_par();
+
+    augment(avec);
+    get_error(avec);
+
+    error_start = 0;
+    for (Eigen::VectorXd e : iter.e_vec){
+
+        error_start = error_start + e.norm();
+
+    }
+    std::cout<<"\n" <<"error "<<error_start/iter.e_vec.size()<<"\n";
+
     bool addrot = true;
-
-
-
     int break_counter = 0;
+
+    bool num;
     for (int it = 0;it<50;it++){
+timer.start("total for");
+timer.start("itpar");
+        std::vector<bund::A_vec> avec = get_iter_par();
+timer.stop("itpar");
+timer.start("augm");
+        augment(avec);
+timer.stop("augm");
+timer.start("gete");
+        get_error(avec);
+timer.stop("gete");
 
-        get_iter_par();
-        augment();
-        get_error();
-
-
+timer.stop("total for");
         error_start = 0;
         for (Eigen::VectorXd e : iter.e_vec){
 
             error_start = error_start + e.norm();
 
         }
-        //std::cout <<"error "<<error_start<<"\n";
 
 
         par_img -> add_delta(iter.delta_b,iter.delta_a,addrot);
@@ -210,28 +450,28 @@ struct inter_par adjuster::iterate(){
             error_new = error_new + e.norm();
 
         }
-
+        error_value = error_new;
         //std::cout<<"\n" <<"test error: " << error_new<<"\n";
         if( error_start > error_new ){
 
             iter.lambda = iter.lambda / 10;
-            std::cout <<"lambda: "<< iter.lambda<< " new error: " << error_new<<"\n";
+            std::cout <<"lambda: "<< iter.lambda<< " new error: " << error_new/iter.e_vec.size()<<"\n";
+            error_value = error_new;
             error_start = error_new;
             break_counter = 0;
 
         }else{
 
             iter.lambda = iter.lambda * 10;
-            //std::cout <<"lambda: "<< iter.lambda<< " old error: " << error_start<<"\n";
             par_img -> reset();
             break_counter++;
         }
-        //std::cout <<"\n"<<"ddrot: "<< addrot<<"\n";
+
         if (break_counter > 5){
             if(addrot == false){
                 addrot = true;
                 break_counter = 0;
-                std::cout <<"\n"<<"set addrot: "<< iter.lambda<< "error: " << error_new<<"\n";
+
                 iter.lambda = 0.0001;
             }else{
                 break;
@@ -249,6 +489,17 @@ struct inter_par adjuster::iterate(){
     iter.focal = par_img -> ret_focal();
     iter.hom = par_img -> ret_hmat();
     return iter;
+
+}
+
+
+void adjuster::set_ignore(std::vector<int> idx,bool mode){
+
+    for(int i = 0;i < idx.size();i++){
+
+        (par_img -> adjust_yn)[idx[i]] = mode;
+
+    }
 
 }
 
