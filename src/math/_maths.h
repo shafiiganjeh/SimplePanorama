@@ -14,6 +14,9 @@
 #include <stack>
 #include <unordered_set>
 #include <map>
+#include <Eigen/Dense>
+#include <unsupported/Eigen/MatrixFunctions>
+#include <opencv2/core/eigen.hpp>
 
 namespace maths {
 
@@ -52,7 +55,12 @@ namespace maths {
 
     using thread = std::vector<std::vector<std::vector<int>>>;
 
-    struct keypoints extract_keypoints(const cv::Mat &img,int nfeatures = 0,int nOctaveLayers = 3,double contrastThreshold = 0.06,double edgeThreshold = 10,double sigma = 1.6);
+    std::pair<double, double> computeOverlapPercentages(
+    const cv::Mat& imgA,
+    const cv::Mat& imgB,
+    Eigen::MatrixXd& H);
+
+    struct keypoints extract_keypoints(const cv::Mat &img,int nfeatures = 0,int nOctaveLayers = 4,double contrastThreshold = 3e-2,double edgeThreshold = 6,double sigma = 1.4142);
 
     std::pair<std::vector<cv::DMatch>, std::vector<cv::DMatch>> match_keypoints(const struct keypoints &kp1,const struct keypoints &kp2);
 
@@ -93,16 +101,51 @@ namespace maths {
     float focal_from_hom(const std::vector<std::vector< cv::Matx33f >> & H_mat,const cv::Mat &source_adj);
 
     template <typename T>
-    std::vector<std::vector<T>> splitVector(const std::vector<T>& vec, int n);
+    std::vector<std::vector<T>> splitVector(const std::vector<T>& vec, int n) {
+            std::vector<std::vector<T>> result;
+
+            if (n <= 0 || vec.empty()) {
+                return result;
+            }
+
+            if (n > vec.size()) {
+
+                throw std::invalid_argument("n should be less than vector size.");
+            }
+
+            int basic_part_size = vec.size() / n;
+            int remainder = vec.size() % n;
+
+            int start_index = 0;
+
+            for (int i = 0; i < n; ++i) {
+                int current_part_size = basic_part_size + (i < remainder ? 1 : 0);  // Add 1 if i is less than remainder
+                std::vector<T> part(vec.begin() + start_index, vec.begin() + start_index + current_part_size);
+                result.push_back(part);
+                start_index += current_part_size;
+            }
+
+            return result;
+    }
 
     std::vector<struct adj_str> extract_adj(const cv::Mat &adj);
 
+    Eigen::MatrixXd approximate(
+    Eigen::MatrixXd& H,
+    Eigen::MatrixXd& K,
+    std::vector<cv::KeyPoint>& keypoints1,
+    std::vector<cv::KeyPoint>& keypoints2,
+    std::vector<cv::DMatch> &matches,
+    Eigen::MatrixXd R_i);
+ //R= Eigen::Matrix3d::Identity()
 
     class adj_calculator{
 
     public:
 
         const double MAHALANOBIS_THRESHOLD = std::sqrt(5.991);
+
+        std::vector<size_t> find_n_smallest_indices(const std::vector<double>& rank, int n);
 
         adj_calculator(const std::vector<cv::Mat> & imgs,const std::vector<maths::keypoints> &key_p);
 

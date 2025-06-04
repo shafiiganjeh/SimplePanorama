@@ -16,7 +16,7 @@ add_definitions(${GTK_CFLAGS_OTHER})
 
 find_package (Eigen3 3.4 REQUIRED NO_MODULE)
 
-
+add_definitions(-O2 -fno-math-errno -ffast-math)
 
 
 include_directories(        ${CMAKE_SOURCE_DIR}/src/math
@@ -55,6 +55,11 @@ add_library(code
     ${CMAKE_SOURCE_DIR}/src/math/_gain_compensation.cpp
     ${CMAKE_SOURCE_DIR}/src/math/_blending.h
     ${CMAKE_SOURCE_DIR}/src/math/_blending.cpp
+    ${CMAKE_SOURCE_DIR}/src/math/_stitch.h
+    ${CMAKE_SOURCE_DIR}/src/math/_stitch.cpp
+    ${CMAKE_SOURCE_DIR}/src/math/_strengthening.h
+    ${CMAKE_SOURCE_DIR}/src/math/_strengthening.cpp
+    ${CMAKE_SOURCE_DIR}/src/math/full_bunde.cpp
 )
 
 add_executable(panorama src/main.cpp)

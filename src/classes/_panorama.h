@@ -10,6 +10,7 @@
 #include "_image.h"
 #include "_blending.h"
 #include "_bundle_adjust_main.h"
+#include "_stitch.h"
 
 #include <cmath>      /* sin */
 

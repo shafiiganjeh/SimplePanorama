@@ -2,6 +2,173 @@
 
 namespace maths {
 
+
+#include <vector>
+#include <unordered_map>
+#include <opencv2/opencv.hpp>
+
+
+
+Eigen::MatrixXd approximate(
+    Eigen::MatrixXd& H,
+    Eigen::MatrixXd& K,
+    std::vector<cv::KeyPoint>& keypoints1,
+    std::vector<cv::KeyPoint>& keypoints2,
+    std::vector<cv::DMatch> &matches,
+    Eigen::MatrixXd R_i)
+{
+    // Validate inputs
+    assert(H.rows() == 3 && H.cols() == 3);
+    assert(K.rows() == 3 && K.cols() == 3);
+    assert(!matches.empty());
+    assert(keypoints1.size() >= matches.size());
+    assert(keypoints2.size() >= matches.size());
+
+    // 1. Compute initial rotation via SVD decomposition
+    Eigen::MatrixXd M = K.inverse() * H * K;
+    Eigen::JacobiSVD<Eigen::MatrixXd> svd(M, Eigen::ComputeFullU | Eigen::ComputeFullV);
+
+    Eigen::MatrixXd U = svd.matrixU();
+    Eigen::MatrixXd Vt = svd.matrixV().transpose();
+
+    // Ensure proper rotation matrix
+    if ((U * Vt).determinant() < 0)
+        U.col(2) *= -1;
+
+    Eigen::MatrixXd R_initial = (U * Vt).transpose() * R_i;
+
+    // 2. Generate rotation hypotheses
+    std::vector<Eigen::MatrixXd> candidates = {
+        R_initial,                                  // Original estimate
+        R_initial * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX()).toRotationMatrix(),  // X-180
+        R_initial * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY()).toRotationMatrix(),  // Y-180
+        R_initial * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()).toRotationMatrix()   // Z-180
+    };
+
+    // 3. Compute reprojection errors
+    Eigen::MatrixXd best_R = R_initial;
+    double min_error = std::numeric_limits<double>::max();
+
+    // Precompute normalized coordinates
+    std::vector<Eigen::Vector3d> norm_points1, norm_points2;
+    for (cv::DMatch& m : matches) {
+        cv::Point2f& p1 = keypoints1[m.queryIdx].pt;
+        cv::Point2f& p2 = keypoints2[m.trainIdx].pt;
+        norm_points1.emplace_back(K.inverse() * Eigen::Vector3d(p1.x, p1.y, 1.0));
+        norm_points2.emplace_back(K.inverse() * Eigen::Vector3d(p2.x, p2.y, 1.0));
+    }
+
+    // Evaluate each candidate
+    for (Eigen::MatrixXd& R_candidate : candidates) {
+        double total_error = 0.0;
+        size_t valid_count = 0;
+
+        for (size_t i = 0; i < matches.size(); ++i) {
+            // Transform point from camera 1 to camera 2's coordinates
+            Eigen::Vector3d p2_est = R_candidate * norm_points1[i];
+
+            // Check cheirality constraint (positive depth)
+            if (p2_est.z() <= 0 || norm_points2[i].z() <= 0)
+                continue;
+
+            // Calculate angular error
+            Eigen::Vector3d dir_est = p2_est.normalized();
+            Eigen::Vector3d dir_actual = norm_points2[i].normalized();
+            double err = 1.0 - dir_est.dot(dir_actual);
+
+            total_error += err;
+            valid_count++;
+        }
+
+        // Use average error if valid points exist
+        if (valid_count > 0) {
+            const double avg_error = total_error / valid_count;
+            if (avg_error < min_error) {
+                min_error = avg_error;
+                best_R = R_candidate;
+            }
+        }
+    }
+
+    return best_R;
+}
+
+
+std::pair<double, double> computeOverlapPercentages(
+    const cv::Mat& imgA,
+    const cv::Mat& imgB,
+    Eigen::MatrixXd& H)
+{
+
+    // Convert H to Eigen::Matrix3d
+    Eigen::Matrix3d H_eigen;
+    H_eigen << H(0,0), H(0,1), H(0,2),
+               H(1,0), H(1,1), H(1,2),
+               H(2,0), H(2,1), H(2,2);
+
+    // Get inverse homography for B->A transformation
+    Eigen::Matrix3d H_inv = H_eigen.inverse();
+
+    // Helper function to transform points
+    auto transformPoints = [](const std::vector<cv::Point2f>& points,
+                             const Eigen::Matrix3d& homography)
+    {
+        std::vector<cv::Point2f> transformed;
+        for (const auto& p : points) {
+            Eigen::Vector3d hp(p.x, p.y, 1.0);
+            Eigen::Vector3d result = homography * hp;
+            transformed.emplace_back(
+                result.x() / result.z(),
+                result.y() / result.z()
+            );
+        }
+        return transformed;
+    };
+
+    // Define image boundaries as polygons
+    auto createImagePolygon = [](float width, float height)
+    {
+        return std::vector<cv::Point2f>{
+            {0, 0},
+            {width, 0},
+            {width, height},
+            {0, height}
+        };
+    };
+
+    // Calculate overlap percentage for one direction
+    auto calculateOverlap = [](const std::vector<cv::Point2f>& poly1,
+                              const std::vector<cv::Point2f>& poly2,
+                              double imageArea)
+    {
+        std::vector<cv::Point2f> intersection;
+        float area = cv::intersectConvexConvex(poly1, poly2, intersection, true);
+        return (area / imageArea) * 100.0;
+    };
+
+    // Image A's perspective (transform B to A's space)
+    std::vector<cv::Point2f> cornersB = createImagePolygon(imgB.cols, imgB.rows);
+    auto transformedB = transformPoints(cornersB, H_inv);
+    double overlapA = calculateOverlap(
+        transformedB,
+        createImagePolygon(imgA.cols, imgA.rows),
+        imgA.cols * imgA.rows
+    );
+
+    // Image B's perspective (transform A to B's space)
+    std::vector<cv::Point2f> cornersA = createImagePolygon(imgA.cols, imgA.rows);
+    auto transformedA = transformPoints(cornersA, H_eigen);
+    double overlapB = calculateOverlap(
+        transformedA,
+        createImagePolygon(imgB.cols, imgB.rows),
+        imgB.cols * imgB.rows
+    );
+
+    return {overlapA, overlapB};
+}
+
+
+
 struct keypoints extract_keypoints(const cv::Mat &img,int nfeatures,int nOctaveLayers ,double contrastThreshold ,double edgeThreshold ,double sigma ){
 
         cv::Mat greyMat;
@@ -15,17 +182,24 @@ struct keypoints extract_keypoints(const cv::Mat &img,int nfeatures,int nOctaveL
                                            edgeThreshold ,
                                            sigma );
 
-
         f_detector->detectAndCompute(greyMat,cv::noArray(),kp.keypoint,kp.descriptor);
+        for(int i = 0;i < kp.keypoint.size();i++){
+
+            kp.keypoint[i].pt.x = kp.keypoint[i].pt.x - (img.rows / 2);
+            kp.keypoint[i].pt.y = kp.keypoint[i].pt.y - (img.cols / 2);
+
+        }
 
         return kp;
     }
 
 
-    std::pair<std::vector<cv::DMatch>, std::vector<cv::DMatch>> match_keypoints(const struct keypoints &kp1,const struct keypoints &kp2){
+std::pair<std::vector<cv::DMatch>, std::vector<cv::DMatch>> match_keypoints(const struct keypoints &kp1,const struct keypoints &kp2){
 
         cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
-        std::vector< std::vector<cv::DMatch> > knn_matches;
+
+        std::vector<std::vector<cv::DMatch>> knn_matches;
+        std::vector< std::vector<cv::DMatch> > knn_matches2;
         std::vector<cv::DMatch> filter_matches;
 
         matcher->knnMatch( kp1.descriptor, kp2.descriptor, knn_matches, 2 );
@@ -38,7 +212,12 @@ struct keypoints extract_keypoints(const cv::Mat &img,int nfeatures,int nOctaveL
             if (knn_matches[i][0].distance < ratio_thresh * knn_matches[i][1].distance)
             {
                 good_matches.first.push_back(knn_matches[i][0]);
-                good_matches.second.push_back(knn_matches[i][1]);
+                cv::DMatch rev;
+                rev.queryIdx = knn_matches[i][0].trainIdx;
+                rev.trainIdx = knn_matches[i][0].queryIdx;
+                rev.imgIdx = knn_matches[i][0].imgIdx;
+                rev.distance = knn_matches[i][0].distance;
+                good_matches.second.push_back(rev);
             }
         }
 
@@ -296,12 +475,15 @@ bool hom_sanity(cv::Matx33f hom,const cv::Mat &img1,const cv::Mat &img2){
         return false;
 
     }
+
     //area scaling
     if((abs(upper_det) < 0.1 ) or ( abs(upper_det) > 10)){
         //std::cout <<"\n"<< "area scaling: ";
         return false;
 
     }
+
+
     //skew factor
     if((abs(hom(2,0)) > 0.002 ) or ( abs(hom(2,1)) > 0.002)){
         //std::cout <<"\n"<< "skew factor: ";
@@ -310,10 +492,7 @@ bool hom_sanity(cv::Matx33f hom,const cv::Mat &img1,const cv::Mat &img2){
     }
 
 
-    bool trcheck = isTransformationConsistent(hom, img1.cols, img1.rows,img2.cols, img2.rows, .8);
-
-
-    return trcheck;
+    return true;
 }
 
 
@@ -427,43 +606,6 @@ std::vector<maths::keypoints> extrace_kp_vector(const std::vector<cv::Mat> & img
     return kp;
 }
 
-
-
-template <typename T>
-std::vector<std::vector<T>> splitVector(const std::vector<T>& vec, int n) {
-        std::vector<std::vector<T>> result;
-
-        // Return an empty set of vectors if n is non-positive or vector is empty
-        if (n <= 0 || vec.empty()) {
-            return result;
-        }
-
-        if (n > vec.size()) {
-
-            throw std::invalid_argument("n should be less than vector size.");
-        }
-
-        // Calculate the size of each part
-        int basic_part_size = vec.size() / n;
-        int remainder = vec.size() % n;
-
-        // Start index for slicing
-        int start_index = 0;
-
-        for (int i = 0; i < n; ++i) {
-            int current_part_size = basic_part_size + (i < remainder ? 1 : 0);  // Add 1 if i is less than remainder
-            std::vector<T> part(vec.begin() + start_index, vec.begin() + start_index + current_part_size);
-            result.push_back(part);
-            start_index += current_part_size;
-        }
-
-        return result;
-}
-void _(){
-    int n = 1;
-    std::vector<int> idx;
-    std::vector<std::vector<int>> split_id = splitVector(idx, n);
-}
 
 
 struct translation get_translation(const cv::Mat &base, const cv::Mat &attach,const cv::Matx33f &H){
@@ -651,7 +793,7 @@ float focal_from_hom(const std::vector<std::vector< cv::Matx33f >> & H_mat,const
 
         for (int j = i;j < H_mat.size();j++){
 
-            if ((.5 <= adj.at<double>(i,j)) and (i != j) ){
+            if ((0 < adj.at<double>(i,j)) and (i != j) ){
                 const cv::Matx33f& H = H_mat[i][j];
 
                 f1_ok = true;
@@ -746,7 +888,7 @@ float focal_from_hom(const std::vector<std::vector< cv::Matx33f >> & H_mat,const
                 else{
                     double q = match_quality(kpmat[i[0]],imgs[i[0]],kpmat[i[1]],imgs[i[1]],i[0],i[1]);
 
-                    if(q >= .5){
+                    if(q > 0){
 
                         adj.at<double>(i[0],i[1]) = q;
 
@@ -757,6 +899,29 @@ float focal_from_hom(const std::vector<std::vector< cv::Matx33f >> & H_mat,const
             }
 
         }
+
+
+    std::vector<size_t> adj_calculator::find_n_smallest_indices(const std::vector<double>& rank, int n) {
+        std::vector<size_t> indices;
+        indices.reserve(rank.size());
+        for (size_t i = 0; i < rank.size(); ++i) {
+            indices.push_back(i); // Manually fill indices with 0, 1, 2, ..., rank.size()-1
+        }
+
+        if (n <= 0) {
+            return {};
+        }
+
+        if (n >= static_cast<int>(indices.size())) {
+            return indices;
+        }
+
+        auto comparator = [&rank](size_t a, size_t b) { return rank[a] < rank[b]; };
+        std::nth_element(indices.begin(), indices.begin() + n, indices.end(), comparator);
+
+        indices.resize(n);
+        return indices;
+    }
 
 
     std::vector<cv::DMatch> adj_calculator::clean_matches(const struct maths::keypoints &kp1,const struct maths::keypoints &kp2,std::vector<cv::DMatch> match,const  cv::Matx33f &H,const std::vector<float> &T){
@@ -774,99 +939,35 @@ float focal_from_hom(const std::vector<std::vector< cv::Matx33f >> & H_mat,const
         cv::perspectiveTransform(pred_, pred_, H);
 
         std::vector<cv::Vec2f> val;
+        std::vector<double> dist;
+
+
         cv::absdiff(true_,pred_,val);
 
-        int out = 0;
 
         for (int i = 0; i < val.size();i++){
 
             if (( val[i][0] < T[0] ) and ( val[i][1] < T[1] )){
 
                 clean_match.push_back(match[i]);
+                dist.push_back(cv::norm(true_[i]-pred_[i]));
 
             }
 
         }
 
-        return clean_match;
-    }
+        std::vector<cv::DMatch> rank_match;
+        std::vector<size_t> rank = find_n_smallest_indices(dist, 100);
 
+        for(const int &r : rank){
 
-    std::vector<cv::DMatch> adj_calculator::filterOutliersWithMahalanobis(const std::vector<cv::KeyPoint>& kp1,const std::vector<cv::KeyPoint>& kp2,const std::vector<cv::DMatch>& matches,const std::vector<cv::DMatch>& ransac_matches,const cv::Matx33f& H, float chi2_threshold) {
-    // Step 1: Compute residuals from RANSAC inliers
+            rank_match.push_back(clean_match[r]);
 
-    std::vector<cv::Point2f> residuals;
-    std::vector<cv::DMatch> clean_matches;
-
-    for (const auto& m : ransac_matches) {
-        const cv::Point2f& pt1 = kp1[m.queryIdx].pt;
-        const cv::Point2f& pt2 = kp2[m.trainIdx].pt;
-
-        // Transform pt1 through homography
-        cv::Mat pt1_h = (cv::Mat_<float>(3,1) << pt1.x, pt1.y, 1.0);
-        cv::Mat pt2_proj_h = H * pt1_h;
-        pt2_proj_h /= pt2_proj_h.at<float>(2); // Normalize
-
-        cv::Point2f residual(
-            pt2.x - pt2_proj_h.at<float>(0),
-            pt2.y - pt2_proj_h.at<float>(1)
-        );
-        residuals.push_back(residual);
-    }
-
-    // Step 2: Compute mean and covariance matrix
-    cv::Mat residuals_mat(residuals.size(), 2, CV_32F);
-    for (size_t i = 0; i < residuals.size(); ++i) {
-        residuals_mat.at<float>(i, 0) = residuals[i].x;
-        residuals_mat.at<float>(i, 1) = residuals[i].y;
-    }
-
-    cv::Mat mean, cov;
-    cv::calcCovarMatrix(residuals_mat, cov, mean,
-                       cv::COVAR_NORMAL | cv::COVAR_ROWS | cv::COVAR_SCALE);
-    cov /= residuals_mat.rows - 1; // Correct for sample covariance
-
-    // Step 3: Regularize covariance matrix if needed
-    float det = cv::determinant(cov);
-    if (det < 1e-6) { // Near-singular covariance
-        cov += cv::Mat::eye(cov.size(), cov.type()) * 1e-6;
-    }
-
-    // Step 4: Compute Mahalanobis distance for all matches
-    cv::Mat inv_cov = cov.inv();
-    inv_cov.convertTo(inv_cov, CV_32FC1);
-
-    for (const auto& m : matches) {
-        const cv::Point2f& pt1 = kp1[m.queryIdx].pt;
-        const cv::Point2f& pt2 = kp2[m.trainIdx].pt;
-
-        // Project pt1 through homography
-        cv::Mat pt1_h = (cv::Mat_<float>(3,1) << pt1.x, pt1.y, 1.0);
-        cv::Mat pt2_proj_h = H * pt1_h;
-        pt2_proj_h /= pt2_proj_h.at<float>(2);
-
-        // Compute residual
-        cv::Mat residual = (cv::Mat_<float>(1,2) <<
-            pt2.x - pt2_proj_h.at<float>(0),
-            pt2.y - pt2_proj_h.at<float>(1));
-
-        // Subtract mean
-        residual -= mean;
-
-        // Compute Mahalanobis distance
-        cv::Mat dist_sq_mat = residual * inv_cov * residual.t();
-        float dist = dist_sq_mat.at<float>(0, 0);
-
-        dist = std::sqrt(dist);
-
-        if (dist <= chi2_threshold) {
-            clean_matches.push_back(m);
         }
 
+        return rank_match;
     }
 
-    return clean_matches;
-}
 
 
     float adj_calculator::match_quality(const struct maths::keypoints &kp1,const cv::Mat img1,const struct maths::keypoints &kp2,const cv::Mat img2,int row,int col){
@@ -876,11 +977,11 @@ float focal_from_hom(const std::vector<std::vector< cv::Matx33f >> & H_mat,const
             float rows = img1.rows;
             float cols = img1.cols;
 
-            std::vector<float> T12 = {cols / 300,rows / 300};
+            std::vector<float> T12 = {5,5};
 
             std::pair<std::vector<cv::DMatch>, std::vector<cv::DMatch>> match12 = maths::match_keypoints(kp1,kp2);
 
-            if (match12.first.size() < 25){
+            if (match12.first.size() < 15){
 
                 return 0;
             }
@@ -888,58 +989,79 @@ float focal_from_hom(const std::vector<std::vector< cv::Matx33f >> & H_mat,const
             std::vector<cv::Point2f> obj;
             std::vector<cv::Point2f> scene;
 
-            struct maths::Homography H12 = maths::find_homography(kp1,kp2,match12.first,3000,4,img1,img2);
-            H12.H = H12.H / H12.H(2,2);
-            //std::cout <<"homography: "<<H12.H<<"\n";
 /*
 
+            struct maths::Homography H12 = maths::find_homography(kp1,kp2,match12.first,2000,4,img1,img2);
+            H12.H = H12.H / H12.H(2,2);
+            //std::cout <<"homography: "<<H12.H<<"\n";
+*/
             struct maths::Homography H12;
             std::vector<cv::Point2f> points1, points2;
             for (int i = 0; i < match12.first.size(); i++)
                 {
                         //-- Get the keypoints from the good matches
-
                     points1.push_back(kp1.keypoint[match12.first[i].queryIdx].pt);
-
                     points2.push_back(kp2.keypoint[match12.first[i].trainIdx].pt);
                 }
 
-            H12.H = findHomography(cv::Mat(points2), cv::Mat(points1), cv::RANSAC);
-            std::cout<<"homog: "<<H12.H;
-*/
+            try{
+                H12.H = findHomography(cv::Mat(points2), cv::Mat(points1), cv::RANSAC);
+            }catch(...){
+
+                return 0;
+
+            }
+
+            //std::cout<<"homog: "<<H12.H;
+
             hom_mat[row][col] = H12.H;
             hom_mat[col][row] = H12.H.inv();
 
             int out = maths::N_outliers(kp1,kp2,match12.first,H12.H,T12);
             int n_in = match12.first.size() - out;
 
+
             if(n_in > ( 8 + .3 * match12.first.size())){
 
-
                 ransac_matchf = clean_matches(kp1,kp2,match12.first,H12.H,T12);
-                ransac_matchs = clean_matches(kp2,kp1,match12.second,H12.H.inv(),T12);
+                //ransac_matchs = clean_matches(kp2,kp1,match12.second,H12.H.inv(),T12);
 
                 match_mat[row][col].resize(ransac_matchf.size());
                 match_mat[row][col] = ransac_matchf;
-                match_mat[col][row].resize(ransac_matchs.size());
-                match_mat[col][row] = ransac_matchs;
-                std::cout<<"\n"<<"-------------in: "<<ransac_matchf.size()<<"\n";
 
-                std::cout<<"\n"<<"out: "<<out<<"\n";
-                float orat = 1-out/((float)match12.first.size());
-                if((.4 < orat) and ( orat < .5)){
-                    orat = .50;
+                for(int m = 0;m<match_mat[row][col].size();m++){
+                    cv::DMatch push;
+                    push.distance = match_mat[row][col][m].distance;
+                    push.trainIdx = match_mat[row][col][m].queryIdx;
+                    push.queryIdx = match_mat[row][col][m].trainIdx;
+                    push.imgIdx = match_mat[row][col][m].imgIdx;
+                    match_mat[col][row].push_back(push);
                 }
 
-                return orat;
+
+                float orat = 1-out/((float)match12.first.size());
+
+
+                cv::Mat h_d = cv::Mat(H12.H,true);
+
+                Eigen::MatrixXd H;
+
+                cv::cv2eigen(h_d,H);
+                std::pair<double, double> overlap = computeOverlapPercentages(
+                img1,
+                img2,
+                H);
+
+                return (float)(overlap.second/100);
+                //return orat;
 
 
             }else{
-                std::cout<<"\n"<<"in: "<<n_in<<"\n";
-                std::cout<<"\n"<<"------------out: "<<out<<"\n";
+
                 return 0;
 
             }
+
             return 0;
         }
 
@@ -971,15 +1093,10 @@ float focal_from_hom(const std::vector<std::vector< cv::Matx33f >> & H_mat,const
                         zeromat.row(0).copyTo(adj.row(nodes));
                     }
 
-                    //std::cout <<"\n"<<"newadj : "<<adj<<"\n";
-                    //std::cout <<"\n"<<"adjextracted : "<<sub_graph<<"\n";
                     struct adj_str temp;
                     temp.adj = sub_graph;
                     temp.nodes = graph.size();
                     adj_mats.push_back(temp);
-
-                    //std::cout <<"grap "<<sub_graph<<"\n";
-                    //std::cout <<"nodes "<<graph.size()<<"\n";
 
                 }
 
