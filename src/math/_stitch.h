@@ -3,7 +3,7 @@
 #define STITCH_H
 
 #include <opencv2/opencv.hpp>
-#include "_maths.h"
+#include "_util.h"
 #include <Eigen/Dense>
 #include <opencv2/core/eigen.hpp>
 #include "_img_manipulation.h"
@@ -11,6 +11,7 @@
 #include <iostream>
 #include <fstream>
 #include <unsupported/Eigen/MatrixFunctions>
+#include "_homography.h"
 
 #include <vector>
 #include <string>
@@ -19,22 +20,35 @@
 #include "_bundle_adjust_main.h"
 #include <climits>
 #include "_gain_compensation.h"
+#include "_straightening.h"
 #define PI 3.14159265
+
+#include "_graph_cut.h"
 
 namespace stch {
 
-struct OverlapInfo {
-    int i;
-    int j;
-    double area;
-    double I_i;
-    double I_j;
-};
-
 struct stitch_data {
     std::vector<cv::Mat> imgs;
+    std::vector<cv::Mat> msks;
+    std::vector<cv::Mat> msks_cut;
     std::vector<cv::Point> corners;
     cv::Mat adj;
+};
+
+
+struct stitch_result {
+
+    std::vector<Eigen::MatrixXd> rot;
+    std::vector<Eigen::MatrixXd> K;
+    std::vector<cv::Point> corners;
+    std::vector<cv::Mat> masks;
+    std::vector<cv::Mat> imgs;
+    int maxLoc;
+    std::vector<double> connectivity;
+    std::vector<int> ind;
+    std::vector<int> ord;
+    cv::Mat adj;
+
 };
 
     struct NodeConnection {
@@ -42,16 +56,6 @@ struct stitch_data {
     int connectedTo;
 };
 
-    struct bundle_par{
-
-        Eigen::MatrixXd k_val;
-        Eigen::MatrixXd k_key;
-        Eigen::MatrixXd rot_key;
-        int prev_node;
-        int current_node;
-        cv::Matx33f translation;
-
-    };
 
     struct adjust_par{
 
@@ -62,12 +66,19 @@ struct stitch_data {
         int attatch;
         class imgm::pan_img_transform T;
         adjust_par(const cv::Mat* adj_mat,const std::vector<cv::Mat> *imags) : T(adj_mat,imags) {}
-        std::vector<maths::keypoints> kp;
+        std::vector<util::keypoints> kp;
         std::vector<std::vector<std::vector<cv::DMatch>>> match;
 
     };
 
-    std::vector<std::vector< cv::Matx33f >> bundleadjust_stitching(class imgm::pan_img_transform &T,class imgm::pan_img_transform &Tnew,const std::vector<std::vector< cv::Matx33f >> &Hom_mat,const std::vector<maths::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match_mat, int threads = 1);
+    struct stitch_data get_proj_parameters(
+        const std::vector<cv::Mat>& images,
+        std::vector<Eigen::MatrixXd>& R,
+        std::vector<Eigen::MatrixXd>& K,
+        int maxLoc,
+        std::vector<double> &con);
+
+    struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,const std::vector<std::vector< cv::Matx33f >> &Hom_mat,const std::vector<util::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match_mat, int threads = 1);
 
     std::vector<double> computeRowSumDividedByZeroCount(const cv::Mat& mat);
 

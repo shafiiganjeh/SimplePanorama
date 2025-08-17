@@ -18,17 +18,72 @@ namespace imgm {
 
             for (const cv::Mat& mt : *imags){
 
-                std::vector<float> size(2);
+                std::vector<int> size(2);
                 size[0] = mt.rows;
                 size[1] = mt.cols;
                 img_dimensions.push_back(size);
 
             }
 
-
-
     }
 
+
+    void elementwiseOperation(const cv::Mat& A, const cv::Mat& B, cv::Mat& result, Operation op){
+
+        constexpr float EPS = 1e-6f;
+
+        CV_Assert(A.type() == CV_32FC3);
+        CV_Assert(B.type() == CV_32FC1);
+        CV_Assert(A.size() == B.size());
+        CV_Assert(op == MULTIPLY or op == DIVIDE);
+
+        if (result.empty() or result.size() != A.size() or result.type() != A.type()) {
+            result.create(A.size(), A.type());
+        }
+
+        if (A.isContinuous() and B.isContinuous() and result.isContinuous()) {
+            int totalPixels = A.rows * A.cols;
+            const cv::Vec3f* aPtr = A.ptr<cv::Vec3f>(0);
+            const float* bPtr = B.ptr<float>(0);
+            cv::Vec3f* resPtr = result.ptr<cv::Vec3f>(0);
+
+            if (op == MULTIPLY) {
+                for (int i = 0; i < totalPixels; ++i) {
+                    resPtr[i] = aPtr[i] * bPtr[i];
+                }
+            }
+            else {
+                for (int i = 0; i < totalPixels; i++) {
+                    float divisor = bPtr[i];
+                    divisor = std::copysign(std::max(std::abs(divisor), EPS), divisor);
+                    resPtr[i] = aPtr[i] / divisor;
+                }
+            }
+        }
+
+        else {
+            for (int r = 0; r < A.rows; r++) {
+                const cv::Vec3f* aRow = A.ptr<cv::Vec3f>(r);
+                const float* bRow = B.ptr<float>(r);
+                cv::Vec3f* resRow = result.ptr<cv::Vec3f>(r);
+
+                if (op == MULTIPLY) {
+                    for (int c = 0; c < A.cols; ++c) {
+                        resRow[c] = aRow[c] * bRow[c];
+                    }
+                }
+                else {
+                    for (int c = 0; c < A.cols; c++) {
+                        float divisor = bRow[c];
+                        divisor = std::copysign(std::max(std::abs(divisor), EPS), divisor);
+                        resRow[c] = aRow[c] / divisor;
+                    }
+                }
+            }
+        }
+    }
+
+    //resize pad boarders
     cv::Mat resize_image( const cv::Mat& img, int target_width){
             int width = img.cols,
             height = img.rows;
@@ -57,159 +112,7 @@ namespace imgm {
             return square;
     }
 
-    std::pair<float, float> cylhom::inv(float x, float y){
-            // Inverse rotation transformation
 
-            x = x - 1000;
-            y = y - 500;
-
-            float map_x = H.val[0]*x+H.val[1]*y+H.val[2];
-            float map_y = H.val[3]*x+H.val[4]*y+H.val[5];
-            float divisor = H.val[6]*x+H.val[7]*y+H.val[8];
-
-            map_x = map_x/divisor;
-            map_y = map_y/divisor;
-
-            return {map_x, map_y};
-        }
-
-        std::pair<float, float> cylproj::inv(float x, float y){
-
-
-            float x_;
-            float y_;
-            float z_;
-
-            float theta = (x -tx - (cx_a )) / (f_a);
-
-            float zx = f_a*sin(theta);
-            float zy = (y -ty- (cy_a ));
-            float zz = f_a*cos(theta);
-
-            z_ = v[6]*zx+v[7]*zy+v[8]*zz;
-
-            if ((z_ <= 0)) {
-
-                return {-1, -1};
-
-            }
-
-            x_ = v[0]*zx+v[1]*zy+v[2]*zz;
-            y_ = v[3]*zx+v[4]*zy+v[5]*zz;
-
-            zx = x_;
-            zy = y_;
-            zz = z_;
-
-            zx = zx / zz;
-            zy = zy / zz;
-
-            float map_x;
-            float map_y;
-
-
-            if (abs(x) < 2*PI*f_b ) {
-                map_x = f_a * zx + 400;
-                map_y = f_a * zy + 300;
-            }else{
-
-                return {-1, -1};
-
-            }
-
-
-            return {map_x, map_y};
-        }
-
-
-
-        std::pair<float, float> cylproj::forward(float x, float y){
-
-            float zx = x;
-            float zy = y;
-            float zz = 1;
-
-            float x_ = kb_inv[0]*zx+kb_inv[1]*zy+kb_inv[2]*zz;
-            float y_ = kb_inv[3]*zx+kb_inv[4]*zy+kb_inv[5]*zz;
-            float z_ = kb_inv[6]*zx+kb_inv[7]*zy+kb_inv[8]*zz;
-
-            zx = x_;
-            zy = y_;
-            zz = z_;
-
-            x_ = v_f[0]*zx+v_f[1]*zy+v_f[2]*zz;
-            y_ = v_f[3]*zx+v_f[4]*zy+v_f[5]*zz;
-            z_ = v_f[6]*zx+v_f[7]*zy+v_f[8]*zz;
-
-            float theta;
-
-            theta = atan2(x_,z_);
-            float h = y_/sqrt(x_*x_ + z_*z_);
-
-            float map_x = (f_a * theta +cx_a);
-            float map_y = f_a * h + cy_a;
-
-
-            return {map_x, map_y};
-        }
-
-/*
-        std::pair<float, float> cylproj::inv(float x, float y){
-
-            float x_;
-            float y_;
-            float z_;
-
-            z_ = kb[6]*x+kb[7]*y+kb[8]*1;
-            x_ = kb[0]*x+kb[1]*y+kb[2]*1;
-            y_ = kb[3]*x+kb[4]*y+kb[5]*1;
-
-            float zx = sin(x_/ z_);
-            float zy = y_ / z_;
-            float zz = cos(x_/ z_);
-
-            z_ = v[6]*zx+v[7]*zy+v[8]*zz;
-
-            if ((z_ <= 0)) {
-
-                return {-1, -1};
-
-            }
-
-            x_ = v[0]*zx+v[1]*zy+v[2]*zz;
-            y_ = v[3]*zx+v[4]*zy+v[5]*zz;
-
-
-            zx = x_;
-            zy = y_;
-            zz = z_;
-
-            z_ = ka[6]*zx+ka[7]*zy+ka[8]*zz;
-            x_ = ka[0]*zx+ka[1]*zy+ka[2]*zz;
-            y_ = ka[3]*zx+ka[4]*zy+ka[5]*zz;
-
-            zx = x_ / z_;
-            zy = y_ / z_;
-
-            float map_x;
-            float map_y;
-
-
-            if (abs(x-tx) < 2*PI*f_b ) {
-                map_x = zx;
-                map_y = zy;
-            }else{
-
-                map_x = -1;
-                map_y = -1;
-
-            }
-
-
-            return {map_x, map_y};
-        }
-
-*/
     cv::Mat resizeKeepAspectRatio(const cv::Mat& input, int desiredWidth) {
 
             int originalWidth = input.cols;
@@ -255,36 +158,11 @@ namespace imgm {
                 std::cerr << "Error: Image decoding failed" << std::endl;
             }
 
-            //cv::imshow("Image Display", image);
-            //cv::waitKey(0);
             return image;
     }
 
 
-    cv::Matx33d rotate(double angle,double x,double y){
-
-        double sinus = sin(angle);
-        double cosinus = cos(angle);
-
-        Eigen::Matrix3d tr;
-        tr << 1,0,x,0,1,y,0,0,1;
-
-        Eigen::Matrix3d mtr;
-        mtr << 1,0,-x,0,1,-y,0,0,1;
-
-        Eigen::Matrix3d rot;
-        rot << cosinus,-sinus, 0 , sinus, cosinus,0,0,0,1;
-
-        rot = tr * rot * mtr;
-        cv::Mat rotcv;
-
-        cv::eigen2cv(rot,rotcv);
-
-        return rotcv;
-
-    }
-
-
+/*legacy
     cv::Mat stitch(const cv::Mat &base, const cv::Mat &attach,const cv::Matx33f &H){
             // compute corners
 
@@ -296,8 +174,6 @@ namespace imgm {
             cor.push_back(cv::Vec2f(attach.cols,attach.rows));
 
             cv::perspectiveTransform(cor, cor, H);
-
-            std::cout<<"\n"<< "00: "<<cor[1]<<"\n";
 
             float xstart = std::min( std::min( cor[0][0], cor[1][0]), (float)0);
             float xend   = std::max( std::max( cor[2][0], cor[3][0]), (float)base.cols);
@@ -331,6 +207,7 @@ namespace imgm {
 
             return panorama;
 }
+*/
 
     cv::Mat project(const cv::Mat& imags,float xc,float yc,float f,cv::Matx33f hom){
 
@@ -373,9 +250,6 @@ namespace imgm {
             cv::Mat vec_x(imags.size(), CV_32FC1,map_x.data());
             cv::Mat vec_y(imags.size(), CV_32FC1,map_y.data());
 
-        //std::cout << vec_x<<"\n";
-        //std::cout << vec_y<<"\n";
-
             cv::remap(imags, dst,vec_x, vec_y, cv::INTER_AREA);
 
             return dst;
@@ -400,8 +274,8 @@ std::vector<double> computeRowSumDividedByZeroCount(const cv::Mat& mat) {
 }
 
 
-
-void calc_stitch_from_adj(pan_img_transform &T,const std::vector<std::vector< cv::Matx33f >> &Hom,std::vector<std::vector<std::vector<cv::DMatch>>> &match_mat,std::vector<maths::keypoints> &keypnts){
+//calculate flat projection panorama (unused, mostly legacy).
+void calc_stitch_from_adj(pan_img_transform &T,const std::vector<std::vector< cv::Matx33f >> &Hom,std::vector<std::vector<std::vector<cv::DMatch>>> &match_mat,std::vector<util::keypoints> &keypnts){
 
     std::unordered_set<int> visited;
     cv::Mat path_mat = (*T.adj) + (*T.adj).t();
@@ -410,11 +284,9 @@ void calc_stitch_from_adj(pan_img_transform &T,const std::vector<std::vector< cv
 
     int maxLoc = std::distance(connectivity.begin(),std::max_element(connectivity.begin(), connectivity.end()));
 
-    std::vector<std::pair<int, std::vector<int>>> tree = maths::bfs_ordered_with_neighbors(path_mat, maxLoc);
+    std::vector<std::pair<int, std::vector<int>>> tree = util::bfs_ordered_with_neighbors(path_mat, maxLoc);
 
-    std::map<int, std::pair<int,double>> paths = maths::path_table(*T.adj,tree ,maxLoc);
-
-    cv::Mat panorama((*T.img_address)[maxLoc].size(),(*T.img_address)[maxLoc].type());//placeholder
+    std::map<int, std::pair<int,double>> paths = util::path_table(*T.adj,tree ,maxLoc);
 
     T.stitch_order.push_back(maxLoc);
     T.img2pan[maxLoc] = cv::Matx33f::eye();
@@ -427,19 +299,12 @@ void calc_stitch_from_adj(pan_img_transform &T,const std::vector<std::vector< cv
 
     Eigen::MatrixXd K(3,3);
     K << T.focal,0,0,0,T.focal,0,0,0,1;
-    //K << T.focal,0,0,0,T.focal,0,0,0,1;
+    cv::Size test_size;
 
     cv::Mat translation = cv::Mat::eye(3,3, CV_32F);
-    std::map<int, Eigen::MatrixXd> rotations;
-    std::map<int, Eigen::MatrixXd> Ks;
-    rotations[tree[0].first] = Eigen::MatrixXd::Identity(3,3);
-    Ks[tree[0].first] = K;
     std::cout<<"tree[0].first "<<tree[0].first<<"\n";
     for (const std::pair<int, std::vector<int>> &node : tree){
         visited.insert(node.first);
-
-        //std::cout <<"node.first "<<node.first<<"\n";
-
 
         for (const int &node_visit : node.second){
 
@@ -450,14 +315,7 @@ void calc_stitch_from_adj(pan_img_transform &T,const std::vector<std::vector< cv
                 int node_current = node_visit;
 
                 std::vector<int> pt;
-                Eigen::MatrixXd R_H = Eigen::MatrixXd::Identity(3,3);
                 while(-1 != paths[node_current].first){
-
-                    Eigen::MatrixXd H_cast;
-                    cv::Matx33d homd = static_cast<cv::Matx33d>(Hom[paths[node_current].first][node_current]);
-                    cv::cv2eigen(homd,H_cast);
-                    Eigen::MatrixXd R_app = maths::approximate(H_cast,                          K,keypnts[paths[node_current].first].keypoint,keypnts[node_current].keypoint,match_mat[paths[node_current].first][node_current],Eigen::Matrix3d::Identity());
-                    R_H = R_app*R_H;
 
                     H = (Hom[paths[node_current].first][node_current])*H;
 
@@ -471,25 +329,28 @@ void calc_stitch_from_adj(pan_img_transform &T,const std::vector<std::vector< cv
 
                 }
 
-                rotations[node_visit] = R_H.transpose();
                 T.pair_stitch.push_back(pt);
 
                 T.H_1j[node_visit] = H;
 
-                Ks[node_visit] = K;
-
-                maths::translation Tr;
+                util::translation Tr;
                 H = translation*H;
-
 
                 T.stitch_order.push_back(node_visit);
 
                 H = H / H.at<float>(2,2);
-                Tr = maths::get_translation(panorama, (*T.img_address)[node_current],H);
-                //panorama.create(Tr.yend - Tr.ystart + 1, Tr.xend - Tr.xstart + 1, panorama.type());
-                panorama.create(10, 10, panorama.type());
+                Tr = util::get_translation(test_size, (*T.img_address)[node_current],H);
+                test_size.height =  Tr.yend - Tr.ystart + 1;
+                test_size.width = Tr.xend - Tr.xstart + 1;
 
-                std::cout<<"\n"<<"size"<<panorama.size()<<"\n";
+                if(test_size.height > 30000 or test_size.width > 30000){
+
+                    test_size.height = std::numeric_limits<int>::quiet_NaN();
+                    test_size.width = std::numeric_limits<int>::quiet_NaN();
+
+                }
+
+                std::cout<<"\n"<<"flat size"<<test_size<<"\n";
 
                 cv::Mat Hinv = Tr.T*H;
 
@@ -497,15 +358,14 @@ void calc_stitch_from_adj(pan_img_transform &T,const std::vector<std::vector< cv
                 Hinv = Hinv.inv();
                 T.pan2img[node_visit] = Hinv;
 
-
                 T.translation[node_visit] = Tr;
                 translation = Tr.T*translation;
 
             }
         }
     }
-    //cv::imshow("Image Display",panorama);
-    //cv::waitKey(0);
+
+    T.flat_pan_dim = test_size;
     T.H_1j[T.stitch_order[0]] = cv::Matx33f::eye();
 
     for (int i = T.stitch_order.size() - 1 ; i > 0 ;i-- ){
@@ -517,39 +377,14 @@ void calc_stitch_from_adj(pan_img_transform &T,const std::vector<std::vector< cv
         }
     }
 
-    cv::Vec3f cent_img1 = {(float)(*T.img_address)[T.stitch_order[0]].cols / 2,(float)(*T.img_address)[T.stitch_order[0]].rows / 2,1};
-    cent_img1 = T.img2pan[T.stitch_order[0]] * cent_img1;
-    cent_img1 = cent_img1 / cent_img1[2];
-
-    for(int i = 0;i <T.img2pan.size();i++){
-
-            cv::Vec3f cent = {(float)(*T.img_address)[i].cols / 2,(float)(*T.img_address)[i].rows / 2,1};
-            cent = T.img2pan[i] * cent;
-            cent = cent / cent[2];
-            cent = cent_img1 - cent;
-            cv::Vec2f center;
-            center[0] = cent[0];
-            center[1] = cent[1];
-            T.im_center.push_back(center);
-
-    }
-
     for(int i = 0 ; i < path_mat.rows;i++ ){
-        if (rotations.count(i)){
-            T.rot.push_back( rotations[i] );
-            T.K.push_back( K);
 
-        }else{
-            T.rot.push_back( Eigen::Matrix3d::Identity() );
-            T.K.push_back( Eigen::Matrix3d::Identity() );
-        }
+        T.rot.push_back( Eigen::Matrix3d::Identity() );
+        T.K.push_back( K);
 
     }
 
 }
-
-
-
 
 
 }

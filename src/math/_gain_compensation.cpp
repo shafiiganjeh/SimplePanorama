@@ -3,8 +3,7 @@
 
 namespace gain {
 
-
-
+//overlap intensity in the spherical projection.
 std::vector<OverlapInfo> get_overlapp_intensity(
     const std::vector<cv::Mat>& warped_images,
     const std::vector<cv::Point>& corners,
@@ -155,16 +154,18 @@ std::vector<OverlapInfo> get_overlapp_intensity(
             return std::pair<Eigen::VectorXd,Eigen::MatrixXd>(G,M);
     }
 
+
     std::vector<double> gain_compensation(const std::vector<cv::Mat> &imags,const cv::Mat& adj_pass,const std::vector<cv::Point>& corners){
 
         cv::Mat adj = adj_pass;
         adj = adj + cv::Mat::eye(adj.rows,adj.cols,adj.type());
         std::pair<Eigen::VectorXd,Eigen::MatrixXd> G;
+        //setting up de/dg = 0 in matrix form equation (29)
         G = gain::set_up_equations(imags,adj,corners);
 
+        //solve for all g _i vectors optimal brightness is then image_i / g_i
         Eigen::VectorXd x = G.second.colPivHouseholderQr().solve(G.first);
-        //Eigen::VectorXd x = G.second.ldlt().solve(G.first);
-        //x = x / x.maxCoeff();
+
         std::vector<double> ret(x.data(), x.data() + x.size());
         return ret;
 

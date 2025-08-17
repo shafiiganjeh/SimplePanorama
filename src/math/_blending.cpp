@@ -1,77 +1,177 @@
 
 #include "_blending.h"
 
-
 namespace blnd {
 
-void simple_blend(const class imgm::pan_img_transform &Tr,const std::vector<cv::Mat> &imags){
+//aka alpha blending
+cv::Mat simple_blend(const std::vector<cv::Mat>& images,const std::vector<cv::Mat>& masks,const std::vector<cv::Point>& top_lefts) {
 
-    float cnst = 1e-4;
-    int height = Tr.translation[Tr.stitch_order[Tr.stitch_order.size()-1]].yend - Tr.translation[Tr.stitch_order[Tr.stitch_order.size()-1]].ystart + 1;
-    int wide = Tr.translation[Tr.stitch_order[Tr.stitch_order.size()-1]].xend - Tr.translation[Tr.stitch_order[Tr.stitch_order.size()-1]].xstart + 1;
-
-    cv::Mat panorama = cv::Mat::zeros(height,wide,CV_32FC3);
-    cv::Mat panorama_mask = cv::Mat::zeros(height,wide,CV_32FC3);
-    panorama_mask= panorama_mask+ cnst;
-    panorama= panorama+ cnst;
-
-    cv::Mat dstT1;
-    cv::Mat dstT2;
-    int img_TYPE = imags[0].type();
-    std::cout<< "image size: " <<panorama.size()<<"\n";
-
-    cv::Mat temp_display;
-
-    for (int i = 0;i < imags.size();i++){
-
-        cv::Mat Msk;
-        cv::Mat color_img;
-
-        cv::warpPerspective(imags[i], color_img, Tr.img2pan[i],panorama.size() , cv::INTER_LINEAR);
-        cv::cvtColor(color_img, Msk, cv::COLOR_BGR2GRAY);
-        cv::threshold(Msk, Msk, 3, 255, cv::THRESH_BINARY);
-
-        cv::distanceTransform(Msk, Msk, cv::DIST_L2, 3);
-        normalize(Msk, Msk, 0, 1.0, cv::NORM_MINMAX);
-        cv::Mat Msk_3channel;
-        cv::Mat t[] = {Msk, Msk, Msk};
-        cv::merge(t, 3, Msk_3channel);
-
-        Msk_3channel.convertTo(Msk_3channel, CV_32F);
-        color_img.convertTo(color_img, CV_32F);
-
-        panorama = panorama + color_img.mul(Msk_3channel);
-        panorama_mask = (panorama_mask + Msk_3channel);
-
+    if (images.empty() || images.size() != masks.size() || images.size() != top_lefts.size()) {
+        throw std::runtime_error("Input consistency!");
     }
 
-    panorama = panorama.mul(1/panorama_mask);
-    panorama.convertTo(panorama, imags[0].type());
-    cv::imshow("Image Display",panorama);
-    cv::waitKey(0);
+    struct util::size_data p_size = util::get_pan_dimension(top_lefts,images);
 
+    cv::Mat accumulated_color = cv::Mat::zeros(p_size.dims, CV_32FC3);
+    cv::Mat accumulated_alpha = cv::Mat::zeros(p_size.dims, CV_32FC1);
+
+    //define a ROI in the panorama and caluclate the alpha mask based on distance transform via adding color values and alpha mask values.
+    for (size_t i = 0; i < images.size(); i++) {
+        const cv::Mat& img = images[i];
+        const cv::Mat& mask = masks[i];
+        cv::Point tl = top_lefts[i];
+        cv::Point canvas_tl(tl.x - p_size.min_x, tl.y - p_size.min_y);
+
+        cv::Rect roi(canvas_tl.x, canvas_tl.y, img.cols, img.rows);
+        roi = roi & cv::Rect(0, 0, p_size.dims.width, p_size.dims.height);
+        if (roi.width <= 0 || roi.height <= 0) continue;
+
+        cv::Rect img_roi(roi.x - canvas_tl.x, roi.y - canvas_tl.y, roi.width, roi.height);
+        cv::Mat img_cropped = img(img_roi).clone();
+        cv::Mat mask_cropped = mask(img_roi).clone();
+
+        cv::Mat dt;
+        cv::distanceTransform(mask_cropped, dt, cv::DIST_L2, cv::DIST_MASK_5, CV_32F);
+        cv::Mat mask_float;
+        normalize(dt, mask_float, 0.0, 1.0, cv::NORM_MINMAX);
+
+        cv::Mat img_float;
+        img_cropped.convertTo(img_float, CV_32F, 1.0 / 255.0);
+
+        cv::Mat acc_color_roi = accumulated_color(roi);
+        cv::Mat acc_alpha_roi = accumulated_alpha(roi);
+
+        cv::Mat one_minus_alpha;
+        cv::subtract(cv::Scalar(1.0), acc_alpha_roi, one_minus_alpha);
+
+        cv::Mat mask_3c;
+        cv::Mat one_minus_alpha_3c;
+        cv::cvtColor(mask_float, mask_3c, cv::COLOR_GRAY2BGR);
+        cv::cvtColor(one_minus_alpha, one_minus_alpha_3c, cv::COLOR_GRAY2BGR);
+
+        cv::Mat new_color = img_float.mul(mask_3c);
+        cv::Mat blended_color = new_color.mul(one_minus_alpha_3c);
+
+        cv::Mat blended_alpha = mask_float.mul(one_minus_alpha);
+
+        acc_color_roi += blended_color;
+        acc_alpha_roi += blended_alpha;
+    }
+
+    //divide the accumulated colors with alpha values for final result
+    cv::Mat result_float = cv::Mat::zeros(p_size.dims.height, p_size.dims.width, CV_32FC3);
+    for (int y = 0; y < p_size.dims.height; ++y) {
+        for (int x = 0; x < p_size.dims.width; ++x) {
+            float a = accumulated_alpha.at<float>(y, x);
+            if (a > 0) {
+                cv::Vec3f color = accumulated_color.at<cv::Vec3f>(y, x);
+                result_float.at<cv::Vec3f>(y, x) = color / a;
+            }
+        }
+    }
+
+    cv::Mat result;
+    result_float.convertTo(result, CV_8UC3, 255.0);
+
+    return result;
 }
 
-void no_blend(const class imgm::pan_img_transform &Tr,const std::vector<cv::Mat> &imags){
 
-    float cnst = 1e-4;
-    int height = Tr.translation[Tr.stitch_order[Tr.stitch_order.size()-1]].yend - Tr.translation[Tr.stitch_order[Tr.stitch_order.size()-1]].ystart + 1;
-    int wide = Tr.translation[Tr.stitch_order[Tr.stitch_order.size()-1]].xend - Tr.translation[Tr.stitch_order[Tr.stitch_order.size()-1]].xstart + 1;
+//simple copy to panorama for testing
+cv::Mat no_blend(const std::vector<cv::Mat>& images,const std::vector<cv::Mat>& masks,const std::vector<cv::Point>& top_lefts){
 
-    cv::Mat panorama = cv::Mat::zeros(height,wide,CV_32FC3);
-    cv::Mat img;
+    struct util::size_data dim = util::get_pan_dimension(top_lefts,images);
 
-    for (int i = 0;i < imags.size();i++){
-        std::cout<<Tr.img2pan[i];
-        cv::warpPerspective(imags[i],img, Tr.img2pan[i],panorama.size(),cv::INTER_LINEAR);
-        img.copyTo(panorama, img);
+    cv::Mat panorama(
+        dim.dims.height,
+        dim.dims.width,
+        CV_8UC3,
+        cv::Scalar(0, 0, 0)
+    );
+
+    //Copy warped images into panorama
+    for (int i = 0; i < images.size(); i++) {
+
+        cv::Rect roi(
+            top_lefts[i].x - dim.min_x,  // x offset
+            top_lefts[i].y - dim.min_y,  // y offset
+            images[i].size().width,
+            images[i].size().height
+        );
+
+        images[i].copyTo(panorama(roi),masks[i]);
 
     }
 
+    return panorama;
+}
 
 
-    cv::imshow("Image Display",panorama);
-    cv::waitKey(0);
+
+cv::Mat multi_blend(const std::vector<cv::Mat>& images,const std::vector<cv::Mat>& masks,const std::vector<cv::Mat>& masks_orig,const std::vector<cv::Point>& top_lefts,int bands,double sigma){
+
+    struct util::size_data p_size = util::get_pan_dimension(top_lefts,images);
+
+    cv::Mat accumulated_color = cv::Mat::zeros(p_size.dims, CV_32FC3);
+    cv::Mat accumulated_alpha = cv::Mat::zeros(p_size.dims, CV_32FC1);
+
+    for(int i = 0 ; i < bands ; i++){
+
+        double sigma_band = sqrt(2*(bands - i)+1) * sigma;
+        cv::Size kernel_size;
+        kernel_size.height = 31;//2 * ceil(3 * sigma_band) + 1;
+        kernel_size.width = 31;//2 * ceil(3 * sigma_band) + 1;
+
+        for(int j = 0 ; j < masks.size() ; j++){
+
+            cv::Mat i_conv = images[j];
+            i_conv.convertTo(i_conv, CV_32FC3);
+            cv::Mat I_temp;
+
+            cv::Mat w_conv = masks[j];
+            w_conv.convertTo(w_conv, CV_32FC3);
+
+            cv::GaussianBlur(i_conv,I_temp,kernel_size,sigma_band,sigma_band,cv::BORDER_REFLECT );
+            cv::GaussianBlur(w_conv,w_conv,kernel_size,sigma_band,sigma_band,cv::BORDER_REFLECT );
+            w_conv = w_conv/ 255;
+
+            if (i == bands - 1){
+
+                I_temp = i_conv - I_temp;
+
+            }else if(i > 0){
+
+                double sigma_prev = sqrt(2*(bands - i - 1)+1) * sigma;
+                cv::Mat prev_I;
+                cv::GaussianBlur(i_conv,prev_I,kernel_size,sigma_prev,sigma_prev,cv::BORDER_REFLECT );
+                I_temp = I_temp - prev_I;
+
+            }
+
+            cv::Mat org_mask_temp = masks_orig[j].clone();
+
+            cv::bitwise_not(org_mask_temp, org_mask_temp);
+
+            w_conv.setTo(0,org_mask_temp);
+
+            cv::Mat color_tmp;
+            imgm::elementwiseOperation(I_temp,w_conv,color_tmp);
+
+            cv::Point tl = top_lefts[j];
+            cv::Point canvas_tl(tl.x - p_size.min_x, tl.y - p_size.min_y);
+            cv::Rect roi(canvas_tl.x, canvas_tl.y, images[j].cols, images[j].rows);
+
+            cv::add(accumulated_color(roi),color_tmp,accumulated_color(roi));
+            cv::add(accumulated_alpha(roi),w_conv,accumulated_alpha(roi));
+
+        }
+
+    }
+
+    imgm::elementwiseOperation(accumulated_color,accumulated_alpha,accumulated_color,imgm::DIVIDE);
+    const float divisor = 255 / bands;
+    accumulated_color = accumulated_color / divisor;
+    return accumulated_color;
 
 }
 
@@ -81,7 +181,6 @@ cv::Mat createSurroundingMask(const cv::Mat& inputImage, bool invert, uchar thre
         return cv::Mat();
     }
 
-    // [Rest of original processing remains the same...]
     cv::Mat gray;
     cv::cvtColor(inputImage, gray, cv::COLOR_BGR2GRAY);
 
@@ -92,7 +191,6 @@ cv::Mat createSurroundingMask(const cv::Mat& inputImage, bool invert, uchar thre
     int width = floodFilled.cols;
     int height = floodFilled.rows;
 
-    // [Flood fill operations remain unchanged...]
     for (int x = 0; x < width; ++x) {
         if (floodFilled.at<uchar>(0, x) == 255) {
             cv::floodFill(floodFilled, cv::Point(x, 0), 0, nullptr, cv::Scalar(), cv::Scalar(), 4 | cv::FLOODFILL_FIXED_RANGE);
@@ -114,126 +212,13 @@ cv::Mat createSurroundingMask(const cv::Mat& inputImage, bool invert, uchar thre
     cv::Mat mask;
     cv::subtract(thresh, floodFilled, mask);
 
-    // New inversion logic
+    cv::dilate(mask, mask, cv::Mat(), cv::Point(-1, -1), 1);
+
     if (invert) {
         cv::bitwise_not(mask, mask);
     }
 
     return mask;
-}
-
-
-cv::Point2i get_corner(const cv::Mat &img,const cv::Matx33f &hom){
-
-    std::vector<cv::Vec2f> cor;
-    cor.push_back(cv::Vec2f(0,0));
-    cor.push_back(cv::Vec2f(0,img.rows));
-    cor.push_back(cv::Vec2f(img.cols,0));
-
-    cv::perspectiveTransform(cor, cor, hom);
-    int xstart = (int)std::min( cor[0][0], cor[1][0]);
-    int ystart = (int)std::min( cor[0][1], cor[2][1]);
-
-    cv::Point2i ret = cv::Point(xstart, ystart);
-
-    return ret;
-}
-
-
-cv::Size get_size(const cv::Mat &img,const cv::Matx33f &hom){
-
-    std::vector<cv::Vec2f> cor;
-
-    cor.push_back(cv::Vec2f(0,0));
-    cor.push_back(cv::Vec2f(0,img.rows));
-    cor.push_back(cv::Vec2f(img.cols,0));
-    cor.push_back(cv::Vec2f(img.cols,img.rows));
-
-    cv::perspectiveTransform(cor, cor, hom);
-
-
-    float xstart = std::min( cor[0][0], cor[1][0]);
-    float xend   = std::max( cor[2][0], cor[3][0]);
-    float ystart = std::min( cor[0][1], cor[2][1]);
-    float yend   = std::max( cor[1][1], cor[3][1]);
-
-    cv::Size sz;
-    sz.width = cvRound(abs(xstart - xend));
-    sz.height = cvRound(abs(ystart - yend));
-
-    return sz;
-}
-
-
-std::vector<cv::Mat> seam_finder(std::vector<cv::Mat> sources,std::vector<cv::Point2i> corners){
-
-    std::vector<cv::UMat> images;
-    std::vector<cv::UMat> masks;
-    for(int i = 0;i<sources.size();i++){
-        cv::UMat copy;
-        sources[i].copyTo(copy);
-        images.push_back(copy);
-        images[i].convertTo(images[i], CV_32FC3, 1/255.0);
-        cv::UMat copy_mask;
-        cv::Mat msk = createSurroundingMask(sources[i],true, 10);
-        msk.copyTo(copy_mask);
-        masks.push_back(copy_mask);
-    }
-
-    //cv::Ptr<cv::detail::SeamFinder> seam_finder = new cv::detail::GraphCutSeamFinder(cv::detail::GraphCutSeamFinderBase::COST_COLOR, 0.11, 33);
-    cv::Ptr<cv::detail::SeamFinder> seam_finder = new cv::detail::GraphCutSeamFinder();
-    seam_finder->find(images, corners, masks);
-
-    std::vector<cv::Mat> cvmasks;
-    for(int i = 0;i<sources.size();i++){
-        cv::Mat m;
-        masks[i].getMat(cv::ACCESS_READ).copyTo(m);
-        cvmasks.push_back(m);
-        masks[i].release();
-    }
-
-    return cvmasks;
-}
-
-
-void graph_blend(const class imgm::pan_img_transform &Tr,const std::vector<cv::Mat> &imags){
-
-    float cnst = 1e-4;
-    int height = Tr.translation[Tr.stitch_order[Tr.stitch_order.size()-1]].yend - Tr.translation[Tr.stitch_order[Tr.stitch_order.size()-1]].ystart + 1;
-    int wide = Tr.translation[Tr.stitch_order[Tr.stitch_order.size()-1]].xend - Tr.translation[Tr.stitch_order[Tr.stitch_order.size()-1]].xstart + 1;
-
-    std::vector<cv::Point2i> corners;
-    std::vector<cv::Mat> img;
-
-    for (int i = 0;i < imags.size();i++){
-        cv::Point2i a = get_corner(imags[i],Tr.img2pan[i]);
-
-        cv::Matx33f T = cv::Matx33f::zeros();
-        T(0, 0) = 1;
-        T(1, 1) = 1;
-        T(2, 2) = 1;
-        T(0, 2) = -a.x;
-        T(1, 2) = -a.y;
-
-        cv::Size sz = get_size(imags[i],Tr.img2pan[i]);
-        cv::Mat im;
-        cv::warpPerspective(imags[i], im, T * Tr.img2pan[i],sz , cv::INTER_LINEAR);
-
-        corners.push_back(a);
-        img.push_back(im);
-    }
-
-    cv::Mat panorama = cv::Mat::zeros(height+1,wide+1,img[0].type());
-    std::vector<cv::Mat> masks = seam_finder(img,corners);
-    for (int i = 0;i < imags.size();i++){
-        img[i].copyTo(panorama(cv::Range(corners[i].y, img[i].rows + corners[i].y), cv::Range(corners[i].x, img[i].cols + corners[i].x)),masks[i]);
-
-    }
-
-
-    cv::imshow("Image Display",panorama);
-    cv::waitKey(0);
-
 }
 
 

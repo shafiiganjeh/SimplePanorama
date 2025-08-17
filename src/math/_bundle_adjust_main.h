@@ -8,10 +8,14 @@
 #include <thread>
 #include <string>
 #include <unordered_map>
+#include "_homography.h"
 
 
 namespace bundm {
 
+    // See Multiple View Geometry in Computer Vision for an outlier of the algorithm logic. I tried to get the naming simmilar to the outlier.
+
+    //function for performance check
     class Timer {
         using Clock = std::chrono::high_resolution_clock;
         using TimePoint = std::chrono::time_point<Clock>;
@@ -48,7 +52,7 @@ namespace bundm {
         }
     };
 
-
+    //some side terms
     struct alignas(64) inter_par{
 
         float lambda;
@@ -73,11 +77,12 @@ namespace bundm {
 
     };
 
+
     class adjuster {
 
         public:
 
-            adjuster(const std::vector<maths::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match,float lmbd,const imgm::pan_img_transform &Tr,int threads = 8);
+            adjuster(const std::vector<util::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match,float lmbd,const imgm::pan_img_transform &Tr,int threads = 8);
 
             struct inter_par iterate();
             std::vector<Eigen::MatrixXd> ret_rot();
@@ -87,8 +92,9 @@ namespace bundm {
             class Timer timer;
 
         private:
-
+            //class for calculating derivatives.
             std::shared_ptr<class bund::parameters> par_img;
+            //class for calculating residual errors.
             std::shared_ptr<class bund::E_func> par_er;
             struct inter_par iter;
 

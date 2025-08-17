@@ -6,7 +6,8 @@
 #include <tuple>
 #include <iostream>
 #include <fstream>
-#include "_maths.h"
+#include "_util.h"
+#include "_homography.h"
 #include <Eigen/Dense>
 #include <opencv2/core/eigen.hpp>
 #include <unsupported/Eigen/MatrixFunctions>
@@ -14,113 +15,39 @@
 
 namespace imgm {
 
+    enum Operation { MULTIPLY, DIVIDE };
+    void elementwiseOperation(const cv::Mat& A, const cv::Mat& B, cv::Mat& result, Operation op = MULTIPLY);
 
     class pan_img_transform {
 
         public:
 
             pan_img_transform(const cv::Mat* adj_mat,const std::vector<cv::Mat> *imags);
+            pan_img_transform(const struct util::adj_str* adj_mat,const std::vector<cv::Mat> *imags) : pan_img_transform(&(adj_mat->adj),imags){ connectivity = adj_mat->connectivity;};
 
             std::vector<cv::Matx33f> H_1j;
             std::vector<cv::Matx33f> img2pan;
             std::vector<cv::Matx33f> pan2img;
             std::vector<int> stitch_order;
-            std::vector<struct maths::translation> translation;
-            std::pair<int,int> pan_dim;
-            std::vector<cv::Vec2f> im_center;
+            std::vector<struct util::translation> translation;
+            cv::Size flat_pan_dim;
 
             std::vector<std::vector<int>> pair_stitch;
 
             const cv::Mat *adj;
             const std::vector<cv::Mat>* img_address;
-
-            std::vector<std::vector<float>> img_dimensions;
+            std::vector<std::vector<int>> img_dimensions;
 
             std::vector<Eigen::MatrixXd> rot;
             std::vector<Eigen::MatrixXd> K;
 
+            std::vector<double> connectivity;
+
             double focal = 1000;
-            std::vector<double> focal_vec;
 
     };
 
-
-    class cylhom {
-
-    const cv::Matx33f H;
-
-    public:
-        cylhom(const cv::Matx33f hom) :H(hom) {
-
-
-        }
-
-        std::pair<float, float> inv(float x, float y);
-
-    };
-
-
-class cylproj {
-
-    std::vector<float> v;
-    std::vector<float> v_f;
-    std::vector<float> kb;
-    std::vector<float> ka;
-    std::vector<float> kb_inv;
-    std::vector<float> ka_inv;
-    float f_b;
-    float f_a;
-    float cx_b;
-    float cy_b;
-    float cx_a;
-    float cy_a;
-    float tx;
-    float ty;
-    cv::Size s;
-    double thet;
-    float total_theta = 2 * 3.14159;
-
-
-    public:
-        cylproj(Eigen::MatrixXd rot,Eigen::MatrixXd base,Eigen::MatrixXd attach,cv::Size size,float x = 0,float y = 0){
-
-            f_b = (float)base(0,0);
-            cx_b = (float)base(0,2);
-            cy_b = (float)base(1,2);
-            f_a = (float)attach(0,0);
-            cx_a = (float)attach(0,2);
-            cy_a = (float)attach(1,2);
-            tx = x;
-            ty = y;
-            Eigen::MatrixXd base_inv = base.inverse().eval();
-            Eigen::MatrixXd attach_inv = attach.inverse().eval();
-
-            //eigen2cv(rot,R);
-
-            s = size;
-
-            for(int i =0;i < 3;i++){
-                for(int j =0;j < 3;j++){
-
-                    v.push_back((float)rot(j,i));
-                    v_f.push_back((float)rot(i,j));
-                    kb.push_back((float)base(i,j));
-                    ka.push_back((float)attach(i,j));
-                    kb_inv.push_back((float)base_inv(i,j));
-                    ka_inv.push_back((float)attach_inv(i,j));
-
-                }
-            }
-
-
-        }
-
-        std::pair<float, float> inv(float x, float y);
-
-        std::pair<float, float> forward(float x, float y);
-
-    };
-
+    cv::Mat multiplyChannels(const cv::Mat& A, const cv::Mat& B);
 
     cv::Mat resize_image( const cv::Mat& img, int target_width = 300);
 
@@ -160,9 +87,9 @@ class cylproj {
 
     cv::Mat stitch(const cv::Mat &base, const cv::Mat &attach, const cv::Matx33f &H);
 
-    void calc_stitch_from_adj(pan_img_transform &T,const std::vector<std::vector< cv::Matx33f >> &Hom,std::vector<std::vector<std::vector<cv::DMatch>>> &match_mat,std::vector<maths::keypoints> &keypnts);
+    void calc_stitch_from_adj(pan_img_transform &T,const std::vector<std::vector< cv::Matx33f >> &Hom,std::vector<std::vector<std::vector<cv::DMatch>>> &match_mat,std::vector<util::keypoints> &keypnts);
 
-    void bundleadjust_stitching(pan_img_transform &T,const std::vector<std::vector< cv::Matx33f >> &Hom_mat,const std::vector<maths::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match_mat);
+    void bundleadjust_stitching(pan_img_transform &T,const std::vector<std::vector< cv::Matx33f >> &Hom_mat,const std::vector<util::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match_mat);
 
     cv::Mat project(const cv::Mat& imags,float xc,float yc,float f,cv::Matx33f hom = cv::Matx33f::eye());
 

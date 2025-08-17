@@ -16,12 +16,16 @@ add_definitions(${GTK_CFLAGS_OTHER})
 
 find_package (Eigen3 3.4 REQUIRED NO_MODULE)
 
-add_definitions(-O2 -fno-math-errno -ffast-math)
+add_definitions(-O2)
 
 
 include_directories(        ${CMAKE_SOURCE_DIR}/src/math
                             ${CMAKE_SOURCE_DIR}/src/ui
-                            ${CMAKE_SOURCE_DIR}/src/classes)
+                            ${CMAKE_SOURCE_DIR}/src/classes
+                            ${CMAKE_SOURCE_DIR}/src/max_flow)
+
+file(GLOB graph_SOURCES STATIC "${CMAKE_SOURCE_DIR}/src/max_flow/*.cpp")
+file(GLOB graph_HEADERS STATIC "${CMAKE_SOURCE_DIR}/src/max_flow/*.h")
 
 add_library(code
     ${CMAKE_SOURCE_DIR}/src/classes/_image.h
@@ -45,8 +49,8 @@ add_library(code
     ${CMAKE_SOURCE_DIR}/src/ui/_viewer_toolbar.h
     ${CMAKE_SOURCE_DIR}/src/math/_img_manipulation.cpp
     ${CMAKE_SOURCE_DIR}/src/math/_img_manipulation.h
-    ${CMAKE_SOURCE_DIR}/src/math/_maths.h
-    ${CMAKE_SOURCE_DIR}/src/math/_maths.cpp
+    ${CMAKE_SOURCE_DIR}/src/math/_util.h
+    ${CMAKE_SOURCE_DIR}/src/math/_util.cpp
     ${CMAKE_SOURCE_DIR}/src/math/_bundle_adjust_tools.h
     ${CMAKE_SOURCE_DIR}/src/math/_bundle_adjust_tools.cpp
     ${CMAKE_SOURCE_DIR}/src/math/_bundle_adjust_main.h
@@ -57,15 +61,22 @@ add_library(code
     ${CMAKE_SOURCE_DIR}/src/math/_blending.cpp
     ${CMAKE_SOURCE_DIR}/src/math/_stitch.h
     ${CMAKE_SOURCE_DIR}/src/math/_stitch.cpp
-    ${CMAKE_SOURCE_DIR}/src/math/_strengthening.h
-    ${CMAKE_SOURCE_DIR}/src/math/_strengthening.cpp
-    ${CMAKE_SOURCE_DIR}/src/math/full_bunde.cpp
+    ${CMAKE_SOURCE_DIR}/src/math/_straightening.h
+    ${CMAKE_SOURCE_DIR}/src/math/_straightening.cpp
+    ${CMAKE_SOURCE_DIR}/src/math/_graph_cut.h
+    ${CMAKE_SOURCE_DIR}/src/math/_graph_cut.cpp
+    ${CMAKE_SOURCE_DIR}/src/math/_graph_cut_helper.cpp
+    ${CMAKE_SOURCE_DIR}/src/math/_graph_cut_helper.h
+    ${CMAKE_SOURCE_DIR}/src/math/_homography.cpp
+    ${CMAKE_SOURCE_DIR}/src/math/_homography.h
 )
 
 add_executable(panorama src/main.cpp)
 
 target_link_libraries(code ${OpenCV_LIBS}
-                               ${GTK_LIBRARIES})
+                           ${GTK_LIBRARIES})
+
+target_link_libraries(code ${graph_SOURCES} ${graph_HEADERS})
 
 target_link_libraries(code Eigen3::Eigen)
 

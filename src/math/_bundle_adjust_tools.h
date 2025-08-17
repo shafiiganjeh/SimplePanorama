@@ -5,10 +5,11 @@
 #include <iostream>
 #include <Eigen/Dense>
 #include <vector>
-#include "_maths.h"
+#include "_util.h"
 #include <unsupported/Eigen/MatrixFunctions>
 #include <opencv2/core/eigen.hpp>
 #include "_img_manipulation.h"
+#include "_homography.h"
 
 
 namespace bund {
@@ -24,15 +25,16 @@ namespace bund {
     };
 
 
+    //class for calculating derivatives.
     class parameters {
 
         public:
 
-            parameters(const std::vector<maths::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match,const class imgm::pan_img_transform &T,int threads = 8);
+            parameters(const std::vector<util::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match,const class imgm::pan_img_transform &T,int threads = 8);
             std::vector<Eigen::MatrixXd> ret_B_i();
-            std::vector<Eigen::MatrixXd> ret_B_i_num();
+            std::vector<Eigen::MatrixXd> ret_B_i_num(); //only for testing
             std::vector<A_vec> ret_A_i();
-            std::vector<A_vec> ret_A_i_num();
+            std::vector<A_vec> ret_A_i_num();//only for testing
             std::vector<Eigen::VectorXd> ret_measurements();
             std::vector<std::vector< cv::Matx33f >> ret_hmat();
             std::vector<double> ret_focal();
@@ -77,12 +79,12 @@ namespace bund {
 
     };
 
-
+    //class for calculating residual errors. e = (x_train,x_query) - (x_pred,H*x_pred)
     class E_func {
 
         public:
 
-            E_func(const std::vector<maths::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match,const cv::Mat &adjm);
+            E_func(const std::vector<util::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match,const cv::Mat &adjm);
             std::vector<Eigen::VectorXd> error(const std::vector<Eigen::VectorXd> &t_to_q);
             std::vector<Eigen::VectorXd> get_measurements();
             std::vector<std::vector<int>> ret_idx_set();
