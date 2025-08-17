@@ -4,11 +4,13 @@
 
 #include <opencv2/opencv.hpp>
 #include <iostream>
-#include "_maths.h"
+#include "_util.h"
 #include <Eigen/Dense>
 #include "_blending.h"
 
 namespace gain {
+
+//See: https://link.springer.com/article/10.1007/s11263-006-0002-3
 
 struct OverlapInfo {
     int i;
@@ -17,7 +19,6 @@ struct OverlapInfo {
     double I_i;
     double I_j;
 };
-
 
 std::vector<OverlapInfo> get_overlapp_intensity(
     const std::vector<cv::Mat>& warped_images,

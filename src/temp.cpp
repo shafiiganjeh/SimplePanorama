@@ -1,1468 +1,895 @@
-
-#include <iostream>
-#include <vector>
-#include <Eigen/Dense>
-#include <Eigen/Eigenvalues>
-
-// Compute the up-vector (normal to the plane of camera X-vectors)
-Eigen::Vector3d computePanoramaUpVector(const std::vector<Eigen::Matrix3d>& rotations) {
-    std::vector<Eigen::Vector3d> X_vectors;
-    for (const auto& R : rotations) {
-        X_vectors.push_back(R.col(0).normalized()); // X-axis = first column
-    }
-
-    Eigen::Matrix3d C = Eigen::Matrix3d::Zero();
-    for (const auto& X : X_vectors) {
-        C += X * X.transpose();
-    }
-
-    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigensolver(C);
-    Eigen::Vector3d u = eigensolver.eigenvectors().col(0);
-
-    // Ensure the up-vector points "upwards" (positive Y direction)
-    if (u.dot(Eigen::Vector3d::UnitY()) < 0) {
-        u = -u; // Flip sign if pointing downward
-    }
-    return u;
-}
-
-// Compute rotation matrix using Rodrigues' formula
-Eigen::Matrix3d rodriguesRotation(const Eigen::Vector3d& axis, double angle) {
-    Eigen::Matrix3d K;
-    K << 0, -axis.z(), axis.y(),
-         axis.z(), 0, -axis.x(),
-         -axis.y(), axis.x(), 0;
-    return Eigen::Matrix3d::Identity() + sin(angle) * K + (1 - cos(angle)) * K * K;
-}
-
-int main() {
-    // Example: Cameras tilted 30° around Z-axis (X-vectors in a plane)
-    std::vector<Eigen::Matrix3d> rotations;
-    Eigen::Matrix3d base_rot = Eigen::AngleAxisd(M_PI/6, Eigen::Vector3d::UnitZ()).toRotationMatrix();
-    for (int i = 0; i < 10; ++i) {
-        Eigen::Matrix3d R = base_rot * Eigen::AngleAxisd(0.1*i, Eigen::Vector3d::UnitY()).toRotationMatrix();
-        rotations.push_back(R);
-    }
-
-    // Step 1-3: Compute up-vector 'u'
-    Eigen::Vector3d u = computePanoramaUpVector(rotations);
-    std::cout << "Computed up-vector: " << u.transpose() << std::endl;
-
-    // Step 4: Compute correction rotation (align u with target_up = [0,1,0])
-    Eigen::Vector3d target_up = Eigen::Vector3d::UnitY();
-    Eigen::Vector3d axis = target_up.cross(u); // Correct axis direction
-    double axis_norm = axis.norm();
-
-    Eigen::Matrix3d R_correct;
-
-    if (axis_norm < 1e-6) {
-        // Handle colinear case (u already aligned with target_up)
-        if (u.dot(target_up) < 0) {
-            // 180° rotation around X-axis (prevents mirroring)
-            R_correct = Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX()).toRotationMatrix();
-        } else {
-            R_correct = Eigen::Matrix3d::Identity();
-        }
-    } else {
-        axis /= axis_norm;
-        double angle = acos(u.dot(target_up));
-        R_correct = rodriguesRotation(axis, angle);
-    }
-
-    // Step 5: Apply correction to all rotations (R_correct * R)
-    std::vector<Eigen::Matrix3d> corrected_rotations;
-    for (const auto& R : rotations) {
-        corrected_rotations.push_back(R_correct * R);
-    }
-
-    // Verify corrected up-vector
-    Eigen::Vector3d u_corrected = computePanoramaUpVector(corrected_rotations);
-    std::cout << "Corrected up-vector: " << u_corrected.transpose() << std::endl;
-
-    return 0;
-}
-
-        std::pair<float, float> cylproj::inv(float x, float y){
-
-            x = x - tx;
-            y = y - ty;
-            float x_;
-            float y_;
-            float z_;
-
-            float theta = (x - cx_a ) / (f_a);
-            //float theta = (x - cx_a ) / (f_a);
-            float h = (y - cy_a ) / (f_a);
-
-            //theta = fmod(theta + M_PI, 2 * M_PI) - M_PI;
-
-            float zx = sin(theta);
-            float zy = h;
-            float zz = cos(theta);
-
-            z_ = v[6]*zx+v[7]*zy+v[8]*zz;
-            if ((z_ <= 0)) {
-
-                return {-1, -1};
-
-            }
-
-            x_ = v[0]*zx+v[1]*zy+v[2]*zz;
-            y_ = v[3]*zx+v[4]*zy+v[5]*zz;
-
-            zx = x_;
-            zy = y_;
-            zz = z_;
-
-            zx = zx / zz;
-            zy = zy / zz;
-
-            float map_x;
-            float map_y;
-
-
-            if (abs(x-tx) < 2*PI*f_a ) {
-                map_x = f_b * zx + cx_b ;
-                map_y = f_b * zy + cy_b ;
-            }else{
-
-                map_x = -1;
-                map_y = -1;
-
-            }
-
-
-            return {map_x, map_y};
-        }
-
-
-
-
-
-
-
-    std::vector<cv::DMatch> adj_calculator::clean_matches(const struct maths::keypoints &kp1,const struct maths::keypoints &kp2,std::vector<cv::DMatch> match,const  cv::Matx33f &H,const std::vector<float> &T){
-
-        std::vector<cv::DMatch> clean_match;
-        std::vector<cv::Vec2f> true_;
-        std::vector<cv::Vec2f> pred_;
-
-        for (int i = 0;i < match.size();i++){
-
-            true_.push_back(kp1.keypoint[match[i].queryIdx ].pt);
-            pred_.push_back(kp2.keypoint[match[i].trainIdx ].pt);
-        }
-
-        cv::perspectiveTransform(pred_, pred_, H);
-
-        std::vector<cv::Vec2f> val;
-        std::vector<float> dist;
-
-        cv::absdiff(true_,pred_,val);
-
-        int out = 0;
-
-        for (int i = 0; i < val.size();i++){
-
-            if (( val[i][0] < T[0] ) and ( val[i][1] < T[1] )){
-
-                clean_match.push_back(match[i]);
-
-            }
-
-        }
-
-        return clean_match;
-    }
-
+#ifndef GRAPH_H
+#define GRAPH_H
 
 #include <opencv2/opencv.hpp>
-#include <cmath>
-#include <limits>
+#include <Eigen/Dense>
+#include "CutPlanar.h"
+#include <iostream>
+#include "_blending.h"
 
-using namespace cv;
-using namespace std;
+namespace gcut {
 
-Size computeCylindricalCanvasSize(const Mat& K, const Size& imageSize) {
-    double f = K.at<double>(0, 0);
-    double cx = K.at<double>(0, 2);
-    double cy = K.at<double>(1, 2);
+    struct overlap_pair{
 
-    double min_s = numeric_limits<double>::max();
-    double max_s = -numeric_limits<double>::max();
-    double min_t = numeric_limits<double>::max();
-    double max_t = -numeric_limits<double>::max();
+        cv::Mat img1;
+        cv::Mat img2;
+        cv::Mat mask1;
+        cv::Mat mask2;
 
-    // Function to process a single pixel (u, v)
-    auto processPoint = [&](int u, int v) {
-        double x = (u - cx) / f;
-        double y = (v - cy) / f;
-
-        double theta = atan(x);
-        double h = y / sqrt(x*x + 1);
-
-        double s = f * theta;
-        double t = f * h;
-
-        min_s = min(min_s, s);
-        max_s = max(max_s, s);
-        min_t = min(min_t, t);
-        max_t = max(max_t, t);
     };
 
-    // Sample along all edges at 1-pixel intervals
-    // Top and bottom edges
-    for (int u = 0; u < imageSize.width; ++u) {
-        processPoint(u, 0);                // Top edge
-        processPoint(u, imageSize.height-1); // Bottom edge
-    }
 
-    // Left and right edges
-    for (int v = 0; v < imageSize.height; ++v) {
-        processPoint(0, v);               // Left edge
-        processPoint(imageSize.width-1, v); // Right edge
-    }
+    class gradient {
+        public:
+            virtual ~gradient() = default;
+            virtual double read(int i, int j) const = 0;
+    };
 
-    // Calculate canvas dimensions with 5% padding
-    double width = max_s - min_s;
-    double height = max_t - min_t;
 
-    return Size(static_cast<int>(ceil(width * 1.05)),
-           static_cast<int>(ceil(height * 1.05)));
+    class simple_gradient : public gradient {
+
+        private:
+
+            int mask_constatnt = 255*2;
+            cv::Mat a_dif;
+            const cv::Mat& M1;
+            const cv::Mat& M2;
+            uchar read_Mat(int i,const cv::Mat* mat) const;
+
+        public:
+
+            simple_gradient(const cv::Mat& img1, const cv::Mat& img2, const cv::Mat& mask1, const cv::Mat& mask2):  M1(mask1),M2(mask2){
+
+                CV_Assert(img1.size() == img2.size() && img1.type() == CV_8UC1 && img2.type() == CV_8UC1);
+                CV_Assert(mask1.size() == img1.size() && mask1.type() == CV_8U);
+                CV_Assert(mask2.size() == img1.size() && mask2.type() == CV_8U);
+
+                cv::absdiff(img1, img2, a_dif);
+
+            }
+
+            double read(int i, int j) const override;
+
+    };
+
+
+    class EdgeWeight {
+        private:
+            const gradient& weightFunc;
+
+        public:
+            EdgeWeight(const gradient& wf) : weightFunc(wf){}
+
+            double getWeight(int i, int j) const {
+                return weightFunc.read(i, j);
+            }
+    };
+
+
+    void define_graph(int n, int m,EdgeWeight & reader);
+
+    struct overlap_pair get_overlap(
+        const cv::Mat& img1,
+        const cv::Mat& img2,
+        const cv::Point& corners1,
+        const cv::Point& corners2);
+
+    cv::Mat computeDissimilarity(
+        const cv::Mat& img1,
+        const cv::Mat& img2,
+        const cv::Mat& mask1,
+        const cv::Mat& mask2,
+        float replace_value = 0.0f,
+        float eps = 1e-6f);
+
 }
 
-// Usage example:
-int main() {
-    Mat K = (Mat_<double>(3,3) << 800, 0, 640,
-                                   0, 800, 360,
-                                   0, 0, 1);
-    Size imgSize(1280, 720);
+#endif
 
-    Size canvasSize = computeCylindricalCanvasSize(K, imgSize);
-    cout << "Optimal canvas size: " << canvasSize << endl;
+/*
+    void define_graph(int n, int m){
 
-    return 0;
-}
+        int n_face = (n-1);
+        int n_vert = 1;
+        int n_edge = n;
 
+        PlanarVertex vertex[n*m + n_vert + n_vert];
+        PlanarEdge edge[2*n*m-m-n + n_edge + n_edge];
+        PlanarFace face[n*m-n-m + 2 + n_face + n_face];
 
-
-#include "_stitch.h"
-
-namespace stch {
-
-/*algorithm for stitching:
- * set n = 3
- * find n best matches and adjust for n simultaneously.
- *
- * for every new image calculate the best match to the already adjusted pairs.
- * if the new image matches badly
- * if all options are bad remove the image.
- *
-*/
-
-std::vector<double> computeRowSumDividedByZeroCount(const cv::Mat& mat) {
-
-    const int rows = mat.rows;
-    const int cols = mat.cols;
-    std::vector<double> results;
-    results.reserve(rows);
-
-    for (int i = 0; i < rows; ++i) {
-        const cv::Mat row = mat.row(i);
-        const double row_sum = cv::sum(row)[0];
-        const int zero_count = cols - cv::countNonZero(row);
-        results.push_back(row_sum / zero_count);
-    }
-
-    return results;
-}
+        int total_horizontal_edges = n * (m - 1);
+        // split eges in horizonatal and vertical.
 
 
-std::vector<int> getTopNonZeroIndices(const cv::Mat& M, int r, int n) {
-    std::vector<std::pair<double, int>> elements;
 
-    for (int c = 0; c < M.cols; ++c) {
-        const double val = M.at<double>(r, c);
-        if (val > 0) {
-            elements.emplace_back(val, c);
+        int edge_index = n_edge;
+
+        // Horizontal edges
+        for (int a = 0; a < n; a++) {
+            for (int b = 0; b < m-1; b++) {
+                int start = a * m + b + n_vert;
+                int target = a * m + b + 1 + n_vert;
+                int left_face, right_face;
+
+                // Face (left):
+                if (a == 0) left_face = 0;
+                else left_face = 1 + (a-1)*(m-1) + b + n_face;
+
+                // Face (right):
+                if (a == n-1) right_face = 0;
+                else right_face = 1 + a*(m-1) + b + n_face;
+
+                edge[edge_index].setEdge(vertex + start,vertex + target,face + left_face,face + right_face, 1, 1);
+
+                std::cout<< "edge_index: "<<edge_index<<"\n"<<"start "<< start<<" target "<<target<<" left_face "<<left_face<<" right_face "<<right_face<<"\n";
+
+                edge_index++;
+            }
         }
-    }
 
-    std::vector<int> idx;
+        // Vertical edges
+        for (int a = 0; a < n-1; ++a) {
+            for (int b = 0; b < m; ++b) {
+                int start = a * m + b + n_vert;
+                int target = (a+1) * m + b + n_vert;
+                int left_face, right_face;
 
-    // Return all non-zero indices if <= n exist
-    if (elements.size() <= static_cast<size_t>(n)) {
-        idx.reserve(elements.size());
-        for (const auto& elem : elements) {
-            idx.push_back(elem.second);
+                // Face (left)
+                if (b == 0) left_face = a + 1;
+                else left_face = 1 + a*(m-1) + (b-1) + n_face;
+
+                // Face (right)
+                if (b == m-1) right_face = a + n_face + n*m-n-m + 2;
+                else right_face = 1 + a*(m-1) + b + n_face;
+
+                edge[edge_index].setEdge(vertex + start,vertex + target,face + right_face,face + left_face, 1, 1);
+
+                std::cout<< "edge_index: "<<edge_index<<"\n"<<"start "<< start<<" target "<<target<<" left_face "<<left_face<<" right_face "<<right_face<<"\n";
+
+                edge_index++;
+            }
         }
-    }
 
-    else {
 
-        std::sort(elements.begin(), elements.end(),
-                  [](const auto& a, const auto& b) { return a.first > b.first; });
+        int edge_index_left = 0;
+        for (int a = 0; a < n; ++a) {
+            int start = 0;
+            int target = a*m+1;
+            int left_face, right_face;
 
-        idx.reserve(n);
-        for (int i = 0; i < n; ++i) {
-            idx.push_back(elements[i].second);
+
+            if(a == 0) left_face = 0;
+            else left_face = a;
+            if(a == n - 1) right_face = 0;
+            else right_face = a + 1;
+
+            std::cout<< "edge_index: "<<edge_index_left<<"\n"<<"start "<< start<<" target "<<target<<" left_face "<<left_face<<" right_face "<<right_face<<"\n";
+
+            edge[edge_index_left].setEdge(vertex + start,vertex + target,face + left_face,face + right_face, 1, 1);
+
+            edge_index_left ++;
         }
-    }
 
-    return idx;
-}
-
-
-Eigen::MatrixXd approximate(const cv::Matx33f &hom,Eigen::MatrixXd K){
-
-    Eigen::MatrixXd H;
-    cv::Matx33d homd = static_cast<cv::Matx33d>(hom);
-    cv::cv2eigen(homd,H);
-    H = H/H(2,2);
-
-    Eigen::MatrixXd KRK = K.inverse() * H * K;
-    Eigen::MatrixXd R_approx = ( KRK * KRK.transpose() ).pow(0.5) * (KRK.transpose()).inverse();
-
-    return R_approx;
-}
+        for (int a = 0; a < n; a++) {
+            int target = n*m + n_vert;
+            int start = (a + 1)*m;
+            int left_face, right_face;
 
 
-adjust_par prep_adjust(const cv::Mat &adj,const std::vector<maths::keypoints> &kp,const class imgm::pan_img_transform &T,std::vector<int> indx,const std::vector<std::vector<std::vector<cv::DMatch>>> &match_mat,int stickto,int stickto_ref,const std::vector<std::vector<cv::Matx33f>> &Hom_mat,bool approx,std::unordered_set<int> &exists){
+            if(a == 0) left_face = 0;
+            else left_face = a + n_face + n*m-n-m + 1;
+            if(a == n - 1) right_face = 0;
+            else right_face = a + n_face + n*m-n-m + 2;
 
-    int size = indx.size();
-    std::sort(indx.begin(), indx.end());
-    std::vector<maths::keypoints> kp_new;
-    std::vector<std::vector<std::vector<cv::DMatch>>> new_match_mat(size,std::vector<std::vector<cv::DMatch>>(size));
-    cv::Mat adj_new(indx.size(), indx.size(), adj.type());
+            std::cout<< "edge_index: "<<edge_index_left + edge_index<<"\n"<<"start "<< start<<" target "<<target<<" left_face "<<left_face<<" right_face "<<right_face<<"\n";
 
-    for (int i = 0; i < indx.size(); ++i) {
-        for (int j = 0; j < indx.size(); ++j) {
+            edge[edge_index].setEdge(vertex + start,vertex + target,face + left_face,face + right_face, 1, 1);
 
-            adj_new.at<double>(i,j) = adj.at<double>(indx[i],indx[j]);
-            new_match_mat[i][j] = match_mat[indx[i]][indx[j]];
-            //std::cout <<"\n"<<"mmsize: "<<"\n"<<new_match_mat[i][j].size()<<"\n";
+            edge_index++;
         }
+
+        int max_edges;
+        n > 4 ? max_edges = n: max_edges = 4;
+        PlanarEdge *edges_CCW[max_edges];
+
+        for (int a = 0; a < n; ++a) {
+            for (int b = 0; b < m; ++b) {
+                int vertex_index = a * m + b + n_vert ;
+                int count = 0;
+
+                std::cout<< "vertex_index: "<<vertex_index<<"\n";
+
+                // West edge (horizontal edge from (a, b-1) to (a, b))
+                if (b > 0) {
+                    int edge_id = a * (m - 1) + (b - 1) + n_edge;
+                    edges_CCW[count] = edge + edge_id;
+                    std::cout<< "edges_CCW[count]: "<<count<<" edge_id "<<edge_id<<"\n";
+                    count++;
+                }
+
+                if (b == 0) {
+                    int edge_id = a;
+                    edges_CCW[count] = edge + edge_id;
+                    std::cout<< "edges_CCW[count]: "<<count<<" edge_id "<<edge_id<<"\n";
+                    count++;
+                }
+
+                // South edge (vertical edge from (a, b) to (a+1, b))
+                if (a < n - 1) {
+                    int edge_id = total_horizontal_edges + a * m + b + n_edge;
+                    edges_CCW[count] = edge + edge_id;
+                    std::cout<< "edges_CCW[count]: "<<count<<" edge_id "<<edge_id<<"\n";
+                    count++;
+                }
+
+                // East edge (horizontal edge from (a, b) to (a, b+1))
+                if (b < m - 1) {
+                    int edge_id = a * (m - 1) + b + n_edge;
+                    edges_CCW[count] = edge + edge_id;
+                    std::cout<< "edges_CCW[count]: "<<count<<" edge_id "<<edge_id<<"\n";
+                    count++;
+                }
+                if (b == m - 1) {
+                    int edge_id = a + 2*n*m-m-n + n_edge;
+                    edges_CCW[count] = edge + edge_id;
+                    std::cout<< "edges_CCW[count]: "<<count<<" edge_id "<<edge_id<<"\n";
+                    count++;
+                }
+
+                // North edge (vertical edge from (a-1, b) to (a, b))
+                if (a > 0) {
+                    int edge_id = total_horizontal_edges + (a - 1) * m + b + n_edge;
+                    edges_CCW[count] = edge + edge_id;
+                    std::cout<< "edges_CCW[count]: "<<count<<" edge_id "<<edge_id<<"\n";
+                    count++;
+                }
+
+                vertex[vertex_index].setEdgesCCW(edges_CCW, count);
+            }
+        }
+        std::cout<< "vertex_index: "<<0<<"\n";
+        edges_CCW[0] = edge+ 0;
+        std::cout<< "edges_CCW[count]: "<<0<<" edge_id "<<0<<"\n";
+        int count = 1;
+        for (int a = 1; a < n; a++) {
+
+            edges_CCW[a] = edge + n-a;
+            std::cout<< "edges_CCW[count]: "<<count<<" edge_id "<<n-a<<"\n";
+            count ++;
+
+        }
+
+        vertex[0].setEdgesCCW(edges_CCW, count);
+
+        std::cout<< "vertex_index: "<<n*m + n_vert <<"\n";
+        count = 0;
+        for (int a = 0; a < n; a++) {
+
+            edges_CCW[a] = edge + 2*n*m-m-n + n_edge + a;
+            std::cout<< "edges_CCW[count]: "<<count<<" edge_id "<<2*n*m-m-n + n_edge + a<<"\n";
+            count ++;
+
+        }
+        vertex[n*m + n_vert].setEdgesCCW(edges_CCW, count);
+
+
+        CutPlanar planar_cut;
+        planar_cut.initialize(n*m + n_vert + n_vert,vertex, 2*n*m-m-n + n_edge + n_edge,edge, n*m-n-m + 2 + n_face + n_face,face);
+        planar_cut.setSource(0);
+        planar_cut.setSink  (n*m + n_vert);
+
+        double flow;
+        flow = planar_cut.getMaxFlow();
+        std::cout << "Maxmal Flow: " << flow << std::endl;
+
     }
-    double focal = T.K[stickto](0,0);
 
-    //class imgm::pan_img_transform t_new(&adj_new,T.img_address);
-    adjust_par ret(&adj_new,T.img_address);
-    ret.adj = adj_new;
-    ret.T.adj = &ret.adj;
-    ret.T.focal = focal;
+    */
 
-    for (int i = 0; i < indx.size(); ++i) {
 
-        kp_new.push_back(kp[indx[i]]);
-        if((indx[i] == stickto) or (exists.count(indx[i]) > 0)){
+    void define_graph(int n, int m,EdgeWeight & reader){
 
-            ret.T.rot.push_back(Eigen::MatrixXd::Identity(3, 3));
-            ret.T.K.push_back(T.K[stickto]);
+        int n_face = (n-1);
+        int n_vert = 1;
+        int n_edge = n;
 
-        }else if((approx == false) and (indx[i] != stickto)){
+        PlanarVertex vertex[n*m + n_vert + n_vert];
 
-            ret.T.rot.push_back(T.rot[stickto_ref]);
-            ret.T.K.push_back(T.K[stickto_ref]);
+        PlanarEdge edge[2*n*m-m-n + n_edge + n_edge];
+        PlanarFace face[n*m-n-m + 2 + n_face + n_face];
+
+        int total_horizontal_edges = n * (m - 1);
+        // split eges in horizonatal and vertical.
+
+
+
+        int edge_index = n_edge;
+
+        // Horizontal edges
+        for (int a = 0; a < n; a++) {
+            for (int b = 0; b < m-1; b++) {
+                int start = a * m + b + n_vert;
+                int target = a * m + b + 1 + n_vert;
+                int left_face, right_face;
+
+                // Face (left):
+                if (a == 0) left_face = 0;
+                else left_face = 1 + (a-1)*(m-1) + b + n_face;
+
+                // Face (right):
+                if (a == n-1) right_face = 0;
+                else right_face = 1 + a*(m-1) + b + n_face;
+
+                edge[edge_index].setEdge(vertex + start,vertex + target,face + left_face,face + right_face, 1, 1);
+
+                //std::cout<< "edge_index: "<<edge_index<<"\n"<<"start "<< start<<" target "<<target<<" left_face "<<left_face<<" right_face "<<right_face<<"\n";
+
+                edge_index++;
+            }
+        }
+
+        // Vertical edges
+        for (int a = 0; a < n-1; ++a) {
+            for (int b = 0; b < m; ++b) {
+                int start = a * m + b + n_vert;
+                int target = (a+1) * m + b + n_vert;
+                int left_face, right_face;
+
+                // Face (left)
+                if (b == 0) left_face = a + 1;
+                else left_face = 1 + a*(m-1) + (b-1) + n_face;
+
+                // Face (right)
+                if (b == m-1) right_face = a + n_face + n*m-n-m + 2;
+                else right_face = 1 + a*(m-1) + b + n_face;
+
+                edge[edge_index].setEdge(vertex + start,vertex + target,face + right_face,face + left_face, 1, 1);
+
+                //std::cout<< "edge_index: "<<edge_index<<"\n"<<"start "<< start<<" target "<<target<<" left_face "<<left_face<<" right_face "<<right_face<<"\n";
+
+                edge_index++;
+            }
+        }
+
+
+        int edge_index_left = 0;
+        for (int a = 0; a < n; ++a) {
+            int start = 0;
+            int target = a*m+1;
+            int left_face, right_face;
+
+
+            if(a == 0) left_face = 0;
+            else left_face = a;
+            if(a == n - 1) right_face = 0;
+            else right_face = a + 1;
+
+            //std::cout<< "edge_index: "<<edge_index_left<<"\n"<<"start "<< start<<" target "<<target<<" left_face "<<left_face<<" right_face "<<right_face<<"\n";
+
+            edge[edge_index_left].setEdge(vertex + start,vertex + target,face + left_face,face + right_face, 1, 1);
+
+            edge_index_left ++;
+        }
+
+        for (int a = 0; a < n; a++) {
+            int target = n*m + n_vert;
+            int start = (a + 1)*m;
+            int left_face, right_face;
+
+
+            if(a == 0) left_face = 0;
+            else left_face = a + n_face + n*m-n-m + 1;
+            if(a == n - 1) right_face = 0;
+            else right_face = a + n_face + n*m-n-m + 2;
+
+            //std::cout<< "edge_index: "<<edge_index_left + edge_index<<"\n"<<"start "<< start<<" target "<<target<<" left_face "<<left_face<<" right_face "<<right_face<<"\n";
+
+            edge[edge_index].setEdge(vertex + start,vertex + target,face + left_face,face + right_face, 1, 1);
+
+            edge_index++;
+        }
+
+        int max_edges;
+        n > 4 ? max_edges = n: max_edges = 4;
+        PlanarEdge *edges_CCW[max_edges];
+
+        for (int a = 0; a < n; ++a) {
+            for (int b = 0; b < m; ++b) {
+                int vertex_index = a * m + b + n_vert ;
+                int count = 0;
+
+                //std::cout<< "vertex_index: "<<vertex_index<<"\n";
+
+                // West edge (horizontal edge from (a, b-1) to (a, b))
+                if (b > 0) {
+                    int edge_id = a * (m - 1) + (b - 1) + n_edge;
+                    edges_CCW[count] = edge + edge_id;
+                    //std::cout<< "edges_CCW[count]: "<<count<<" edge_id "<<edge_id<<"\n";
+                    count++;
+                }
+
+                if (b == 0) {
+                    int edge_id = a;
+                    edges_CCW[count] = edge + edge_id;
+                    //std::cout<< "edges_CCW[count]: "<<count<<" edge_id "<<edge_id<<"\n";
+                    count++;
+                }
+
+                // South edge (vertical edge from (a, b) to (a+1, b))
+                if (a < n - 1) {
+                    int edge_id = total_horizontal_edges + a * m + b + n_edge;
+                    edges_CCW[count] = edge + edge_id;
+                    //std::cout<< "edges_CCW[count]: "<<count<<" edge_id "<<edge_id<<"\n";
+                    count++;
+                }
+
+                // East edge (horizontal edge from (a, b) to (a, b+1))
+                if (b < m - 1) {
+                    int edge_id = a * (m - 1) + b + n_edge;
+                    edges_CCW[count] = edge + edge_id;
+                    //std::cout<< "edges_CCW[count]: "<<count<<" edge_id "<<edge_id<<"\n";
+                    count++;
+                }
+                if (b == m - 1) {
+                    int edge_id = a + 2*n*m-m-n + n_edge;
+                    edges_CCW[count] = edge + edge_id;
+                    //std::cout<< "edges_CCW[count]: "<<count<<" edge_id "<<edge_id<<"\n";
+                    count++;
+                }
+
+                // North edge (vertical edge from (a-1, b) to (a, b))
+                if (a > 0) {
+                    int edge_id = total_horizontal_edges + (a - 1) * m + b + n_edge;
+                    edges_CCW[count] = edge + edge_id;
+                    //std::cout<< "edges_CCW[count]: "<<count<<" edge_id "<<edge_id<<"\n";
+                    count++;
+                }
+
+                vertex[vertex_index].setEdgesCCW(edges_CCW, count);
+            }
+        }
+        //std::cout<< "vertex_index: "<<0<<"\n";
+        edges_CCW[0] = edge+ 0;
+        //std::cout<< "edges_CCW[count]: "<<0<<" edge_id "<<0<<"\n";
+        int count = 1;
+        for (int a = 1; a < n; a++) {
+
+            edges_CCW[a] = edge + n-a;
+            //std::cout<< "edges_CCW[count]: "<<count<<" edge_id "<<n-a<<"\n";
+            count ++;
+
+        }
+
+        vertex[0].setEdgesCCW(edges_CCW, count);
+
+        //std::cout<< "vertex_index: "<<n*m + n_vert <<"\n";
+        count = 0;
+        for (int a = 0; a < n; a++) {
+
+            edges_CCW[a] = edge + 2*n*m-m-n + n_edge + a;
+            //std::cout<< "edges_CCW[count]: "<<count<<" edge_id "<<2*n*m-m-n + n_edge + a<<"\n";
+            count ++;
+
+        }
+        vertex[n*m + n_vert].setEdgesCCW(edges_CCW, count);
+
+        CutPlanar planar_cut;
+        planar_cut.initialize(n*m + n_vert + n_vert,vertex, 2*n*m-m-n + n_edge + n_edge,edge, n*m-n-m + 2 + n_face + n_face,face);
+
+        std::cout<<"\n"<< "2*n*m-m-n + n_edge + n_edge: "<<2*n*m-m-n + n_edge + n_edge<<"\n";
+std::cout<<"\n"<< "2*n*m-m-n + n_edge + n_edge: "<<2*n*m-m-n + n_edge + n_edge<<"\n";
+
+        planar_cut.setSource(0);
+        planar_cut.setSink  (n*m + n_vert);
+
+        double flow;
+        flow = planar_cut.getMaxFlow();
+        std::cout << "Maxmal Flow: " << flow << std::endl;
+
+    }
+
+
+
+
+
+
+#include "_graph_cut.h"
+#include "_max_flow.h"
+
+namespace gcut {
+
+
+    void resizeToMaxArea(const cv::Mat& image, int n, cv::Mat& result) {
+        if (n <= 0) {
+            result = cv::Mat();
+            return;
+        }
+
+        int w0 = image.cols;
+        int h0 = image.rows;
+
+        if (w0 <= 0 || h0 <= 0) {
+            result = image.clone();
+            return;
+        }
+
+        double area0 = static_cast<double>(w0) * h0;
+        double s0 = std::sqrt(static_cast<double>(n) / area0);
+
+        int w_floor = static_cast<int>(std::floor(w0 * s0));
+        int w_ceil = static_cast<int>(std::ceil(w0 * s0));
+        int h_floor = static_cast<int>(std::floor(h0 * s0));
+        int h_ceil = static_cast<int>(std::ceil(h0 * s0));
+
+        std::vector<std::pair<int, int>> candidates = {
+            {w_floor, h_floor},
+            {w_floor, h_ceil},
+            {w_ceil, h_floor},
+            {w_ceil, h_ceil}
+        };
+
+        long long best_area = -1;
+        int best_w = -1, best_h = -1;
+        double orig_aspect = static_cast<double>(w0) / h0;
+        double best_aspect_diff = DBL_MAX;
+
+        for (const auto& cand : candidates) {
+            int w = cand.first;
+            int h = cand.second;
+
+            if (w <= 0 || h <= 0)
+                continue;
+
+            long long area = static_cast<long long>(w) * h;
+            if (area > n)
+                continue;
+
+            double aspect_ratio = static_cast<double>(w) / h;
+            double aspect_diff = std::fabs(aspect_ratio - orig_aspect);
+
+            if (area > best_area) {
+                best_area = area;
+                best_w = w;
+                best_h = h;
+                best_aspect_diff = aspect_diff;
+            } else if (area == best_area) {
+                if (aspect_diff < best_aspect_diff) {
+                    best_w = w;
+                    best_h = h;
+                    best_aspect_diff = aspect_diff;
+                }
+            }
+        }
+
+        if (best_w <= 0 || best_h <= 0) {
+            best_w = 1;
+            best_h = 1;
+        }
+
+        cv::resize(image, result, cv::Size(best_w, best_h));
+    }
+
+
+    uchar simple_gradient::read_Mat(int i,const cv::Mat* mat) const{
+
+        int total = mat->rows * mat->cols;
+        if (i < 0 || i >= total) {
+            throw std::out_of_range("Index out of matrix bounds");
+        }
+
+        if (mat->isContinuous()) {
+            return mat->ptr<uchar>(0)[i];
+        }else {
+            int row = i / mat->cols;
+            int col = i % mat->cols;
+            return mat->at<uchar>(row, col);
+        }
+
+    }
+
+    double simple_gradient::read(int i, int j) const{
+
+        int MA = read_Mat(i,&(this->M1));
+        int MB = read_Mat(j,&(this->M2));
+        int conti = read_Mat(i,&(this->cont));
+        int contj = read_Mat(j,&(this->cont));
+
+        if( ((i%M1.cols == (int)(M1.cols / 2)) or (j%M2.cols == (int)(M2.cols / 2))) and ((MA > 0) or (MB > 0))){
+
+            return 0;
+
+        }else if((conti > 0) or (contj > 0) ){
+
+            return 0;
+
+        }else if( (MA > 0) or (MB > 0) ){
+
+            return 255;
 
         }else{
-            Eigen::MatrixXd r_approx = approximate(Hom_mat[stickto][indx[i]],T.K[stickto]);
-            //std::cout <<"\n"<<"r_approx: "<<"\n"<<r_approx<<"\n";
-            ret.T.rot.push_back(r_approx);
-            ret.T.K.push_back(T.K[stickto_ref]);
+
+            uchar A = read_Mat(i,&(this->a_dif));
+            uchar B = read_Mat(j,&(this->a_dif));
+
+            //return ((double)A + (double)B) / (2*255);
+            return 255;
         }
 
     }
 
-    ret.kp = kp_new;
-    ret.match = new_match_mat;
+    cv::Mat computeDissimilarity(
+        const cv::Mat& img1,
+        const cv::Mat& img2,
+        const cv::Mat& mask1,
+        const cv::Mat& mask2,
+        float replace_value,
+        float eps) {
 
-    return ret;
-}
+        cv::Mat img1_res;
+        cv::Mat img2_res;
+        cv::Mat mask1_res;
+        cv::Mat mask2_res;
+
+        int size = 240*240;
+
+        resizeToMaxArea(img1, size, img1_res);
+        resizeToMaxArea(img2, size, img2_res);
+        resizeToMaxArea(mask1, size, mask1_res);
+        resizeToMaxArea(mask2, size, mask2_res);
+
+        int tett = 77;
+
+        //mask1_res.col(0).setTo(tett);
+
+        cv::Mat result(img1_res.size(),img1_res.type());
+
+        class simple_gradient grad(img1_res,img2_res,mask1_res,mask2_res);
+        class EdgeWeight reader(grad);
+
+        int n = img1_res.rows;
+        int m = img1_res.cols;
 
 
-void transformkp(maths::keypoints &kp,cv::Matx33f Hom){
+        for(int i = 0;i < img1_res.cols;i++){
+            for(int j = 0;j < img1_res.rows;j++){
 
-    std::vector<cv::Point2f> temp;
-    for(int i = 0;i < kp.keypoint.size();i++){
+                int idx = i+ j*img1_res.cols;
 
-        temp.push_back(kp.keypoint[i].pt);
+                result.at<uchar>(j,i) = reader.getWeight(idx,idx);
 
-    }
-
-    cv::perspectiveTransform(temp, temp, Hom);
-
-    for(int i = 0;i < kp.keypoint.size();i++){
-
-        kp.keypoint[i].pt = temp[i];
-
-    }
-
-}
-
-
-void resort_hom(const std::vector<int> &ind,const std::vector<std::vector<cv::Matx33f>> &hom, std::vector<std::vector<cv::Matx33f>> &hom_sorted,std::unordered_set<int> &exists){
-
-    std::vector<int> index_sorted = ind;
-    std::sort(index_sorted.begin(), index_sorted.end());
-    for(int i = 0;i < index_sorted.size();i++){
-        for(int j = 0;j < index_sorted.size();j++){
-            if((exists.count(index_sorted[i]) == 0) or (exists.count(index_sorted[j]) == 0)){
-                hom_sorted[index_sorted[i]][index_sorted[j]] = hom[i][j];
             }
         }
 
-    }
-
-}
-
-//ändere mit menge statt stickto
-void update_par(class bundm::adjuster &adjuster,const std::vector<std::vector<cv::Matx33f>> &hom,class imgm::pan_img_transform &T,const std::vector<int> &ind,std::vector<maths::keypoints> &kp,std::unordered_set<int> &exists,bool update_all,int stickto){
-
-    std::vector<int> index_sorted = ind;
-    std::vector<Eigen::MatrixXd> rotiter = adjuster.ret_rot();
-    std::vector<Eigen::MatrixXd> kit = adjuster.ret_K();
-    std::sort(index_sorted.begin(), index_sorted.end());
-    for(int i = 0;i < index_sorted.size();i++){
-
-        if((exists.count(index_sorted[i]) == 0) or (update_all == true)){
-
-            transformkp(kp[index_sorted[i]],hom[stickto][index_sorted[i]]);
-            T.K[index_sorted[i]] = kit[i];
-            T.rot[index_sorted[i]] = rotiter[i];
-
-        }
-
-    }
-
-}
-
-cv::Matx33f get_img_tr(const cv::Matx33f &H,const cv::Mat &attach){
-
-
-            std::vector<cv::Vec2f> cor;
-
-            cor.push_back(cv::Vec2f(0,0));
-            cor.push_back(cv::Vec2f(0,attach.rows));
-            cor.push_back(cv::Vec2f(attach.cols,0));
-            cor.push_back(cv::Vec2f(attach.cols,attach.rows));
-
-            cv::perspectiveTransform(cor, cor, H);
-
-            std::cout<<"\n"<< "00: "<<cor[1]<<"\n";
-
-            float xstart = std::min( std::min( cor[0][0], cor[1][0]), (float)0);
-            float xend   = std::max( std::max( cor[2][0], cor[3][0]), (float)attach.cols);
-            float ystart = std::min( std::min( cor[0][1], cor[2][1]), (float)0);
-            float yend   = std::max( std::max( cor[1][1], cor[3][1]), (float)attach.rows);
-
-            // create translation matrix
-            cv::Matx33f T = cv::Matx33f::zeros();
-            T(0, 0) = 1;
-            T(1, 1) = 1;
-            T(2, 2) = 1;
-            T(0, 2) = attach.cols-cor[3][0];
-            T(1, 2) = attach.rows-cor[3][1];
-
-
-    return T;
-}
-
-cv::Size get_size(const cv::Mat &img,const cv::Matx33f &hom){
-
-    std::vector<cv::Vec2f> cor;
-    cor.push_back(cv::Vec2f(0,0));
-    cor.push_back(cv::Vec2f(0,img.rows));
-    cor.push_back(cv::Vec2f(img.cols,0));
-    cor.push_back(cv::Vec2f(img.cols,img.rows));
-
-    cv::perspectiveTransform(cor, cor, hom);
-
-    float xstart = std::min( std::min( cor[0][0], cor[1][0]), (float)0);
-    float xend   = std::max( std::max( cor[2][0], cor[3][0]), (float)img.cols);
-    float ystart = std::min( std::min( cor[0][1], cor[2][1]), (float)0);
-    float yend   = std::max( std::max( cor[1][1], cor[3][1]), (float)img.rows);
-    return cv::Size(xend - xstart + 1, yend - ystart + 1);
-
-}
-
-
-std::vector<float> angels(const Eigen::MatrixXd &R){
-
-    float x = atan2(R(2,1),R(2,2)) ;
-    float y = atan2(-R(2,0),sqrt(R(2,1)*R(2,1) + R(2,2)*R(2,2))) ;
-    float z = atan2(R(1,0),R(0,0)) ;
-
-    std::vector<float> ang = {x,y,z};
-    return ang;
-}
-
-
-void bundleadjust_stitching(class imgm::pan_img_transform &T,class imgm::pan_img_transform &Tnew,const std::vector<std::vector< cv::Matx33f >> &Hom_mat,const std::vector<maths::keypoints> &kpold,const std::vector<std::vector<std::vector<cv::DMatch>>> &match_mat,int threads){
-
-
-    std::vector<maths::keypoints> kp = kpold;
-    cv::Mat path_mat = (*T.adj) + (*T.adj).t();
-    std::vector<std::vector< cv::Matx33f >> Hom_mat_new(Hom_mat);
-    std::vector<double> connectivity = computeRowSumDividedByZeroCount(path_mat);
-    int maxLoc = std::distance(connectivity.begin(),std::max_element(connectivity.begin(), connectivity.end()));
-    //all neighbours
-    std::vector<std::pair<int, std::vector<int>>> tree = maths::bfs_ordered_with_neighbors(path_mat, maxLoc);
-
-    std::vector<int> test = getTopNonZeroIndices(path_mat, 6, 10);
-    for(int t = 0 ;t<test.size() ;t++){
-
-        std::cout<<"\n"<<"in val"<<test[t]<<" ";
-    }
-
-    // find n best matches sort the rest by stitching order
-    struct bundle_par insert;
-    std::map<int, int> tofrom;
-    std::map<int, int>::iterator it;
-
-        for(int i = 0;i < T.pair_stitch.size();i++){
-
-            for(int j = 0 ; j < T.pair_stitch[i].size();j=j + 2){
-
-                if(tofrom.count(T.pair_stitch[i][j+1]) < 1){
-                   std::cout <<"\n"<<"from: "<<T.pair_stitch[i][j]<<" to: "<<T.pair_stitch[i][j+1]<<"\n";
-                   tofrom[T.pair_stitch[i][j+1]] = T.pair_stitch[i][j];
-                }
-            }
-        }
-
-        std::cout <<"\n"<<"sorted: "<<"\n";
-        int size = tofrom.size() + 1;
-        std::unordered_set<int> calcs;
-        calcs.insert(maxLoc);
-
-        std::cout <<"\n"<<"adj: "<<"\n"<<(*T.adj)<<"\n";
-        std::vector<int> kvec;
-        std::vector<int> vvec;
-
-        //find n best neighbours of maxLoc
-        int n = 1;
-        std::vector<int> ind = getTopNonZeroIndices(path_mat, maxLoc, n);
-        ind.push_back(maxLoc); //<-best matching image
-        std::map<int,int> testtt;
-
-        std::unordered_set<int> exists;
-        std::unordered_set<int> nearest;
-        //std::sort(ind.begin(), ind.end());
-        for(int i = 0;i < ind.size();i++){
-            nearest.insert(ind[i]);
-            testtt[ind[i]] = i;
-
-            std::cout <<"\n"<<"ind[i]: "<<"\n"<<ind[i]<<"\n";
-        }
-
-        while(calcs.size() < size){
-
-            for (const auto& elem: calcs) {
-
-                if(tofrom.count(elem) > 0){
-
-                    it = tofrom.find(elem);
-                    tofrom.erase(it);
-
-                }
-
-            }
-            int c = 0;
-            for ( const auto &[key, value]: tofrom ) {
-
-                if(calcs.count(value) > 0){
-                    //bool approx = false;
-
-                    calcs.insert(key);
-                    std::vector<int> indx(2);
-                    indx[1] = key;
-                    indx[0] = value;
-
-
-                    if(nearest.count(key) == 0){
-                        kvec.push_back(key);
-                        vvec.push_back(value);
-                        std::cout <<"\n"<<"from: "<<value<<" to: "<<key<<"\n";
-                    }
-
-                }
-
-            }
-
-        }
-
-
-        double focal = 1200;
-        Eigen::MatrixXd K = Eigen::MatrixXd::Identity(3, 3);
-        K(0,0) = focal;
-        K(1,1) = focal;
-        for(int i = 0;i < T.K.size();i++){
-            T.K[i] = K;
-            T.rot[i] = Eigen::MatrixXd::Identity(3, 3);
-        }
-
-        std::cout<<"indis: "<<ind.size()<<"\n";
-
-        adjust_par par = prep_adjust((*T.adj),kp,T,ind,match_mat,maxLoc,maxLoc,Hom_mat,true,exists);
-        class bundm::adjuster testad(par.kp,par.match,.0001,par.T,true,threads);
-        struct bundm::inter_par teees = testad.iterate();
-        double error_value = testad.error_value;
-
-        resort_hom(ind,teees.hom,Hom_mat_new,exists);
-        update_par(testad,Hom_mat_new,T,ind,kp,exists,true,maxLoc);
-
-        for(int i = 0;i < ind.size();i++){
-            exists.insert(ind[i]);
-        }
-
-        //teees.focal[2] = 1500;
-        cv::Matx33f Tr = cv::Matx33f::eye();
-        Tr(0,2) = 200;
-        Tr(1,2) = 150;
-        cv::Mat panorama = cv::Mat::zeros(2000,3067,CV_32FC3);
-        cv::Mat img;
-        cv::Size si = panorama.size();
-
-        std::vector<Eigen::MatrixXd> rret = testad.ret_rot();
-        std::vector<Eigen::MatrixXd> Kret = testad.ret_K();
-
-
-        for(int i = 0;i < n+1;i++){
-
-            cv::Size sz = get_size((*Tnew.img_address)[ind[i]],Hom_mat_new[maxLoc][ind[i]]);
-            cv::Matx33f Ts = get_img_tr(Hom_mat_new[maxLoc][ind[i]],(*Tnew.img_address)[ind[i]]);
-            /*
-            std::vector<float> ang = angels(T.rot[ind[i]]);
-            std::cout<<"rotx "<<"\n"<<ang[0]<<"\n";
-            std::cout<<"roty "<<"\n"<<ang[1]<<"\n";
-            std::cout<<"rotz "<<"\n"<<ang[2]<<"\n";
-            */
-            //std::cout<<"translation "<<"\n"<<Ts<<"\n";
-            std::cout<<"\n"<<"--------------------------------"<<"\n";
-            std::cout<<"T.K[maxLoc] "<<"\n"<<T.K[maxLoc]<<"\n";
-            std::cout<<"T.K[ind[i]] "<<"\n"<<T.K[ind[i]]<<"\n";
-            std::cout<<"\n"<<"--------------------------------"<<"\n";
-            float tx=400 ;
-            float ty=150 ;
-            class imgm::cylproj transformer(T.rot[ind[i]],T.K[maxLoc],T.K[ind[i]],(*Tnew.img_address)[ind[i]].size(),tx,ty);
-            //class imgm::cylhom transformer(teees.focal[testtt[ind[i]]],Kret[testtt[ind[i]]](0,2),Kret[testtt[ind[i]]](1,2),(Tr*Hom_mat_new[maxLoc][ind[i]]).inv(),ang[0],ang[1]);
-            cv::Mat img_tr = imgm::applyGeometricTransform((*Tnew.img_address)[ind[i]], transformer,si);
-
-            img_tr.copyTo(panorama, img_tr);
-            cv::imshow("Image Display",panorama);
-            cv::waitKey(0);
-
-        }
-
-
-for(int i = 0;i < kvec.size();i++){
-    float tx=400 ;
-    float ty=150 ;
-
-    std::cout<<"\n"<<"--------------------------------"<<"\n";
-    std::cout<<"vvec[i] "<<"\n"<<vvec[i]<<"\n";
-    std::cout<<"maxLoc "<<"\n"<<maxLoc<<"\n";
-    std::cout<<"\n"<<"--------------------------------"<<"\n";
-
-    bool approx = false;
-    if(vvec[i] == maxLoc){
-        approx = true;
-    }
-
-    //std::vector<int> ind = getTopNonZeroIndices(path_mat, kvec[i], 2);
-    std::vector<int> ind;
-    ind.push_back(vvec[i]);
-    ind.push_back(kvec[i]);
-    adjust_par par2 = prep_adjust((*T.adj),kp,T,ind,match_mat,maxLoc,vvec[i],Hom_mat,approx,exists);
-
-    for(int j = 0;j < 2;j++){
-
-        std::cout<<"\n"<<"--------------------------------"<<"\n";
-        std::cout<<"par.T.rot "<<"\n"<<par2.T.rot[j]<<"\n";
-        std::cout<<"par.T.K "<<"\n"<<par2.T.K[j]<<"\n";
-        std::cout<<"\n"<<"--------------------------------"<<"\n";
-
-    }
-
-    class bundm::adjuster testad2(par2.kp,par2.match,.0001,par2.T,false,threads);
-    struct bundm::inter_par teees2 = testad2.iterate();
-    std::cout<<"\n"<<"Iterated"<<"\n";
-    resort_hom(ind,teees2.hom,Hom_mat_new,exists);
-    update_par(testad2,Hom_mat_new,T,ind,kp,exists,false,vvec[i]);
-    exists.insert(kvec[i]);
-
-    class imgm::cylproj transformer(T.rot[kvec[i]],T.K[vvec[i]],T.K[kvec[i]],(*Tnew.img_address)[kvec[i]].size(),tx,ty);
-
-    cv::Mat img_tr = imgm::applyGeometricTransform((*Tnew.img_address)[ind[i]], transformer,si);
-
-    img_tr.copyTo(panorama, img_tr);
-    cv::imshow("Image Display",panorama);
-    cv::waitKey(0);
-
-}
-
-
-
-
-
-
-/*
-std::unordered_set<int> exists2;
-exists2.insert(maxLoc);
-//stick/ref
-        adjust_par par2 = prep_adjust((*T.adj),kp,T,ind,match_mat,maxLoc,ind[1],Hom_mat,false,exists2);
-        class bundm::adjuster testad2(par2.kp,par2.match,.0001,par2.T,false,threads);
-
-        for(int i = 0;i < n+1;i++){
-
-            std::cout<<"\n"<<"--------------------------------"<<"\n";
-            std::cout<<"par.T.rot "<<"\n"<<par2.T.rot[i]<<"\n";
-            std::cout<<"par.T.K "<<"\n"<<par2.T.K[i]<<"\n";
-            std::cout<<"\n"<<"--------------------------------"<<"\n";
-
-
-        }
-
-        struct bundm::inter_par teees2 = testad2.iterate();
-
-
-
-
-        bool approx = false;
-        std::unordered_set<int> removed;
-        std::unordered_set<int> keep;
-        std::map<int,int> testmap;
-
-        for(int i = 0;i < kvec.size();i++){
-
-            bool repeat = true;
-            if(vvec[i] != maxLoc){
-                approx = false;
-            }else{
-                approx = true;
-            }
-
-            if(removed.count(vvec[i]) > 0){
-
-                bool found_pair = false;
-                std::vector<int> alt = getTopNonZeroIndices(path_mat, kvec[i], path_mat.rows);
-                for(const int a : alt){
-
-                    if((removed.count(a) == 0) and (a != kvec[i])){
-
-                        found_pair = true;
-                        vvec[i] = a;
-                        break;
-
-                    }
-
-                }
-
-                if(found_pair == false){removed.insert(kvec[i]);}
-
-            }
-
-            if(exists.count(vvec[i]) > 0){
-
-                std::cout <<"\n"<<"value: "<<vvec[i]<<" key: "<<kvec[i]<<"\n";
-                std::cout <<"\n"<<"path_mat "<<path_mat<<"\n";
-                std::vector<int> stick;
-                std::vector<int> ind = getTopNonZeroIndices(path_mat, kvec[i], 2);
-                for(const int &v : ind){
-                        std::cout <<"\n"<<"test: "<<v<<"\n";
-                    if(exists.count(v) > 0){
-                        stick.push_back(v);
-                        std::cout <<"\n"<<"inserted: "<<v<<"\n";
-                    }
-                }
-                stick.push_back(kvec[i]);
-                //stick[0] = kvec[i];
-                //stick[1] = vvec[i];
-                bool leave = false;
-
-                while(repeat){
-                    float ty;
-                    float tx;
-                    if(approx == false){
-                        //transformkp(kp[kvec[i]],Hom_mat_new[testmap[vvec[i]]][vvec[i]]);
-                    }
-
-                    adjust_par par = prep_adjust((*T.adj),kp,T,stick,match_mat,vvec[i],Hom_mat,approx);
-                    class bundm::adjuster testad(par.kp,par.match,.0001,par.T,false,threads);
-                    struct bundm::inter_par teees = testad.iterate();
-                    double rep_error = testad.error_value;
-
-                    if(rep_error > 4*error_value){
-                        if(approx == false){
-                        approx = true;
-                        }else{removed.insert(kvec[i]);repeat = false;}
-                    }else{
-                        //cv::imshow("Image Display",(*Tnew.img_address)[kvec[i]]);
-                        //cv::waitKey(0);
-                        //cv::imshow("Image Display",(*Tnew.img_address)[vvec[i]]);
-                        //cv::waitKey(0);
-                        std::cout<<"\n"<<"sticking " << kvec[i]<<"\n";
-                        testmap[kvec[i]] = vvec[i];
-                        std::cout<<"inserted with error " << rep_error<<"\n";
-                        repeat = false;
-                        resort_hom(stick,teees.hom,Hom_mat_new);//entferne stickto
-                        update_par(testad,Hom_mat_new,T,stick,kp,exists,false,vvec[i]);
-                        exists.insert(kvec[i]);
-
-
-
-                        std::vector<Eigen::MatrixXd> rret = testad.ret_rot();
-                        std::vector<Eigen::MatrixXd> Kret = testad.ret_K();
-
-                        //class imgm::cylhom transformer(800,Kret[0](0,2),Kret[0](1,2),(Tr*Hom_mat_new[vvec[i]][kvec[i]]).inv(),0,0);
-
-
-                        tx=400 ;
-                        ty=150 ;
-
-
-
-                        Eigen::MatrixXd rbase;
-                        Eigen::MatrixXd rattach;
-                        Eigen::MatrixXd kbase;
-                        Eigen::MatrixXd kattach;
-
-
-                        if(kvec[i] < vvec[i]){
-                            rbase = rret[0];
-                            kbase = Kret[0];
-                            kattach = Kret[1];
-                            rattach = rret[1];
-                        }else{
-                            rbase = rret[1];
-                            kbase = Kret[1];
-                            kattach = Kret[0];
-                            rattach = rret[0];
-                        }
-
-                        Eigen::MatrixXd test = kbase * rbase *  rattach.transpose() * kattach.inverse();
-
-                        class imgm::cylproj transformer1(rbase,kattach,kbase,(*Tnew.img_address)[kvec[i]].size(),tx,ty);
-
-                        cv::Mat img_tr = imgm::applyGeometricTransform((*Tnew.img_address)[kvec[i]], transformer1,si);
-
-                        img_tr.copyTo(panorama, img_tr);
-                        exists.insert(kvec[i]);
-                        cv::imshow("Image Display",panorama);
-                        cv::waitKey(0);
-
-                    }
-
-                }
-
-
-            }else{
-
-                keep.insert(kvec[i]);
-
-            }
-
-
-        }
-        std::cout <<"\n"<<"keepsize: "<<keep.size()<<"\n";
-        cv::imshow("Image Display",panorama);
+        cv::imshow("Image Display", result);
         cv::waitKey(0);
+
+         std::vector<int> labels = define_graph(img1_res.rows, img1_res.cols,reader);
+
+        for(int i :labels){
+            int row = i / m;
+            int col = i % m;
+            result.at<uchar>(row, col) = 255;
+
+        }
+
+        int source = ((int)((n-1)/2)) * m + m - 1;
+        std::cout<<"source: "<<source<<"\n";
+        int row = source / m;
+        int col = source % m;
+        result.at<uchar>(row, col) = 254;
+
+        cv::imshow("Image Display", result);
+        cv::waitKey(0);
+
         /*
-                for(int i = 0;i < ind.size();i++){
+        CV_Assert(img1.size() == img2.size() && img1.type() == img2.type());
+        CV_Assert(mask1.size() == img1.size() && mask1.type() == CV_8U);
+        CV_Assert(mask2.size() == img1.size() && mask2.type() == CV_8U);
+        cv::Mat f_img1, f_img2;
+        img1.convertTo(f_img1, CV_32F);
+        img2.convertTo(f_img2, CV_32F);
 
-            cv::warpPerspective((*Tnew.img_address)[ind[i]],img, Tr*Hom_mat_new[maxLoc][ind[i]],panorama.size(),cv::INTER_LINEAR);
-            img.copyTo(panorama, img);
+        //absolute difference
+        cv::Mat a_dif;
+        cv::absdiff(f_img1, f_img2, a_dif);
 
-        }
-        cv::imshow("Image Display",panorama);
-        cv::waitKey(0);
-/*
+        //Scharr gradients magnitude
+        cv::Mat grad1_x, grad1_y, grad2_x, grad2_y;
+        cv::Scharr(f_img1, grad1_x, CV_32F, 1, 0);
+        cv::Scharr(f_img1, grad1_y, CV_32F, 0, 1);
+
+        cv::Scharr(f_img2, grad2_x, CV_32F, 1, 0);
+        cv::Scharr(f_img2, grad2_y, CV_32F, 0, 1);
+
+        cv::Mat mag1, mag2;
+        cv::magnitude(grad1_x, grad1_y, mag1);
+        cv::magnitude(grad2_x, grad2_y, mag2);
+
+        // Scaled the difference
+        cv::Mat denom;
+        cv::add(mag1, mag2, denom);
+        denom += eps;
+        cv::Mat result;
+        cv::divide(a_dif, denom, result);
+
+        //mask result
+        cv::Mat mask_union;
+        cv::bitwise_or(mask1, mask2, mask_union);
+
+        result.setTo(replace_value, mask_union);
 
         */
-
-
-
-
-}
-
-
-}
-#include "_stitch.h"
-
-namespace stch {
-
-/*algorithm for stitching:
- * set n = 3
- * find n best matches and adjust for n simultaneously.
- *
- * for every new image calculate the best match to the already adjusted pairs.
- * if the new image matches badly
- * if all options are bad remove the image.
- *
-*/
-
-std::vector<double> computeRowSumDividedByZeroCount(const cv::Mat& mat) {
-
-    const int rows = mat.rows;
-    const int cols = mat.cols;
-    std::vector<double> results;
-    results.reserve(rows);
-
-    for (int i = 0; i < rows; ++i) {
-        const cv::Mat row = mat.row(i);
-        const double row_sum = cv::sum(row)[0];
-        const int zero_count = cols - cv::countNonZero(row);
-        results.push_back(row_sum / zero_count);
+        return result;
     }
 
-    return results;
-}
 
 
-std::vector<int> getTopNonZeroIndices(const cv::Mat& M, int r, int n) {
-    std::vector<std::pair<double, int>> elements;
+    std::vector<int> define_graph(int n, int m,class EdgeWeight reader){
 
-    for (int c = 0; c < M.cols; ++c) {
-        const double val = M.at<double>(r, c);
-        if (val > 0) {
-            elements.emplace_back(val, c);
-        }
-    }
+        PlanarVertex vertex[n*m];
+        PlanarEdge edge[2*n*m-m-n];
+        PlanarFace face[n*m-n-m + 2];
+        int edge_index = 0;
+        int total_horizontal_edges = n * (m - 1);
+        // split eges in horizonatal and vertical.
 
-    std::vector<int> idx;
+        // Horizontal edges
+        for (int a = 0; a < n; a++) {
+            for (int b = 0; b < m-1; b++) {
+                int start = a * m + b;
+                int target = a * m + b + 1;
+                int left_face, right_face;
 
-    // Return all non-zero indices if <= n exist
-    if (elements.size() <= static_cast<size_t>(n)) {
-        idx.reserve(elements.size());
-        for (const auto& elem : elements) {
-            idx.push_back(elem.second);
-        }
-    }
+                // Face (left):
+                if (a == 0) left_face = 0;
+                else left_face = 1 + (a-1)*(m-1) + b;
 
-    else {
+                // Face (right):
+                if (a == n-1) right_face = 0;
+                else right_face = 1 + a*(m-1) + b;
 
-        std::sort(elements.begin(), elements.end(),
-                  [](const auto& a, const auto& b) { return a.first > b.first; });
 
-        idx.reserve(n);
-        for (int i = 0; i < n; ++i) {
-            idx.push_back(elements[i].second);
-        }
-    }
+                double w = reader.getWeight(start,target);
+                std::cout<<w;
+                edge[edge_index].setEdge(vertex + start,vertex + target,face + left_face,face + right_face, w, w);
 
-    return idx;
-}
+                //std::cout<< "edge_index: "<<edge_index<<"\n"<<"start "<< start<<" target "<<target<<" left_face "<<left_face<<" right_face "<<right_face<<"\n";
 
-
-Eigen::MatrixXd approximate(const cv::Matx33f &hom,Eigen::MatrixXd K){
-
-    Eigen::MatrixXd H;
-    cv::Matx33d homd = static_cast<cv::Matx33d>(hom);
-    cv::cv2eigen(homd,H);
-    H = H/H(2,2);
-
-    Eigen::MatrixXd KRK = K.inverse() * H * K;
-    Eigen::MatrixXd R_approx = ( KRK * KRK.transpose() ).pow(0.5) * (KRK.transpose()).inverse();
-
-    return R_approx;
-}
-
-
-adjust_par prep_adjust(const cv::Mat &adj,const std::vector<maths::keypoints> &kp,const class imgm::pan_img_transform &T,std::vector<int> indx,const std::vector<std::vector<std::vector<cv::DMatch>>> &match_mat,int stickto,const std::vector<std::vector<cv::Matx33f>> &Hom_mat,bool approx){
-
-    int size = indx.size();
-    std::sort(indx.begin(), indx.end());
-    std::vector<maths::keypoints> kp_new;
-    std::vector<std::vector<std::vector<cv::DMatch>>> new_match_mat(size,std::vector<std::vector<cv::DMatch>>(size));
-    cv::Mat adj_new(indx.size(), indx.size(), adj.type());
-
-    for (int i = 0; i < indx.size(); ++i) {
-        for (int j = 0; j < indx.size(); ++j) {
-
-            adj_new.at<double>(i,j) = adj.at<double>(indx[i],indx[j]);
-            new_match_mat[i][j] = match_mat[indx[i]][indx[j]];
-            //std::cout <<"\n"<<"mmsize: "<<"\n"<<new_match_mat[i][j].size()<<"\n";
-        }
-    }
-    double focal = T.K[stickto](0,0);
-
-    //class imgm::pan_img_transform t_new(&adj_new,T.img_address);
-    adjust_par ret(&adj_new,T.img_address);
-    ret.adj = adj_new;
-    ret.T.adj = &ret.adj;
-    ret.T.focal = focal;
-
-    for (int i = 0; i < indx.size(); ++i) {
-
-        kp_new.push_back(kp[indx[i]]);
-        if(indx[i] == stickto){
-
-            //std::cout <<"\n"<<"R indx[i] == stickto: "<<"\n"<<Eigen::MatrixXd::Identity(3, 3)<<"\n";
-            //std::cout <<"\n"<<"K indx[i] == stickto: "<<"\n"<<T.K[indx[i]]<<"\n";
-            ret.T.rot.push_back(Eigen::MatrixXd::Identity(3, 3));
-            ret.T.K.push_back(T.K[indx[i]]);
-
-        }else if((approx == false) and (indx[i] != stickto)){
-            //std::cout <<"\n"<<"R approx == false: "<<"\n"<<T.rot[stickto]<<"\n";
-            //std::cout <<"\n"<<"K approx == false: "<<"\n"<<T.K[stickto]<<"\n";
-            ret.T.rot.push_back(T.rot[stickto]);
-            ret.T.K.push_back(T.K[stickto]);
-
-        }else{
-            Eigen::MatrixXd K = T.K[stickto];
-            Eigen::MatrixXd r_approx = approximate(Hom_mat[stickto][indx[i]],K);
-            //std::cout <<"\n"<<"r_approx: "<<"\n"<<r_approx<<"\n";
-            ret.T.rot.push_back(r_approx);
-            ret.T.K.push_back(K);
-        }
-
-    }
-
-    ret.kp = kp_new;
-    ret.match = new_match_mat;
-
-    return ret;
-}
-
-
-void transformkp(maths::keypoints &kp,cv::Matx33f Hom){
-
-    std::vector<cv::Point2f> temp;
-    for(int i = 0;i < kp.keypoint.size();i++){
-
-        temp.push_back(kp.keypoint[i].pt);
-
-    }
-
-    cv::perspectiveTransform(temp, temp, Hom);
-
-    for(int i = 0;i < kp.keypoint.size();i++){
-
-        kp.keypoint[i].pt = temp[i];
-
-    }
-
-}
-
-
-void resort_hom(const std::vector<int> &ind,const std::vector<std::vector<cv::Matx33f>> &hom, std::vector<std::vector<cv::Matx33f>> &hom_sorted){
-
-    std::vector<int> index_sorted = ind;
-    std::sort(index_sorted.begin(), index_sorted.end());
-    for(int i = 0;i < index_sorted.size();i++){
-        for(int j = 0;j < index_sorted.size();j++){
-
-            hom_sorted[index_sorted[i]][index_sorted[j]] = hom[i][j];
-
-        }
-
-    }
-
-}
-
-//ändere mit menge statt stickto
-void update_par(class bundm::adjuster &adjuster,const std::vector<std::vector<cv::Matx33f>> &hom,class imgm::pan_img_transform &T,const std::vector<int> &ind,std::vector<maths::keypoints> &kp,int stickto,bool update_all){
-
-    std::vector<int> index_sorted = ind;
-    std::vector<Eigen::MatrixXd> rotiter = adjuster.ret_rot();
-    std::vector<Eigen::MatrixXd> kit = adjuster.ret_K();
-    std::sort(index_sorted.begin(), index_sorted.end());
-    //std::cout <<"\n"<<"stickto: "<<"\n"<<stickto<<"\n";
-    for(int i = 0;i < index_sorted.size();i++){
-
-        if((index_sorted[i] != stickto) or (update_all == true) ){
-
-            transformkp(kp[index_sorted[i]],hom[stickto][index_sorted[i]]);
-            T.K[index_sorted[i]] = kit[i];
-            T.rot[index_sorted[i]] = rotiter[i];
-
-        }
-
-    }
-
-}
-
-cv::Matx33f get_img_tr(const cv::Matx33f &H,const cv::Mat &attach){
-
-
-            std::vector<cv::Vec2f> cor;
-
-            cor.push_back(cv::Vec2f(0,0));
-            cor.push_back(cv::Vec2f(0,attach.rows));
-            cor.push_back(cv::Vec2f(attach.cols,0));
-            cor.push_back(cv::Vec2f(attach.cols,attach.rows));
-
-            cv::perspectiveTransform(cor, cor, H);
-
-            std::cout<<"\n"<< "00: "<<cor[1]<<"\n";
-
-            float xstart = std::min( std::min( cor[0][0], cor[1][0]), (float)0);
-            float xend   = std::max( std::max( cor[2][0], cor[3][0]), (float)attach.cols);
-            float ystart = std::min( std::min( cor[0][1], cor[2][1]), (float)0);
-            float yend   = std::max( std::max( cor[1][1], cor[3][1]), (float)attach.rows);
-
-            // create translation matrix
-            cv::Matx33f T = cv::Matx33f::zeros();
-            T(0, 0) = 1;
-            T(1, 1) = 1;
-            T(2, 2) = 1;
-            T(0, 2) = attach.cols-cor[3][0];
-            T(1, 2) = attach.rows-cor[3][1];
-
-
-    return T;
-}
-
-cv::Size get_size(const cv::Mat &img,const cv::Matx33f &hom){
-
-    std::vector<cv::Vec2f> cor;
-    cor.push_back(cv::Vec2f(0,0));
-    cor.push_back(cv::Vec2f(0,img.rows));
-    cor.push_back(cv::Vec2f(img.cols,0));
-    cor.push_back(cv::Vec2f(img.cols,img.rows));
-
-    cv::perspectiveTransform(cor, cor, hom);
-
-    float xstart = std::min( std::min( cor[0][0], cor[1][0]), (float)0);
-    float xend   = std::max( std::max( cor[2][0], cor[3][0]), (float)img.cols);
-    float ystart = std::min( std::min( cor[0][1], cor[2][1]), (float)0);
-    float yend   = std::max( std::max( cor[1][1], cor[3][1]), (float)img.rows);
-    return cv::Size(xend - xstart + 1, yend - ystart + 1);
-
-}
-
-
-std::vector<float> angels(const Eigen::MatrixXd &R){
-
-    float x = atan2(R(2,1),R(2,2)) ;
-    float y = atan2(-R(2,0),sqrt(R(2,1)*R(2,1) + R(2,2)*R(2,2))) ;
-    float z = atan2(R(1,0),R(0,0)) ;
-
-    std::vector<float> ang = {x,y,z};
-    return ang;
-}
-
-
-void bundleadjust_stitching(class imgm::pan_img_transform &T,class imgm::pan_img_transform &Tnew,const std::vector<std::vector< cv::Matx33f >> &Hom_mat,const std::vector<maths::keypoints> &kpold,const std::vector<std::vector<std::vector<cv::DMatch>>> &match_mat,int threads){
-
-    std::vector<maths::keypoints> kp = kpold;
-    cv::Mat path_mat = (*T.adj) + (*T.adj).t();
-    std::vector<std::vector< cv::Matx33f >> Hom_mat_new(Hom_mat);
-    std::vector<double> connectivity = computeRowSumDividedByZeroCount(path_mat);
-    int maxLoc = std::distance(connectivity.begin(),std::max_element(connectivity.begin(), connectivity.end()));
-    //all neighbours
-    std::vector<std::pair<int, std::vector<int>>> tree = maths::bfs_ordered_with_neighbors(path_mat, maxLoc);
-
-    // find n best matches sort the rest by stitching order
-    struct bundle_par insert;
-    std::map<int, int> tofrom;
-    std::map<int, int>::iterator it;
-
-        for(int i = 0;i < T.pair_stitch.size();i++){
-
-            for(int j = 0 ; j < T.pair_stitch[i].size();j=j + 2){
-
-                if(tofrom.count(T.pair_stitch[i][j+1]) < 1){
-                   std::cout <<"\n"<<"from: "<<T.pair_stitch[i][j]<<" to: "<<T.pair_stitch[i][j+1]<<"\n";
-                   tofrom[T.pair_stitch[i][j+1]] = T.pair_stitch[i][j];
-                }
+                edge_index++;
             }
         }
 
-        std::cout <<"\n"<<"sorted: "<<"\n";
-        int size = tofrom.size() + 1;
-        std::unordered_set<int> calcs;
-        calcs.insert(maxLoc);
+        // Vertical edges (top to bottom)
+        for (int a = 0; a < n-1; ++a) {
+            for (int b = 0; b < m; ++b) {
+                int start = a * m + b;         //(a, b)
+                int target = (a+1) * m + b;     //(a+1, b)
+                int left_face, right_face;
 
-        std::cout <<"\n"<<"adj: "<<"\n"<<(*T.adj)<<"\n";
-        std::vector<int> kvec;
-        std::vector<int> vvec;
+                // Face (left)
+                if (b == 0) left_face = 0;
+                else left_face = 1 + a*(m-1) + (b-1);
 
-        //find n best neighbours of maxLoc
-        int n = 2;
-        std::vector<int> ind = getTopNonZeroIndices(path_mat, maxLoc, n);
-        ind.push_back(maxLoc); //<-best matching image
-        std::map<int,int> testtt;
+                // Face (right)
+                if (b == m-1) right_face = 0;
+                else right_face = 1 + a*(m-1) + b;
 
-        std::unordered_set<int> exists;
-        std::unordered_set<int> nearest;
-        //std::sort(ind.begin(), ind.end());
-        for(int i = 0;i < ind.size();i++){
-            nearest.insert(ind[i]);
-            exists.insert(ind[i]);
-            testtt[ind[i]] = i;
+                double w = reader.getWeight(start,target);
+                std::cout<<w;
+                edge[edge_index].setEdge(vertex + start,vertex + target,face + right_face,face + left_face, w, w);
 
-            std::cout <<"\n"<<"ind[i]: "<<"\n"<<ind[i]<<"\n";
+                //std::cout<< "edge_index: "<<edge_index<<"\n"<<"start "<< start<<" target "<<target<<" left_face "<<left_face<<" right_face "<<right_face<<"\n";
+
+                edge_index++;
+            }
         }
 
-        while(calcs.size() < size){
+        PlanarEdge *edges_CCW[4];
 
-            for (const auto& elem: calcs) {
+        for (int a = 0; a < n; ++a) {
+            for (int b = 0; b < m; ++b) {
+                int vertex_index = a * m + b;
+                int count = 0;
 
-                if(tofrom.count(elem) > 0){
+                //std::cout<< "vertex_index: "<<vertex_index<<"\n";
 
-                    it = tofrom.find(elem);
-                    tofrom.erase(it);
-
+                // West edge (horizontal edge from (a, b-1) to (a, b))
+                if (b > 0) {
+                    int edge_id = a * (m - 1) + (b - 1);
+                    edges_CCW[count] = edge + edge_id;
+                    //std::cout<< "edges_CCW[count]: "<<count<<" edge_id "<<edge_id<<"\n";
+                    count++;
                 }
 
-            }
-            int c = 0;
-            for ( const auto &[key, value]: tofrom ) {
-
-                if(calcs.count(value) > 0){
-                    //bool approx = false;
-
-                    calcs.insert(key);
-                    std::vector<int> indx(2);
-                    indx[1] = key;
-                    indx[0] = value;
-
-
-                    if(nearest.count(key) == 0){
-                        kvec.push_back(key);
-                        vvec.push_back(value);
-                        std::cout <<"\n"<<"from: "<<value<<" to: "<<key<<"\n";
-                    }
-
+                // South edge (vertical edge from (a, b) to (a+1, b))
+                if (a < n - 1) {
+                    int edge_id = total_horizontal_edges + a * m + b;
+                    edges_CCW[count] = edge + edge_id;
+                    //std::cout<< "edges_CCW[count]: "<<count<<" edge_id "<<edge_id<<"\n";
+                    count++;
                 }
 
-            }
+                // East edge (horizontal edge from (a, b) to (a, b+1))
+                if (b < m - 1) {
+                    int edge_id = a * (m - 1) + b;
+                    edges_CCW[count] = edge + edge_id;
+                    //std::cout<< "edges_CCW[count]: "<<count<<" edge_id "<<edge_id<<"\n";
+                    count++;
+                }
 
+                // North edge (vertical edge from (a-1, b) to (a, b))
+                if (a > 0) {
+                    int edge_id = total_horizontal_edges + (a - 1) * m + b;
+                    edges_CCW[count] = edge + edge_id;
+                    //std::cout<< "edges_CCW[count]: "<<count<<" edge_id "<<edge_id<<"\n";
+                    count++;
+                }
+
+                vertex[vertex_index].setEdgesCCW(edges_CCW, count);
+            }
         }
 
+        int source = ((int)((n-1)/2)) * m;
+        int sink = source + m - 1;
 
-        double focal = 600;
-        Eigen::MatrixXd K = Eigen::MatrixXd::Identity(3, 3);
-        K(0,0) = focal;
-        K(1,1) = focal;
-        for(int i = 0;i < T.K.size();i++){
-            T.K[i] = K;
-            T.rot[i] = Eigen::MatrixXd::Identity(3, 3);
-        }
+        CutPlanar planar_cut;
+        planar_cut.initialize(n*m,vertex, 2*n*m-m-n,edge, n*m-n-m + 2,face);
+        planar_cut.setSource(source);
+        planar_cut.setSink(sink);
+        double flow;
 
-        std::cout<<"indis: "<<ind.size()<<"\n";
+        flow = planar_cut.getMaxFlow();
+        std::cout << "Maxmal Flow: " << flow << std::endl;
+        std::cout<<"\n"<<"-----------------done"<<"\n";
+        std::vector<int> labels;
+        labels = planar_cut.getLabels(CutPlanar::LABEL_SINK);
 
-        adjust_par par = prep_adjust((*T.adj),kp,T,ind,match_mat,maxLoc,Hom_mat,true);
-        class bundm::adjuster testad(par.kp,par.match,.0001,par.T,true,threads);
-        struct bundm::inter_par teees = testad.iterate();
-        double error_value = testad.error_value;
-
-        resort_hom(ind,teees.hom,Hom_mat_new);
-        update_par(testad,Hom_mat_new,T,ind,kp,maxLoc,true);
-        //teees.focal[2] = 1500;
-        cv::Matx33f Tr = cv::Matx33f::eye();
-        Tr(0,2) = 200;
-        Tr(1,2) = 150;
-        cv::Mat panorama = cv::Mat::zeros(2000,3067,CV_32FC3);
-        cv::Mat img;
-        cv::Size si = panorama.size();
-
-        std::vector<Eigen::MatrixXd> rret = testad.ret_rot();
-        std::vector<Eigen::MatrixXd> Kret = testad.ret_K();
-/*
-        std::cout<<"K[maxLoc]: "<<T.K[maxLoc]<<"\n";
-        std::cout<<"T.K[0]: "<<T.K[0]<<"\n";
-
-
-        class imgm::cylproj transformer(T.rot[maxLoc],T.K[maxLoc],T.K[maxLoc],(*Tnew.img_address)[maxLoc].size());
-        cv::Mat img_tr = imgm::applyGeometricTransform((*Tnew.img_address)[maxLoc], transformer,si);
-        img_tr.copyTo(panorama, img_tr);
-        cv::imshow("Image Display",panorama);
-        cv::waitKey(0);
-
-        class imgm::cylproj transformer2(T.rot[ind[0]],T.K[maxLoc],T.K[ind[0]],(*Tnew.img_address)[ind[1]].size());
-        cv::Mat img_tr2 = imgm::applyGeometricTransform((*Tnew.img_address)[ind[0]], transformer2,si);
-        img_tr2.copyTo(panorama, img_tr2);
-        cv::imshow("Image Display",panorama);
-        cv::waitKey(0);
-
-        class imgm::cylproj transformer3(T.rot[ind[1]],T.K[maxLoc],T.K[ind[1]],(*Tnew.img_address)[ind[1]].size());
-        cv::Mat img_tr3 = imgm::applyGeometricTransform((*Tnew.img_address)[ind[1]], transformer3,si);
-        img_tr3.copyTo(panorama, img_tr3);
-        cv::imshow("Image Display",panorama);
-        cv::waitKey(0);
-*/
-
-
-        for(int i = 0;i < n+1;i++){
-
-            cv::Size sz = get_size((*Tnew.img_address)[ind[i]],Hom_mat_new[maxLoc][ind[i]]);
-            cv::Matx33f Ts = get_img_tr(Hom_mat_new[maxLoc][ind[i]],(*Tnew.img_address)[ind[i]]);
-            /*
-            std::vector<float> ang = angels(T.rot[ind[i]]);
-            std::cout<<"rotx "<<"\n"<<ang[0]<<"\n";
-            std::cout<<"roty "<<"\n"<<ang[1]<<"\n";
-            std::cout<<"rotz "<<"\n"<<ang[2]<<"\n";
-            */
-            //std::cout<<"translation "<<"\n"<<Ts<<"\n";
-            std::cout<<"\n"<<"--------------------------------"<<"\n";
-            std::cout<<"T.K[maxLoc] "<<"\n"<<T.K[maxLoc]<<"\n";
-            std::cout<<"T.K[ind[i]] "<<"\n"<<T.K[ind[i]]<<"\n";
-            std::cout<<"\n"<<"--------------------------------"<<"\n";
-            float tx=400 ;
-            float ty=150 ;
-            class imgm::cylproj transformer(T.rot[ind[i]],T.K[maxLoc],T.K[ind[i]],(*Tnew.img_address)[ind[i]].size(),tx,ty);
-            //class imgm::cylhom transformer(teees.focal[testtt[ind[i]]],Kret[testtt[ind[i]]](0,2),Kret[testtt[ind[i]]](1,2),(Tr*Hom_mat_new[maxLoc][ind[i]]).inv(),ang[0],ang[1]);
-            cv::Mat img_tr = imgm::applyGeometricTransform((*Tnew.img_address)[ind[i]], transformer,si);
-
-            img_tr.copyTo(panorama, img_tr);
-            cv::imshow("Image Display",panorama);
-            cv::waitKey(0);
-
-        }
+        return labels;
+    }
 
 
 
+    struct overlap_pair get_overlap(
+        const cv::Mat &img1,
+        const cv::Mat &img2,
+        const cv::Point& corners1,
+        const cv::Point& corners2){
 
+        struct overlap_pair res;
+        cv::Mat gray_image1;
+        cv::Mat gray_image2;
 
-        bool approx = false;
-        std::unordered_set<int> removed;
-        std::unordered_set<int> keep;
-        std::map<int,int> testmap;
+        cv::cvtColor(img1, gray_image1, cv::COLOR_BGR2GRAY);
+        cv::cvtColor(img2, gray_image2, cv::COLOR_BGR2GRAY);
 
-        for(int i = 0;i < kvec.size();i++){
+        cv::Mat mask1 = blnd::createSurroundingMask(img1,false, 1);
+        cv::Mat mask2 = blnd::createSurroundingMask(img2,false, 1);
 
-            bool repeat = true;
-            if(vvec[i] != maxLoc){
-                approx = false;
-            }else{
-                approx = true;
-            }
+        cv::Rect rect_1(corners1.x, corners1.y, img1.cols, img1.rows);
+        cv::Rect rect_2(corners2.x, corners2.y, img2.cols, img2.rows);
 
-            if(removed.count(vvec[i]) > 0){
-
-                bool found_pair = false;
-                std::vector<int> alt = getTopNonZeroIndices(path_mat, kvec[i], path_mat.rows);
-                for(const int a : alt){
-
-                    if((removed.count(a) == 0) and (a != kvec[i])){
-
-                        found_pair = true;
-                        vvec[i] = a;
-                        break;
-
-                    }
-
+        cv::Rect overlap_rect = rect_1 & rect_2;
+                if (overlap_rect.width <= 0 || overlap_rect.height <= 0) {
+                    throw("ERROR: Non overlapping image segment");
                 }
 
-                if(found_pair == false){removed.insert(kvec[i]);}
+        cv::Rect roi_1(overlap_rect.x - corners1.x, overlap_rect.y - corners1.y, overlap_rect.width, overlap_rect.height);
+        cv::Rect roi_2(overlap_rect.x - corners2.x, overlap_rect.y - corners2.y, overlap_rect.width, overlap_rect.height);
 
-            }
+        cv::Mat mask_1_roi = mask1(roi_1);
+        cv::Mat mask_2_roi = mask2(roi_2);
 
-            if(exists.count(vvec[i]) > 0){
+        cv::Mat gray_1_roi = gray_image1(roi_1);
+        cv::Mat gray_2_roi = gray_image2(roi_2);
 
-                std::cout <<"\n"<<"value: "<<vvec[i]<<" key: "<<kvec[i]<<"\n";
-                std::cout <<"\n"<<"path_mat "<<path_mat<<"\n";
-                /*
-                std::vector<int> stick;
-                std::vector<int> ind = getTopNonZeroIndices(path_mat, kvec[i], 1);
-                for(const int &v : ind){
-                        std::cout <<"\n"<<"test: "<<v<<"\n";
-                    if(exists.count(v) > 0){
-                        stick.push_back(v);
-                        std::cout <<"\n"<<"inserted: "<<v<<"\n";
-                    }
-                }
-                stick.push_back(kvec[i]);
-                */
-                std::vector<int> stick(2);
-                stick[0] = kvec[i];
-                stick[1] = vvec[i];
-                bool leave = false;
+        res.img1 = gray_1_roi;
+        res.img2 = gray_2_roi;
+        res.mask1 = mask_1_roi;
+        res.mask2 = mask_2_roi;
 
-                while(repeat){
-                    float ty;
-                    float tx;
-                    if(approx == false){
-                        //transformkp(kp[kvec[i]],Hom_mat_new[testmap[vvec[i]]][vvec[i]]);
-                    }
+        return res;
 
-                    adjust_par par = prep_adjust((*T.adj),kp,T,stick,match_mat,vvec[i],Hom_mat,approx);
-                    class bundm::adjuster testad(par.kp,par.match,.0001,par.T,false,threads);
-                    struct bundm::inter_par teees = testad.iterate();
-                    double rep_error = testad.error_value;
-
-                    if(rep_error > 4*error_value){
-                        if(approx == false){
-                        approx = true;
-                        }else{removed.insert(kvec[i]);repeat = false;}
-                    }else{
-                        //cv::imshow("Image Display",(*Tnew.img_address)[kvec[i]]);
-                        //cv::waitKey(0);
-                        //cv::imshow("Image Display",(*Tnew.img_address)[vvec[i]]);
-                        //cv::waitKey(0);
-                        std::cout<<"\n"<<"sticking " << kvec[i]<<"\n";
-                        testmap[kvec[i]] = vvec[i];
-                        std::cout<<"inserted with error " << rep_error<<"\n";
-                        repeat = false;
-                        resort_hom(stick,teees.hom,Hom_mat_new);//entferne stickto
-                        update_par(testad,Hom_mat_new,T,stick,kp,false,vvec[i]);
-                        exists.insert(kvec[i]);
-
-
-
-                        std::vector<Eigen::MatrixXd> rret = testad.ret_rot();
-                        std::vector<Eigen::MatrixXd> Kret = testad.ret_K();
-
-                        //class imgm::cylhom transformer(800,Kret[0](0,2),Kret[0](1,2),(Tr*Hom_mat_new[vvec[i]][kvec[i]]).inv(),0,0);
-
-
-                        tx=400 ;
-                        ty=150 ;
-
-
-
-                        Eigen::MatrixXd rbase;
-                        Eigen::MatrixXd rattach;
-                        Eigen::MatrixXd kbase;
-                        Eigen::MatrixXd kattach;
-
-
-                        if(kvec[i] < vvec[i]){
-                            rbase = rret[0];
-                            kbase = Kret[0];
-                            kattach = Kret[1];
-                            rattach = rret[1];
-                        }else{
-                            rbase = rret[1];
-                            kbase = Kret[1];
-                            kattach = Kret[0];
-                            rattach = rret[0];
-                        }
-
-                        Eigen::MatrixXd test = kbase * rbase *  rattach.transpose() * kattach.inverse();
-
-                        class imgm::cylproj transformer1(rbase,kattach,kbase,(*Tnew.img_address)[kvec[i]].size(),tx,ty);
-
-                        cv::Mat img_tr = imgm::applyGeometricTransform((*Tnew.img_address)[kvec[i]], transformer1,si);
-
-                        img_tr.copyTo(panorama, img_tr);
-                        exists.insert(kvec[i]);
-                        cv::imshow("Image Display",panorama);
-                        cv::waitKey(0);
-
-                    }
-
-                }
-
-
-            }else{
-
-                keep.insert(kvec[i]);
-
-            }
-
-
-        }
-        std::cout <<"\n"<<"keepsize: "<<keep.size()<<"\n";
-        cv::imshow("Image Display",panorama);
-        cv::waitKey(0);
+    }
 
 
 }
-
-
-}
-
-
