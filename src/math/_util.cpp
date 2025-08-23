@@ -5,6 +5,18 @@
 namespace util {
 
 
+cv::Rect scaleRect(const cv::Rect& r, double xs, double sy) {
+
+    int x = (int)std::round(r.x * xs);
+    int y = (int)std::round(r.y * sy);
+
+    int width = (int)std::round(r.width * xs);
+    int height = (int)std::round(r.height * sy);
+
+    return cv::Rect(x, y, width, height);
+}
+
+
 struct size_data get_pan_dimension(const std::vector<cv::Point>& top_lefts,const std::vector<cv::Mat>& images){
 
     struct size_data p_size;

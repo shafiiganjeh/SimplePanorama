@@ -21,6 +21,21 @@ namespace img {
 
             images(std::vector<std::string> files);
 
+            ~images() {
+
+                std::vector<cv::Mat>().swap(img_data);
+            }
+
+            void add_images(std::vector<std::string>& files);
+
+            template <typename T>
+            auto add_images(const T& files)-> std::enable_if_t<std::is_convertible_v<T, std::string>, void>{
+
+                std::vector<std::string> temp;
+                temp.push_back(files);  // Convert single string to vector
+                add_images(temp);
+            }
+
             std::vector<cv::Mat> load_connected_images(const std::vector<bool> &load);
 
             template <typename T>
@@ -36,10 +51,11 @@ namespace img {
                 return load_connected_images(temp);
             }
 
+            void load_resized(int max_size);
 
             void clear_images();
 
-            std::vector<cv::Mat> get_images();
+            std::vector<cv::Mat>* get_image_addresses();
 
             std::vector<std::string> get_f_list();
 
@@ -57,6 +73,7 @@ namespace img {
             std::vector<util::keypoints> keypnts;
             std::vector<cv::Mat> img_data;
             std::vector<std::string> f_list;
+            std::vector<std::string> loaded;
 
     };
 

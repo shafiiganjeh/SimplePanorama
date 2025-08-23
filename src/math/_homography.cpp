@@ -50,8 +50,8 @@ namespace util {
 
             H_temp = decondition_homography2D(T_b, T_a, H_temp);
 
-            if(hom_sanity(H_temp,img1,img2)){
-            //if(1){
+            //if(hom_sanity(H_temp,img1,img2)){
+            if(1){
 
                 double temp_loss = homography_loss(kp1,kp2,match ,H_temp);
 
@@ -503,13 +503,13 @@ namespace util {
             std::vector<cv::Point2f> obj;
             std::vector<cv::Point2f> scene;
 
-
+/*
 
             struct Homography H12 = find_homography(kp1,kp2,match12,1500,4,img1,img2);
             H12.H = H12.H / H12.H(2,2);
             //std::cout <<"homography: "<<H12.H<<"\n";
-/*
-            struct maths::Homography H12;
+*/
+            struct Homography H12;
             std::vector<cv::Point2f> points1, points2;
             for (int i = 0; i < match12.size(); i++)
                 {
@@ -527,7 +527,7 @@ namespace util {
             }
 
             //std::cout<<"homog: "<<H12.H;
-*/
+
             hom_mat[row][col] = H12.H;
             hom_mat[col][row] = H12.H.inv();
 
@@ -735,7 +735,7 @@ namespace util {
         }
 
         std::vector<cv::DMatch> rank_match;
-        std::vector<size_t> rank = find_n_smallest_indices(dist, 800);
+        std::vector<size_t> rank = find_n_smallest_indices(dist, 200);
 
         for(const int &r : rank){
 

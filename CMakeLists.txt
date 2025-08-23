@@ -5,8 +5,15 @@ find_package(PkgConfig REQUIRED)
 find_package( OpenCV REQUIRED )
 pkg_check_modules(GTK REQUIRED gtk+-3.0)
 
+find_package(OpenMP)
+if (NOT OPENMP_FOUND)
+	message(WARNING "OpenMP is not found. Will be slow.")
+else()
+	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
 
 configure_file(${CMAKE_SOURCE_DIR}/res/drag.jpg drag.jpg COPYONLY)
+configure_file(${CMAKE_SOURCE_DIR}/res/Image_Crop_Icon.png Image_Crop_Icon.png COPYONLY)
 
 include_directories(${GTK_INCLUDE_DIRS}
                     ${OpenCV_INCLUDE_DIRS} )
@@ -17,7 +24,6 @@ add_definitions(${GTK_CFLAGS_OTHER})
 find_package (Eigen3 3.4 REQUIRED NO_MODULE)
 
 add_definitions(-O2)
-
 
 include_directories(        ${CMAKE_SOURCE_DIR}/src/math
                             ${CMAKE_SOURCE_DIR}/src/ui
@@ -47,6 +53,8 @@ add_library(code
     ${CMAKE_SOURCE_DIR}/src/ui/_image_viewer.h
     ${CMAKE_SOURCE_DIR}/src/ui/_viewer_toolbar.cpp
     ${CMAKE_SOURCE_DIR}/src/ui/_viewer_toolbar.h
+    ${CMAKE_SOURCE_DIR}/src/ui/_progress_bar.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/_progress_bar.h
     ${CMAKE_SOURCE_DIR}/src/math/_img_manipulation.cpp
     ${CMAKE_SOURCE_DIR}/src/math/_img_manipulation.h
     ${CMAKE_SOURCE_DIR}/src/math/_util.h

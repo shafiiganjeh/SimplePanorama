@@ -14,19 +14,17 @@
 #include <opencv2/core/eigen.hpp>
 #include "_bundle_adjust_main.h"
 
-struct main_window_ main_window;
-
 
 int main(int argc, char **argv) {
+/*
+        struct main_window_ main_window;
 
-
-        //build_window(argc,argv,&main_window);
-        //gtk_main();
-
-            pan::config conf;
+        build_window(argc,argv,&main_window);
+        gtk_main();
+ */
+for(int i = 0;i<5;i++){
+            struct pan::config conf;
             conf.focal = 700;
-
-
 
             std::string path = "/home/sd_bert/projects/Panorama/test";
             std::vector<std::string> path_list;
@@ -39,8 +37,10 @@ int main(int argc, char **argv) {
             }
 
             pan::panorama test(path_list);
+            class util::Timer timer;
 
-
-            test.stitch_panorama(8,conf);
+            test.stitch_panorama(8,conf);}
 
 }
+
+

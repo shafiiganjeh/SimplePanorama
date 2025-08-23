@@ -71,7 +71,7 @@ namespace bund {
 
     }
 
-    Eigen::MatrixXd get_rot(Eigen::MatrixXd rotv){
+    Eigen::MatrixXd get_rot(const Eigen::MatrixXd &rotv){
 
         double eps = 1e-8;
         Eigen::MatrixXd rot(3,3);
@@ -101,7 +101,7 @@ namespace bund {
     }
 
 
-    Eigen::Vector3d get_rotvec(Eigen::MatrixXd rotm){
+    Eigen::Vector3d get_rotvec(const Eigen::MatrixXd &rotm){
 
         Eigen::Vector3d v;
 
@@ -134,7 +134,7 @@ namespace bund {
     //optimize for Hom = Kj * Ri.transpose() * Rj * Ki_inv, not Hom = Kj * Rj * Ri.transpose() * Ki_inv !!!
     Eigen::MatrixXd parameters::ret_hom(int i, int j){
 
-        Eigen::MatrixXd Hom = K[j] * rot[i].transpose() * rot[j] * K_inv[i];
+        Eigen::MatrixXd Hom = current.K[j] * current.rot[i].transpose() * current.rot[j] * current.K_inv[i];
         return Hom;
     }
 
@@ -162,22 +162,19 @@ namespace bund {
         adj = adj  + adj.t();
         float eps = 5e-5;
 
-        adjust_yn.resize(adj.rows);
-        std::fill(adjust_yn.begin(), adjust_yn.end(), true );
-
         //std::cout<<"adj :"<< adj<<" \n";
 
         for(int i = 0 ; i < T.rot.size();i++){
 
-            rot.push_back(T.rot[i]);
-            rot_vec.push_back(get_rotvec(T.rot[i]));
+            current.rot.push_back(T.rot[i]);
+            current.rot_vec.push_back(get_rotvec(T.rot[i]));
 
             Eigen::Vector2d pvec;
             pvec <<T.K[i](0,2),T.K[i](1,2);
-            principal_vec.push_back(pvec);
-            focal.push_back(T.K[i](0,0));
-            K.push_back(T.K[i]);
-            K_inv.push_back(T.K[i].inverse().eval());
+            current.principal_vec.push_back(pvec);
+            current.focal.push_back(T.K[i](0,0));
+            current.K.push_back(T.K[i]);
+            current.K_inv.push_back(T.K[i].inverse().eval());
 
         }
 
@@ -211,7 +208,7 @@ namespace bund {
             }
         }
 
-        measurements = measure_mat;
+        current.measurements = measure_mat;
 
         std::vector<int> thread_idx(3);
 
@@ -220,7 +217,7 @@ namespace bund {
 
                 if (0 < adj.at<double>(i,j)){
 
-                    for (int p = 0;p < measurements[i][j].size();p++){
+                    for (int p = 0;p < current.measurements[i][j].size();p++){
 
                         thread_idx[0] = i;
                         thread_idx[1] = j;
@@ -244,6 +241,8 @@ namespace bund {
 
         thread_sizes = sizes;
 
+        saved = current;
+
     }
 
 
@@ -256,8 +255,8 @@ namespace bund {
 
                 if (0 < adj.at<double>(i,j)){
 
-                    for (int p = 0;p < measurements[i][j].size();p++){
-                        M.push_back(measurements[i][j][p]);
+                    for (int p = 0;p < current.measurements[i][j].size();p++){
+                        M.push_back(current.measurements[i][j][p]);
                     }
                 }
             }
@@ -267,7 +266,27 @@ namespace bund {
     }
 
 
-    void parameters::calc_B_i(int thread,const std::vector<std::vector<Eigen::MatrixXd>> hom_mat,std::vector<Eigen::MatrixXd> &B_i){
+    std::vector<Eigen::VectorXd> parameters::ret_measurements_saved(){
+
+        std::vector<Eigen::VectorXd> M;
+
+        for (int i = 0;i < adj.rows;i++){
+            for(int j = 0;j < adj.cols;j++){
+
+                if (0 < adj.at<double>(i,j)){
+
+                    for (int p = 0;p < saved.measurements[i][j].size();p++){
+                        M.push_back(saved.measurements[i][j][p]);
+                    }
+                }
+            }
+        }
+
+        return M;
+    }
+
+
+    void parameters::calc_B_i(int thread,const std::vector<std::vector<Eigen::MatrixXd>> &hom_mat,std::vector<Eigen::MatrixXd> &B_i){
 
         std::vector<std::vector<int>> thread_part = threads_vector[thread];
 
@@ -279,7 +298,7 @@ namespace bund {
 
             Eigen::MatrixXd B_insert = Eigen::MatrixXd::Zero(4,2);
             B_insert({0,1},{0,1}) = Eigen::MatrixXd::Identity(2,2);
-            Eigen::VectorXd t = measurements[i][j][p]({0,1,2});
+            Eigen::VectorXd t = current.measurements[i][j][p]({0,1,2});
             Eigen::VectorXd t_tr = hom_mat[i][j]*t;
 
             Eigen::MatrixXd B1(2,3);
@@ -312,12 +331,18 @@ namespace bund {
         }
 
         //hier multithread
+        #pragma omp parallel for schedule(dynamic)
+        for(int k = 0;k < threads_vector.size();k++){
 
+            calc_B_i(k,hom_mat,B_i);
+
+        }
+/*
         std::vector<std::thread> thread_objects;
 
         for(int k = 0;k < threads_vector.size();k++){
 
-            std::thread tobj(&parameters::calc_B_i,this,k,hom_mat,std::ref(B_i));
+            std::thread tobj(&parameters::calc_B_i,this,k,std::ref(hom_mat),std::ref(B_i));
             thread_objects.push_back(std::move(tobj));
 
         }
@@ -327,7 +352,7 @@ namespace bund {
             thread_objects[k].join();
 
         }
-
+*/
         return B_i;
 
     }
@@ -399,9 +424,9 @@ namespace bund {
                     Eigen::MatrixXd hom = ret_hom(i,j);
                     Eigen::VectorXd hom_v = Eigen::Map<Eigen::VectorXd>(hom.data(), hom.cols()*hom.rows());
 
-                    for (int p = 0;p < measurements[i][j].size();p++){
+                    for (int p = 0;p < current.measurements[i][j].size();p++){
 
-                        Eigen::VectorXd t = measurements[i][j][p]({0,1,2});
+                        Eigen::VectorXd t = current.measurements[i][j][p]({0,1,2});
                         t = t/t[2];
 
                         Eigen::MatrixXd bi = nummeric_divb(hom_v,t({0,1}));
@@ -450,7 +475,7 @@ namespace bund {
     }
 
 
-    void parameters::calc_A_i(int thread,int size,const std::vector<std::vector<Eigen::MatrixXd>> hom_mat,std::vector<Eigen::Matrix3d> D,std::vector<A_vec> &A_i){
+    void parameters::calc_A_i(int thread,int size,const std::vector<std::vector<Eigen::MatrixXd>> &hom_mat,const std::vector<Eigen::Matrix3d> &D,std::vector<A_vec> &A_i){
 
         const auto& thread_part = threads_vector[thread];
 
@@ -462,16 +487,16 @@ namespace bund {
             int p = thread_parts[km + thread_sizes[thread]][2];
 
             const Eigen::Matrix3d& hom = hom_mat[i][j];
-            Eigen::VectorXd t = measurements[i][j][p].head<3>();
+            Eigen::VectorXd t = current.measurements[i][j][p].head<3>();
             Eigen::VectorXd t_tr = hom * t;
             const double t_tr2 = t_tr[2];
             const double denom = 1.0 / (t_tr2 * t_tr2);
 
-            const Eigen::Matrix3d K_inv_i = K_inv[i];
-            const Eigen::Matrix3d N = rot[i].transpose() * rot[j] * K_inv_i;
-            const Eigen::Matrix3d M = K[j] * N;
-            const Eigen::Matrix3d P = rot[j] * K_inv_i;
-            const Eigen::Matrix3d Q = K[j] * rot[i].transpose();
+            const Eigen::Matrix3d K_inv_i = current.K_inv[i];
+            const Eigen::Matrix3d N = current.rot[i].transpose() * current.rot[j] * K_inv_i;
+            const Eigen::Matrix3d M = current.K[j] * N;
+            const Eigen::Matrix3d P = current.rot[j] * K_inv_i;
+            const Eigen::Matrix3d Q = current.K[j] * current.rot[i].transpose();
 
 
             Eigen::MatrixXd A_insert_i = Eigen::MatrixXd::Zero(4,D.size() + 3);
@@ -500,14 +525,14 @@ namespace bund {
 
             for (int k = 0; k < 3; k++) {
 
-                Eigen::Matrix3d Hi = K[j] * (get_dR(rot_vec[i], rot[i], k, true) * P);
+                Eigen::Matrix3d Hi = current.K[j] * (get_dR(current.rot_vec[i], current.rot[i], k, true) * P);
                 f_i.noalias() = Hi * t;
                 x_comp = (f_i[0] * t_tr2 - t0 * f_i[2]) * denom;
                 y_comp = (f_i[1] * t_tr2 - t1 * f_i[2]) * denom;
                 A_insert_i(2, D.size() + k) = x_comp;
                 A_insert_i(3, D.size() + k) = y_comp;
 
-                Hi = Q * (get_dR(rot_vec[j], rot[j], k, false) * K_inv_i);
+                Hi = Q * (get_dR(current.rot_vec[j], current.rot[j], k, false) * K_inv_i);
                 f_i.noalias() = Hi * t;
                 A_insert_j(2, D.size() + k) = (f_i[0] * t_tr2 - t0 * f_i[2]) * denom;
                 A_insert_j(3, D.size() + k) = (f_i[1] * t_tr2 - t1 * f_i[2]) * denom;
@@ -526,7 +551,7 @@ namespace bund {
 
     std::vector<A_vec> parameters::ret_A_i(){
 
-        int size = rot_vec.size();
+        int size = current.rot_vec.size();
         //std::vector<Eigen::MatrixXd> A_i(thread_parts.size());
         std::vector<A_vec> A_i(thread_parts.size());
 
@@ -554,13 +579,23 @@ namespace bund {
 
         std::vector<Eigen::Matrix3d> D = {df,dx,dy};
 
+
         //hier multithread
+
+        #pragma omp parallel for schedule(dynamic)
+        for(int k = 0;k < threads_vector.size();k++){
+
+            calc_A_i(k,size,hom_mat,D,A_i);
+
+        }
+
+/*
 
         std::vector<std::thread> thread_objects;
 
         for(int k = 0;k < threads_vector.size();k++){
 
-            std::thread tobj(&parameters::calc_A_i,this,k,size,hom_mat,D,std::ref(A_i));
+            std::thread tobj(&parameters::calc_A_i,this,k,size,std::ref(hom_mat),std::ref(D),std::ref(A_i));
             thread_objects.push_back(std::move(tobj));
 
         }
@@ -570,7 +605,7 @@ namespace bund {
             thread_objects[k].join();
 
         }
-
+*/
 
         return A_i;
     }
@@ -661,17 +696,17 @@ namespace bund {
             int p = thread_parts[km + thread_sizes[thread]][2];
 
             Eigen::VectorXd par(12);
-            par[0] = focal[i];
-            par[1] = principal_vec[i][0];
-            par[2] = principal_vec[i][1];
-            par({3,4,5}) = rot_vec[i]({0,1,2},{0});
+            par[0] = current.focal[i];
+            par[1] = current.principal_vec[i][0];
+            par[2] = current.principal_vec[i][1];
+            par({3,4,5}) = current.rot_vec[i]({0,1,2},{0});
 
-            par[6] = focal[j];
-            par[7] = principal_vec[j][0];
-            par[8] = principal_vec[j][1];
-            par({9,10,11}) = rot_vec[j]({0,1,2},{0});
+            par[6] = current.focal[j];
+            par[7] = current.principal_vec[j][0];
+            par[8] = current.principal_vec[j][1];
+            par({9,10,11}) = current.rot_vec[j]({0,1,2},{0});
 
-            Eigen::VectorXd t = measurements[i][j][p]({0,1});
+            Eigen::VectorXd t = current.measurements[i][j][p]({0,1});
             Eigen::MatrixXd Ainum = nummeric_div(t,par);
             Eigen::MatrixXd A_insert_i = Eigen::MatrixXd::Zero(4,6);
             Eigen::MatrixXd A_insert_j = Eigen::MatrixXd::Zero(4,6);
@@ -692,7 +727,7 @@ namespace bund {
 
     std::vector<A_vec> parameters::ret_A_i_num(){
 
-        int size = rot_vec.size();
+        int size = current.rot_vec.size();
 
         std::vector<A_vec> A_i(thread_parts.size());
 
@@ -716,49 +751,32 @@ namespace bund {
     }
 
 
+    Eigen::MatrixXd parameters::ret_hom_saved(int i, int j){
 
-    void parameters::add_delta(std::vector<Eigen::VectorXd> delta_b,Eigen::VectorXd delta_a,bool add_rot){
+        Eigen::MatrixXd Hom = saved.K[j] * saved.rot[i].transpose() * saved.rot[j] * saved.K_inv[i];
+        return Hom;
+    }
+
+
+    void parameters::add_delta(const std::vector<Eigen::VectorXd> &delta_b,const Eigen::VectorXd &delta_a,bool add_rot){
         double eps = 1e-6;
 
-        std::vector<Eigen::MatrixXd>().swap(rot_res);
-        copy(rot.begin(), rot.end(), back_inserter(rot_res));
+        for(int i = 0;i < saved.rot.size();i++){
+            if(!(saved.rot[i].isIdentity(eps))){
 
-        std::vector<Eigen::MatrixXd>().swap(rot_vec_res);
-        copy(rot_vec.begin(), rot_vec.end(), back_inserter(rot_vec_res));
+                saved.rot_vec[i](0,0) = current.rot_vec[i](0,0) + delta_a[3+i*6];
+                saved.rot_vec[i](1,0) = current.rot_vec[i](1,0) + delta_a[4+i*6];
+                saved.rot_vec[i](2,0) = current.rot_vec[i](2,0) + delta_a[5+i*6];
 
-        std::vector<std::vector<std::vector<Eigen::VectorXd>>>().swap(measurements_res);
-        copy(measurements.begin(), measurements.end(), back_inserter(measurements_res));
-
-        std::vector<Eigen::MatrixXd>().swap(K_res);
-        copy(K.begin(), K.end(), back_inserter(K_res));
-
-        std::vector<Eigen::MatrixXd>().swap(K_inv_res);
-        copy(K_inv.begin(), K_inv.end(), back_inserter(K_inv_res));
-
-        std::vector<double>().swap(focal_res);
-        copy(focal.begin(), focal.end(), back_inserter(focal_res));
-
-        std::vector<Eigen::Vector2d>().swap(principal_vec_res);
-        copy(principal_vec.begin(), principal_vec.end(), back_inserter(principal_vec_res));
-
-
-        for(int i = 0;i < rot.size();i++){
-            if(!(rot[i].isIdentity(eps))){
-
-                rot_vec[i](0,0) = rot_vec[i](0,0) + delta_a[3+i*6];
-                rot_vec[i](1,0) = rot_vec[i](1,0) + delta_a[4+i*6];
-                rot_vec[i](2,0) = rot_vec[i](2,0) + delta_a[5+i*6];
-
-                rot[i] = get_rot(rot_vec[i]);
+                saved.rot[i] = get_rot(saved.rot_vec[i]);
 
             }
 
-                focal[i] = focal[i] + delta_a[i*6];
-                principal_vec[i] = principal_vec[i] + delta_a({1+i*6,2+i*6});
+                saved.focal[i] = current.focal[i] + delta_a[i*6];
+                saved.principal_vec[i] = saved.principal_vec[i] + delta_a({1+i*6,2+i*6});
 
-            K[i] = to_K(focal[i],principal_vec[i]);
-            K_inv[i] = to_K_inv(focal[i],principal_vec[i]);
-
+            saved.K[i] = to_K(saved.focal[i],saved.principal_vec[i]);
+            saved.K_inv[i] = to_K_inv(saved.focal[i],saved.principal_vec[i]);
 
         }
 
@@ -768,17 +786,17 @@ namespace bund {
 
                 if (0 < adj.at<double>(i,j)){
 
-                    Eigen::MatrixXd hom = ret_hom(i, j);
-                    for (int p = 0;p < measurements[i][j].size();p++){
+                    Eigen::MatrixXd hom = ret_hom_saved(i, j);
+                    for (int p = 0;p < saved.measurements[i][j].size();p++){
 
                         Eigen::VectorXd temp(3);
-                        measurements[i][j][p]({0,1}) = measurements[i][j][p]({0,1}) + delta_b[c];
+                        saved.measurements[i][j][p]({0,1}) = current.measurements[i][j][p]({0,1}) + delta_b[c];
 
-                        temp({0,1}) = measurements[i][j][p]({0,1});
+                        temp({0,1}) = saved.measurements[i][j][p]({0,1});
                         temp[2] = 1;
                         temp = hom * temp;
                         temp = temp/temp[2];
-                        measurements[i][j][p]({3,4,5}) = temp;
+                        saved.measurements[i][j][p]({3,4,5}) = temp;
 
                         c++;
                     }
@@ -789,28 +807,9 @@ namespace bund {
     }
 
 
-    void parameters::reset(){
+    void parameters::accept(){
 
-        std::vector<Eigen::MatrixXd>().swap(rot);
-        copy(rot_res.begin(), rot_res.end(), back_inserter(rot));
-
-        std::vector<Eigen::MatrixXd>().swap(rot_vec);
-        copy(rot_vec_res.begin(), rot_vec_res.end(), back_inserter(rot_vec));
-
-        std::vector<std::vector<std::vector<Eigen::VectorXd>>>().swap(measurements);
-        copy(measurements_res.begin(), measurements_res.end(), back_inserter(measurements));
-
-        std::vector<Eigen::MatrixXd>().swap(K);
-        copy(K_res.begin(), K_res.end(), back_inserter(K));
-
-        std::vector<Eigen::MatrixXd>().swap(K_inv);
-        copy(K_inv_res.begin(), K_inv_res.end(), back_inserter(K_inv));
-
-        std::vector<double>().swap(focal);
-        copy(focal_res.begin(), focal_res.end(), back_inserter(focal));
-
-        std::vector<Eigen::Vector2d>().swap(principal_vec);
-        copy(principal_vec_res.begin(), principal_vec_res.end(), back_inserter(principal_vec));
+        current = saved;
 
     }
 
@@ -841,21 +840,21 @@ namespace bund {
 
     std::vector<double> parameters::ret_focal(){
 
-        return focal;
+        return current.focal;
 
     }
 
 
     std::vector<Eigen::MatrixXd> parameters::ret_rot(){
 
-        return rot;
+        return current.rot;
 
     }
 
 
     std::vector<Eigen::MatrixXd> parameters::ret_K(){
 
-        return K;
+        return current.K;
 
     }
 

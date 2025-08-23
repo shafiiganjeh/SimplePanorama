@@ -81,9 +81,7 @@ namespace imgm {
         return result;
     }
 
-
-
-    cv::Mat file_to_cv(std::string path);
+    cv::Mat file_to_cv(std::string &path);
 
     cv::Mat stitch(const cv::Mat &base, const cv::Mat &attach, const cv::Matx33f &H);
 

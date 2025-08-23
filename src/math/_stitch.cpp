@@ -8,9 +8,8 @@ struct stitch_data get_proj_parameters(
     const std::vector<cv::Mat>& images,
     std::vector<Eigen::MatrixXd>& R,
     std::vector<Eigen::MatrixXd>& K,
-    int maxLoc,
+    int ref,
     std::vector<double> &con){
-    int ref = maxLoc;
     stitch_data par_stitch;
 
     const double focal = K[ref](0, 0);  // Focal length from first camera
@@ -324,6 +323,7 @@ struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,con
     res.K = T.K;
 
     for(int i = 0;i<paths_clac.size();i++){
+
         res.K[paths_clac[i].nodeAdded](0,2) = res.K[paths_clac[i].nodeAdded](0,2) + (*T.img_address)[paths_clac[i].nodeAdded].cols / 2;
         res.K[paths_clac[i].nodeAdded](1,2) = res.K[paths_clac[i].nodeAdded](1,2) + (*T.img_address)[paths_clac[i].nodeAdded].rows / 2 ;
     }
@@ -333,8 +333,8 @@ struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,con
     res.connectivity = T.connectivity;
     res.rot = strg::straightenPanorama(Crret);
 
-    struct stch::stitch_data ret = get_proj_parameters((*T.img_address),res.rot,res.K,res.maxLoc,res.connectivity);
-    res.maxLoc = par.numb2ind[maxLoc];
+    struct stch::stitch_data ret = get_proj_parameters((*T.img_address),res.rot,res.K,maxLoc,res.connectivity);
+    res.maxLoc = maxLoc;
 
     std::vector<int> indices;  // Use int instead of Eigen::Index
     for (int i = 0; i < T.connectivity.size(); i++) {
@@ -357,7 +357,7 @@ struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,con
     cv::eigen2cv(new_mat,res.adj);
 
     res.imgs = ret.imgs;
-    cv::Mat panor= blnd::no_blend(ret.imgs,res.masks,ret.corners);
+    res.prev_size = util::get_pan_dimension(res.corners,res.imgs);
 
     return res;
 

@@ -15,43 +15,6 @@ namespace bundm {
 
     // See Multiple View Geometry in Computer Vision for an outlier of the algorithm logic. I tried to get the naming simmilar to the outlier.
 
-    //function for performance check
-    class Timer {
-        using Clock = std::chrono::high_resolution_clock;
-        using TimePoint = std::chrono::time_point<Clock>;
-        using Duration = std::chrono::duration<double>;
-
-        std::unordered_map<std::string, TimePoint> start_times;
-        std::unordered_map<std::string, Duration> durations;
-
-    public:
-        void start(const std::string& name) {
-            start_times[name] = Clock::now();
-        }
-
-        void stop(const std::string& name) {
-            auto end = Clock::now();
-            auto it = start_times.find(name);
-            if (it != start_times.end()) {
-                durations[name] += end - it->second;
-                start_times.erase(it);
-            }
-        }
-
-        double getDuration(const std::string& name) const {
-            auto it = durations.find(name);
-            if (it != durations.end()) {
-                return it->second.count();
-            }
-            return 0.0;
-        }
-
-        void reset(const std::string& name) {
-            durations.erase(name);
-            start_times.erase(name);
-        }
-    };
-
     //some side terms
     struct alignas(64) inter_par{
 
@@ -89,7 +52,7 @@ namespace bundm {
             std::vector<Eigen::MatrixXd> ret_K();
             void set_ignore(std::vector<int> idx,bool mode);
             double error_value;
-            class Timer timer;
+            class util::Timer timer;
 
         private:
             //class for calculating derivatives.
@@ -116,6 +79,7 @@ namespace bundm {
             void augment_calc(int thread,double aug_lamda,const std::vector<bund::A_vec> &avec,struct inter_par& iter);
 
             void get_error(const std::vector<bund::A_vec> &avec);
+            void error_calc(int thread,std::vector<Eigen::MatrixXd>& thread_accumulators_wy,std::vector<Eigen::VectorXd>& thread_accumulators_YEb,const std::vector<bund::A_vec> &avec);
 
             int thr;
             std::vector<int> thread_parts;

@@ -171,6 +171,7 @@ cv::Mat multi_blend(const std::vector<cv::Mat>& images,const std::vector<cv::Mat
     imgm::elementwiseOperation(accumulated_color,accumulated_alpha,accumulated_color,imgm::DIVIDE);
     const float divisor = 255 / bands;
     accumulated_color = accumulated_color / divisor;
+
     return accumulated_color;
 
 }

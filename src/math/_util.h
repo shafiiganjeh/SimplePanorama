@@ -21,6 +21,43 @@
 
 namespace util {
 
+        //function for performance check
+    class Timer {
+        using Clock = std::chrono::high_resolution_clock;
+        using TimePoint = std::chrono::time_point<Clock>;
+        using Duration = std::chrono::duration<double>;
+
+        std::unordered_map<std::string, TimePoint> start_times;
+        std::unordered_map<std::string, Duration> durations;
+
+    public:
+        void start(const std::string& name) {
+            start_times[name] = Clock::now();
+        }
+
+        void stop(const std::string& name) {
+            auto end = Clock::now();
+            auto it = start_times.find(name);
+            if (it != start_times.end()) {
+                durations[name] += end - it->second;
+                start_times.erase(it);
+            }
+        }
+
+        double getDuration(const std::string& name) const {
+            auto it = durations.find(name);
+            if (it != durations.end()) {
+                return it->second.count();
+            }
+            return 0.0;
+        }
+
+        void reset(const std::string& name) {
+            durations.erase(name);
+            start_times.erase(name);
+        }
+    };
+
     struct adj_str {
             cv::Mat adj;
             std::vector<double> connectivity;
@@ -47,6 +84,8 @@ namespace util {
     };
 
     using thread = std::vector<std::vector<std::vector<int>>>;
+
+    cv::Rect scaleRect(const cv::Rect& r, double xs, double sy);
 
     std::vector<double> computeRowSumDividedByZeroCount(const cv::Mat& mat);
 
