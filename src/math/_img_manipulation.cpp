@@ -129,11 +129,12 @@ namespace imgm {
             cv::Mat resizedImage;
             cv::resize(input, resizedImage, cv::Size(desiredWidth, desiredHeight), 0, 0, interpolation);
 
+
             return resizedImage;
     }
 
 
-    cv::Mat file_to_cv(std::string path){
+    cv::Mat file_to_cv(std::string &path){
 
             std::ifstream file(path, std::ios::binary);
             cv::Mat image;

@@ -67,18 +67,21 @@ std::vector<std::string> get_path_from_Selection_data(struct image_paths* file_p
         std::vector<std::string> path_list;
 
         const unsigned char* seldata = gtk_selection_data_get_data(data);
-        std::stringstream stream((char *)seldata);
 
-        std::string line;
-        while (std::getline(stream, line)) {
+        gchar **uris = gtk_selection_data_get_uris(data);
+        for (gint i = 0; uris[i] != NULL; i++) {
 
-            line = path_from_uri(line);
+            gchar *line = g_filename_from_uri(uris[i], NULL, NULL);
 
-            if (std::find((file_pointer -> f_list).begin(), (file_pointer -> f_list).end(), line) == (file_pointer -> f_list).end())
-                {
-                    path_list.push_back(line);
-                }
+            if (std::find((file_pointer -> f_list).begin(), (file_pointer -> f_list).end(), line) == (file_pointer -> f_list).end()){
+                path_list.push_back(line);
+            }
+
+
+            g_free(line);
+
         }
+
         return path_list;
 }
 

@@ -10,7 +10,7 @@
 #include <opencv2/core/eigen.hpp>
 #include "_img_manipulation.h"
 #include "_homography.h"
-
+#include <omp.h>
 
 namespace bund {
 
@@ -21,6 +21,19 @@ namespace bund {
         int idx_j;
         Eigen::MatrixXd Aj;
         int size;
+
+    };
+
+
+    struct ParameterState {
+
+        std::vector<std::vector<std::vector<Eigen::VectorXd>>> measurements;
+        std::vector<double> focal;
+        std::vector<Eigen::MatrixXd> rot;
+        std::vector<Eigen::MatrixXd> rot_vec;
+        std::vector<Eigen::Vector2d> principal_vec;
+        std::vector<Eigen::MatrixXd> K;
+        std::vector<Eigen::MatrixXd> K_inv;
 
     };
 
@@ -36,45 +49,35 @@ namespace bund {
             std::vector<A_vec> ret_A_i();
             std::vector<A_vec> ret_A_i_num();//only for testing
             std::vector<Eigen::VectorXd> ret_measurements();
+            std::vector<Eigen::VectorXd> ret_measurements_saved();
             std::vector<std::vector< cv::Matx33f >> ret_hmat();
             std::vector<double> ret_focal();
             Eigen::MatrixXd ret_hom(int i, int j);
+            Eigen::MatrixXd ret_hom_saved(int i, int j);
             std::vector<Eigen::MatrixXd> ret_rot();
             std::vector<Eigen::MatrixXd> ret_K();
-            void add_delta(std::vector<Eigen::VectorXd> delta_b,Eigen::VectorXd delta_a,bool add_rot);
+            void add_delta(const std::vector<Eigen::VectorXd> &delta_b,const Eigen::VectorXd &delta_a,bool add_rot);
+
             void reset();
-            std::vector<bool> adjust_yn;
+            void accept();
 
             cv::Mat adj;
 
-        private:
+            class util::Timer timer;
 
-            std::vector<std::vector<std::vector<Eigen::VectorXd>>> measurements;
-            std::vector<std::vector<std::vector<Eigen::VectorXd>>> measurements_res;
+        private:
 
             std::vector<std::vector<int>> idx_set;
 
-            std::vector<double> focal;
-            std::vector<double> focal_res;
-
-            std::vector<Eigen::MatrixXd> rot;
-            std::vector<Eigen::MatrixXd> rot_res;
-            std::vector<Eigen::MatrixXd> rot_vec;
-            std::vector<Eigen::MatrixXd> rot_vec_res;
-            std::vector<Eigen::Vector2d> principal_vec;
-            std::vector<Eigen::Vector2d> principal_vec_res;
-
-            std::vector<Eigen::MatrixXd> K;
-            std::vector<Eigen::MatrixXd> K_inv;
-            std::vector<Eigen::MatrixXd> K_inv_res;
-            std::vector<Eigen::MatrixXd> K_res;
+            struct ParameterState current;
+            struct ParameterState saved;
 
             std::vector<std::vector<int>> thread_parts;
             std::vector<std::vector<std::vector<int>>> threads_vector;
             std::vector<int> thread_sizes;
 
-            void calc_B_i(int thread,const std::vector<std::vector<Eigen::MatrixXd>> hom_mat,std::vector<Eigen::MatrixXd> &B_i);
-            void calc_A_i(int thread,int size,const std::vector<std::vector<Eigen::MatrixXd>> hom_mat,std::vector<Eigen::Matrix3d> D,std::vector<A_vec> &A_i);
+            void calc_B_i(int thread,const std::vector<std::vector<Eigen::MatrixXd>> &hom_mat,std::vector<Eigen::MatrixXd> &B_i);
+            void calc_A_i(int thread,int size,const std::vector<std::vector<Eigen::MatrixXd>>& hom_mat,const std::vector<Eigen::Matrix3d> &D,std::vector<A_vec> &A_i);
             void calc_A_i_num(int thread,int size,std::vector<A_vec> &A_i);
 
     };

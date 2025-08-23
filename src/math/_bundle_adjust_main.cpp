@@ -167,6 +167,24 @@ namespace bundm {
 
 
     std::vector<bund::A_vec> adjuster::get_iter_par() {
+/*
+
+        std::vector<bund::A_vec> avec = par_img->ret_A_i();
+        int size_tot = avec[0].size * 6;
+
+        std::vector<Eigen::MatrixXd> bvec = par_img->ret_B_i();
+
+        std::vector<Eigen::VectorXd> ms = par_img->ret_measurements_saved();
+
+        iter.e_vec = par_er->error(ms);
+        iter.u_vecf = ret_uf(avec, size_tot);
+        iter.v_vec = sum_transpose(bvec, bvec);
+        iter.w_vec = sum_transposeAB(bvec, avec);
+
+        iter.eA_vec = ret_Ea(avec, iter.e_vec);
+        iter.eB_vec = ret_Eb(bvec, iter.e_vec);
+
+*/
 
         auto avec_fut = std::async(std::launch::async, [this]() {
             return par_img->ret_A_i();
@@ -274,10 +292,19 @@ namespace bundm {
 
         }
 
-        std::vector<std::thread> thread_objects;
+        //std::vector<std::thread> thread_objects;
         iter.v_vec_augmented = iter.v_vec;
         double aug_lamda = 1 + iter.lambda*foc;
 
+        #pragma omp parallel for schedule(dynamic)
+        for(int k = 0;k < threads_vector.size();k++){
+
+            augment_calc(k,aug_lamda,avec,iter);
+
+        }
+
+
+  /*
         for(int k = 0;k < threads_vector.size();k++){
 
             std::thread tobj(&adjuster::augment_calc,this,k,aug_lamda,std::ref(avec),std::ref(iter));
@@ -288,11 +315,27 @@ namespace bundm {
         for (auto& t : thread_objects) {
             t.join();
         }
-
+*/
     }
 
 
+    void adjuster::error_calc(int thread,std::vector<Eigen::MatrixXd>& thread_accumulators_wy,std::vector<Eigen::VectorXd>& thread_accumulators_YEb,const std::vector<bund::A_vec> &avec){
 
+
+        for(const int & p : threads_vector[thread]){
+
+            const bund::A_vec& a = avec[p];
+            thread_accumulators_wy[thread].block<6, 6>(a.idx_i * 6, a.idx_i * 6).noalias() += iter.Y_vec[p].block<6, 2>(a.idx_i * 6,0) * iter.w_vec[p].block<6, 2>(a.idx_i * 6,0).transpose();
+            thread_accumulators_wy[thread].block<6, 6>(a.idx_i * 6, a.idx_j * 6).noalias() += iter.Y_vec[p].block<6, 2>(a.idx_i * 6,0) * iter.w_vec[p].block<6, 2>(a.idx_j * 6,0).transpose();
+            thread_accumulators_wy[thread].block<6, 6>(a.idx_j * 6, a.idx_i * 6).noalias() += iter.Y_vec[p].block<6, 2>(a.idx_j * 6,0) * iter.w_vec[p].block<6, 2>(a.idx_i * 6,0).transpose();
+            thread_accumulators_wy[thread].block<6, 6>(a.idx_j * 6, a.idx_j * 6).noalias() += iter.Y_vec[p].block<6, 2>(a.idx_j * 6,0) * iter.w_vec[p].block<6, 2>(a.idx_j * 6,0).transpose();
+
+            thread_accumulators_YEb[thread].segment<6>(a.idx_i * 6).noalias() += iter.Y_vec[p].block<6, 2>(a.idx_i * 6,0) * iter.eB_vec[p];
+            thread_accumulators_YEb[thread].segment<6>(a.idx_j * 6).noalias() += iter.Y_vec[p].block<6, 2>(a.idx_j * 6,0) * iter.eB_vec[p];
+
+        }
+
+    }
 
 
     void adjuster::get_error(const std::vector<bund::A_vec> &avec){
@@ -308,45 +351,31 @@ namespace bundm {
             mat = Eigen::VectorXd::Zero(iter.Y_vec[0].rows());
         }
 
-        std::vector<std::thread> workers;
-
-        auto worker_task = [&](unsigned thread_id, size_t start, size_t end) {
-            auto& sum_wy_loc = thread_accumulators_wy[thread_id];
-            auto& sum_YEb_loc = thread_accumulators_YEb[thread_id];
-
-            for (size_t p = start; p < end; p++) {
-                const bund::A_vec& a = avec[p];
-
-                sum_wy_loc.block<6, 6>(a.idx_i * 6, a.idx_i * 6).noalias() += iter.Y_vec[p].block<6, 2>(a.idx_i * 6,0) * iter.w_vec[p].block<6, 2>(a.idx_i * 6,0).transpose();
-                sum_wy_loc.block<6, 6>(a.idx_i * 6, a.idx_j * 6).noalias() += iter.Y_vec[p].block<6, 2>(a.idx_i * 6,0) * iter.w_vec[p].block<6, 2>(a.idx_j * 6,0).transpose();
-                sum_wy_loc.block<6, 6>(a.idx_j * 6, a.idx_i * 6).noalias() += iter.Y_vec[p].block<6, 2>(a.idx_j * 6,0) * iter.w_vec[p].block<6, 2>(a.idx_i * 6,0).transpose();
-                sum_wy_loc.block<6, 6>(a.idx_j * 6, a.idx_j * 6).noalias() += iter.Y_vec[p].block<6, 2>(a.idx_j * 6,0) * iter.w_vec[p].block<6, 2>(a.idx_j * 6,0).transpose();
-
-                sum_YEb_loc.segment<6>(a.idx_i * 6).noalias() += iter.Y_vec[p].block<6, 2>(a.idx_i * 6,0) * iter.eB_vec[p];
-                sum_YEb_loc.segment<6>(a.idx_j * 6).noalias() += iter.Y_vec[p].block<6, 2>(a.idx_j * 6,0) * iter.eB_vec[p];
-
-            }
-        };
-
+        std::vector<std::thread> thread_objects;
 
         Eigen::MatrixXd sum_wy = Eigen::MatrixXd::Zero(iter.Y_vec[0].rows(),iter.w_vec[0].rows());
         Eigen::VectorXd sum_YEb = Eigen::VectorXd::Zero(iter.Y_vec[0].rows());
 
-        const size_t chunk_size = iter.w_vec.size() / num_threads;
-        size_t start_index = 0;
+        #pragma omp parallel for schedule(dynamic)
+        for(int k = 0;k < threads_vector.size();k++){
 
-        for (unsigned t = 0; t < num_threads; t++) {
-            const size_t end_index = (t == num_threads - 1)
-                                ? iter.w_vec.size()
-                                : start_index + chunk_size;
+            error_calc(k,thread_accumulators_wy,thread_accumulators_YEb,avec);
 
-            workers.emplace_back(worker_task, t, start_index, end_index);
-            start_index = end_index;
         }
 
-        for (auto& t : workers) {
+        /*
+        for(int k = 0;k < threads_vector.size();k++){
+
+            std::thread tobj(&adjuster::error_calc,this,k,std::ref(thread_accumulators_wy),std::ref(thread_accumulators_YEb),std::ref(avec));
+
+            thread_objects.push_back(std::move(tobj));
+
+        }
+
+        for (auto& t : thread_objects) {
             t.join();
         }
+*/
 
         for (auto& accum : thread_accumulators_wy) {
             sum_wy.noalias() += accum;
@@ -381,6 +410,7 @@ namespace bundm {
 
     struct inter_par adjuster::iterate(){
 
+        double eps = 1e-2;
         float error_start;
         float error_new;
         float lambda = iter.lambda;
@@ -406,6 +436,8 @@ namespace bundm {
         std::vector<bund::A_vec> avec = get_iter_par();
 
         augment(avec);
+
+        //while(1){get_error(avec);}
         get_error(avec);
 
         error_start = 0;
@@ -421,18 +453,13 @@ namespace bundm {
 
         bool num;
         for (int it = 0;it<50;it++){
-    timer.start("total for");
-    timer.start("itpar");
-            std::vector<bund::A_vec> avec = get_iter_par();
-    timer.stop("itpar");
-    timer.start("augm");
-            augment(avec);
-    timer.stop("augm");
-    timer.start("gete");
-            get_error(avec);
-    timer.stop("gete");
 
-    timer.stop("total for");
+            std::vector<bund::A_vec> avec = get_iter_par();
+
+            augment(avec);
+
+            get_error(avec);
+
             error_start = 0;
             for (Eigen::VectorXd e : iter.e_vec){
 
@@ -443,7 +470,7 @@ namespace bundm {
 
             par_img -> add_delta(iter.delta_b,iter.delta_a,addrot);
 
-            std::vector<Eigen::VectorXd> ms = par_img -> ret_measurements();
+            std::vector<Eigen::VectorXd> ms = par_img -> ret_measurements_saved();
             std::vector<Eigen::VectorXd> new_error = par_er -> error(ms);
 
             error_new = 0;
@@ -452,6 +479,8 @@ namespace bundm {
                 error_new = error_new + e.norm();
 
             }
+
+
             error_value = error_new;
             //std::cout<<"\n" <<"test error: " << error_new<<"\n";
             if( error_start > error_new ){
@@ -460,12 +489,12 @@ namespace bundm {
                 std::cout <<"lambda: "<< iter.lambda<< " new error: " << error_new/iter.e_vec.size()<<"\n";
                 error_value = error_new;
                 error_start = error_new;
+                par_img -> accept();
                 break_counter = 0;
 
             }else{
 
                 iter.lambda = iter.lambda * 10;
-                par_img -> reset();
                 break_counter++;
             }
 
@@ -491,17 +520,6 @@ namespace bundm {
         iter.focal = par_img -> ret_focal();
         iter.hom = par_img -> ret_hmat();
         return iter;
-
-    }
-
-
-    void adjuster::set_ignore(std::vector<int> idx,bool mode){
-
-        for(int i = 0;i < idx.size();i++){
-
-            (par_img -> adjust_yn)[idx[i]] = mode;
-
-        }
 
     }
 

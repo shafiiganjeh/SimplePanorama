@@ -84,7 +84,7 @@ int img_path_list_to_flowbox(std::vector<std::string> &path_list,int thumbnail_s
 
         for (int i = 0; i < path_list.size(); i++) {
 
-            cv::Mat temp = cv::imread(path_list[i], cv::IMREAD_COLOR);
+            cv::Mat temp = imgm::file_to_cv(path_list[i]);
 
             if (temp.empty()){
                 missing++;
@@ -113,8 +113,17 @@ int img_path_list_to_flowbox(std::vector<std::string> &path_list,int thumbnail_s
 
 
 void drag_rec(GtkWidget *widg, GdkDragContext* context, gint x,
-                               gint y, GtkSelectionData* data, guint info, guint time,struct main_window_ *main_window)
-{
+                               gint y, GtkSelectionData* data, guint info, guint time,struct main_window_ *main_window){
+
+        if (!(info == 1)) {
+            guint32 time_ = 0;
+            gtk_drag_finish(context,
+            FALSE,
+            FALSE,
+            time_);
+
+        }
+
         int thumbnail_size = 250;
         int index = 0;
 
@@ -137,9 +146,9 @@ void drag_rec(GtkWidget *widg, GdkDragContext* context, gint x,
                 gtk_widget_set_sensitive(GTK_WIDGET(main_window->menu_bar.bar_edit),TRUE);
         }}
         guint32 time_ = 0;
-        gtk_drag_finish (context,
+        gtk_drag_finish(context,
                  TRUE,
-                 TRUE,
+                 FALSE,
                  time_);
 
 }

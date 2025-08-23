@@ -6,13 +6,38 @@
 #include <vector>
 #include <string>
 #include <opencv2/opencv.hpp>
+#include "_image.h"
+#include "_panorama.h"
 
 extern GtkTargetEntry targetentries[];
+
+
+
+
+
+struct task{
+
+    guint bar_timer_id;
+    std::atomic<bool> cancel = false;
+    std::atomic<double> fraction = 0;
+
+};
+
 
 struct image_paths{
     std::vector<std::string> f_list;
     std::vector<cv::Mat> img_data;
 };
+
+
+struct Drag_Par{
+    gdouble start_x;
+    gdouble start_y;
+    gdouble hadj_value;
+    gdouble vadj_value;
+    gboolean is_dragging;
+};
+
 
 struct flowbox_{
     GtkWidget *flowbox_main;
@@ -57,6 +82,12 @@ struct toolbar_{
     GtkWidget *toolbar_main_new_img;
     GtkToolItem *toolbar_main_new;
 
+    GtkWidget *toolbar_main_testing_img;
+    GtkToolItem *toolbar_main_testing;
+    GtkWidget *test_object;
+    bool tested = false;
+
+
     GtkToolItem *toolbar_main_rewind;
     GtkToolItem *toolbar_main_create;
 };
@@ -66,8 +97,13 @@ struct toolbar_viewer{
 
     GtkWidget *toolbar_main;
 
+    GtkToolItem *toolbar_seperator_1;
+
     GtkToolItem *toolbar_main_save;
     GtkWidget *toolbar_main_save_img;
+
+    GtkToolItem *toolbar_main_crop;
+    GtkWidget *toolbar_main_crop_img;
 
     GtkToolItem *toolbar_main_zin;
     GtkWidget *toolbar_main_zin_img;
@@ -89,10 +125,18 @@ struct viewer_window_{
     struct toolbar_viewer toolbar;
 
     GtkImage* img_test;
+    GtkWidget *image_window_event;
     cv::Mat image;
     cv::Mat image_zoomed;
     std::vector<int> zoom_val;
     int current_zoom;
+
+    cv::Rect image_rect;
+    cv::Rect window_rect;
+
+    struct Drag_Par dragging;
+
+    std::unique_ptr<pan::panorama> panorama;
 
 };
 
@@ -110,6 +154,8 @@ struct main_window_{
     int view_number = 1;
 
     struct image_paths ipts;
+
+
 };
 
 

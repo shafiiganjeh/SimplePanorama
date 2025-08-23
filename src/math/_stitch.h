@@ -48,6 +48,7 @@ struct stitch_result {
     std::vector<int> ind;
     std::vector<int> ord;
     cv::Mat adj;
+    struct util::size_data prev_size;
 
 };
 
