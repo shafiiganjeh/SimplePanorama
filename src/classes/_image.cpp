@@ -101,8 +101,7 @@ namespace img {
 
     std::vector<util::keypoints> images::get_keypoints(){return keypnts;}
 
-    void images::calculate_keypoints(int threads){
-
+    void images::calculate_keypoints(int threads,std::atomic<double> * frct){
 
         std::vector<util::keypoints> kpmat;
         kpmat.resize( img_data.size() );
@@ -114,9 +113,26 @@ namespace img {
 
         std::vector<std::future<std::vector<util::keypoints>>> kp;
         kp.resize(threads);
-
+/*
         for (int i = 0;i<threads;i++){
+
             kp[i] = std::async(util::extrace_kp_vector,std::ref(img_data),split_id[i]);
+
+        }
+*/
+        for (int i = 0; i < threads; i++) {
+            kp[i] = std::async(std::launch::async, [this,split_id,i,frct,threads]() {
+                auto result = util::extrace_kp_vector(std::ref(img_data), split_id[i]);
+
+                if(not (frct == NULL)){
+
+                    double add =  1/(6 * (double)threads);
+                    *frct = *frct + add;
+
+                }
+
+                return result;
+            });
         }
 
         for (int i = 0;i<threads;i++){
@@ -125,7 +141,6 @@ namespace img {
 
         for (int i = 0;i < split_id.size();i++){
             split_kp.push_back(kp[i].get());
-
         }
 
         for (int i = 0;i < split_id.size();i++){

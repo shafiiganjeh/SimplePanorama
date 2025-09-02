@@ -208,15 +208,30 @@ Eigen::MatrixXd approximate_rot(Eigen::MatrixXd &R_i,
 }
 
 
-struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,const std::vector<std::vector< cv::Matx33f >> &Hom_mat,const std::vector<util::keypoints> &kpold,const std::vector<std::vector<std::vector<cv::DMatch>>> &match_mat,int threads){
+struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,const std::vector<std::vector< cv::Matx33f >> &Hom_mat,const std::vector<util::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match_mat,int threads,std::atomic<double>* f_adress){
 
     struct stitch_result res;
+/*
+    for(int j = 0; j < (*T.adj).rows;j++){
+        cv::Mat outimg;
+        std::vector<cv::KeyPoint> key;
+        for(int i = 0;i < kp[j].keypoint.size();i++){
+            cv::KeyPoint K;
+            K.pt.x = kp[j].keypoint[i].pt.x + ((*T.img_address)[j].cols / 2);
+            K.pt.y = kp[j].keypoint[i].pt.y + ((*T.img_address)[j].rows / 2);
+            key.push_back(K);
+        }
 
+        //cv::drawKeypoints( (*T.img_address)[j], key, outimg, cv::Scalar::all(-1));
+
+        //cv::imshow("Display window", outimg);
+        //cv::waitKey(0);
+    }
+*/
     cv::Mat path_mat = (*T.adj) + (*T.adj).t();
     std::cout <<"\n"<<"path_mat: "<<"\n"<<path_mat<<"\n";
 
     std::vector<std::vector< cv::Matx33f >> Hom_mat_new(Hom_mat);
-    std::vector<util::keypoints> kp = kpold;
 
     //find best node
     int maxLoc = std::distance(T.connectivity.begin(),std::max_element(T.connectivity.begin(), T.connectivity.end()));
@@ -232,6 +247,13 @@ struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,con
         std::cout <<"\n"<<"conn: "<<paths_clac[i].connectedTo<<"\n";
 
     }
+    double add_to_fraction = 0;
+    if(not (f_adress == NULL)){
+
+        add_to_fraction = (1.0/3.0) * (1.0/(double)(paths_clac.size()-1));
+    }
+
+    //*progress = 0;
 
     ind.push_back(paths_clac[0].nodeAdded);
     ind.push_back(paths_clac[1].nodeAdded);
@@ -254,12 +276,13 @@ struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,con
 
 
     cv::Mat adjclone = (*par.T.adj);
-    class bundm::adjuster testad(par.kp,par.match,.0001,par.T);
+    class bundm::adjuster testad(par.kp,par.match,.0001,par.T,threads);
     std::vector<Eigen::MatrixXd> rret = testad.ret_rot();
     std::vector<Eigen::MatrixXd> Kret = testad.ret_K();
 
 
     struct bundm::inter_par teees = testad.iterate();
+    if(not (f_adress == NULL)){*f_adress = *f_adress + add_to_fraction; }
     rret = testad.ret_rot();
     Kret = testad.ret_K();
 
@@ -272,7 +295,8 @@ struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,con
     }
 
     for (int l = 2;l<paths_clac.size();l++){
-
+        if(not (f_adress == NULL)){*f_adress = *f_adress + add_to_fraction; }
+        //*progress = *progress + .1;
         Eigen::MatrixXd K = T.K[paths_clac[l].connectedTo];
         K(0,2) = 0;
         K(1,2) = 0;
@@ -302,7 +326,7 @@ struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,con
 
         }
 
-        class bundm::adjuster testad(par.kp,par.match,.0001,par.T);
+        class bundm::adjuster testad(par.kp,par.match,.0001,par.T,threads);
 
         struct bundm::inter_par teees = testad.iterate();
         Hom_mat_new = teees.hom;

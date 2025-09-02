@@ -247,7 +247,7 @@ namespace bundm {
                 const bund::A_vec& a = avec[p];
                 iter.v_vec_augmented[p].diagonal() =iter.v_vec_augmented[p].diagonal()*aug_lamda;
 
-                double denom = 1/(iter.v_vec_augmented[p](0,0)*iter.v_vec_augmented[p](1,1) - iter.v_vec_augmented[p](0,1)*iter.v_vec_augmented[p](1,0));
+                double denom = 1.0/(iter.v_vec_augmented[p](0,0)*iter.v_vec_augmented[p](1,1) - iter.v_vec_augmented[p](0,1)*iter.v_vec_augmented[p](1,0));
                 temp(0,0) = iter.v_vec_augmented[p](1,1);
                 temp(0,1) = -iter.v_vec_augmented[p](0,1);
                 temp(1,0) = -iter.v_vec_augmented[p](1,0);
@@ -267,7 +267,7 @@ namespace bundm {
         iter.u_vecf_augmented = iter.u_vecf;
 
         std::vector<double> foc_vec = par_img->ret_focal();
-        double ang_ = CV_PI / 16;
+        double ang_ = CV_PI / 16.0;
         //ang_ = ang_*ang_;
         double foc;
         for(int i = 0; i < (par_img->adj).rows;i++){
@@ -294,7 +294,7 @@ namespace bundm {
 
         //std::vector<std::thread> thread_objects;
         iter.v_vec_augmented = iter.v_vec;
-        double aug_lamda = 1 + iter.lambda*foc;
+        double aug_lamda = 1.0 + iter.lambda*foc;
 
         #pragma omp parallel for schedule(dynamic)
         for(int k = 0;k < threads_vector.size();k++){
@@ -485,7 +485,7 @@ namespace bundm {
             //std::cout<<"\n" <<"test error: " << error_new<<"\n";
             if( error_start > error_new ){
 
-                iter.lambda = iter.lambda / 10;
+                iter.lambda = iter.lambda / 10.0;
                 std::cout <<"lambda: "<< iter.lambda<< " new error: " << error_new/iter.e_vec.size()<<"\n";
                 error_value = error_new;
                 error_start = error_new;
@@ -494,7 +494,7 @@ namespace bundm {
 
             }else{
 
-                iter.lambda = iter.lambda * 10;
+                iter.lambda = iter.lambda * 10.0;
                 break_counter++;
             }
 

@@ -29,6 +29,7 @@ namespace util {
 
     };
 
+
     enum GeometryType {
         GEOM_TYPE_POINT,
         GEOM_TYPE_LINE,
@@ -38,28 +39,29 @@ namespace util {
 
     public:
 
-        adj_calculator(const std::vector<cv::Mat> & imgs,const std::vector<keypoints> &key_p);
+        adj_calculator(const std::vector<cv::Mat> & imgs,const std::vector<keypoints> &key_p,std::atomic<double>* fadress = NULL,std::atomic<bool>* cancel = NULL);
         std::vector<size_t> find_n_smallest_indices(const std::vector<double>& rank, int n);
 
         void cal_adj(const std::vector<cv::Mat> & imgs,int T);
+        void get_threads(int n);
         void get_match_number_matrix(int T);
         void heuristic_match_filter(int n);
-
-        float match_quality(const struct keypoints &kp1,const cv::Mat img1,const struct keypoints &kp2,const cv::Mat img2,int row,int col);
-
-        void get_threads(int n);
-
-        std::vector<cv::DMatch> clean_matches(const struct keypoints &kp1,const struct keypoints &kp2,std::vector<cv::DMatch> match,const  cv::Matx33f &H,const std::vector<float> &T12);
-
         cv::Mat adj;
         cv::Mat adj_test;
         std::vector<keypoints> kpmat;
         std::vector<std::vector< cv::Matx33f >> hom_mat;
-
-        std::vector<std::vector<std::vector<cv::DMatch>>> match_mat_raw;
         std::vector<std::vector<std::vector<cv::DMatch>>> match_mat;
 
+    private:
+
+        std::atomic<double>* f_adress;
+        std::atomic<bool>* c_adress;
+        double add = 0;
+
         thread TR;
+        std::vector<std::vector<std::vector<cv::DMatch>>> match_mat_raw;
+        std::vector<cv::DMatch> clean_matches(const struct keypoints &kp1,const struct keypoints &kp2,std::vector<cv::DMatch> match,const  cv::Matx33f &H,const std::vector<float> &T12);
+        float match_quality(const struct keypoints &kp1,const cv::Mat img1,const struct keypoints &kp2,const cv::Mat img2,int row,int col);
 
 };
 

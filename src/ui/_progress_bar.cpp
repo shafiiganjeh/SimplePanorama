@@ -3,8 +3,7 @@
 
 namespace pbar{
 
-
-
+/*
     gboolean update_progress(gpointer data) {
 
         progress_bar_ *progress_bar = static_cast<progress_bar_*>(data);
@@ -29,6 +28,8 @@ namespace pbar{
 
             return G_SOURCE_REMOVE;
         }
+        gtk_widget_show_all(progress_bar->window);
+
         return G_SOURCE_CONTINUE;
     }
 
@@ -36,6 +37,7 @@ namespace pbar{
     void window_closed(GtkWidget *widget, progress_bar_ *progress_bar){
 
         progress_bar->cancel = true;
+        g_free(progress_bar);
 
     }
 
@@ -48,7 +50,7 @@ namespace pbar{
     }
 
 
-    void open_progress_bar(GtkWidget *add_to,progress_bar_ *progress_bar,struct main_window_ *main_window){
+    void open_progress_bar(GtkWidget *add_to,struct progress_bar_ *progress_bar,struct main_window_ *main_window){
 
 
         progress_bar->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -56,7 +58,7 @@ namespace pbar{
         gtk_window_set_default_size(GTK_WINDOW(progress_bar->window), 300, 100);
         gtk_window_set_resizable(GTK_WINDOW(progress_bar->window), FALSE);
         gtk_window_set_position(GTK_WINDOW(progress_bar->window), GTK_WIN_POS_CENTER_ON_PARENT);
-        gtk_window_set_transient_for(GTK_WINDOW(progress_bar->window), GTK_WINDOW(main_window->window));
+        gtk_window_set_transient_for(GTK_WINDOW(progress_bar->window), GTK_WINDOW(add_to));
 
         progress_bar->pbar_main_vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
         gtk_container_add(GTK_CONTAINER(progress_bar->window), progress_bar->pbar_main_vbox);
@@ -82,5 +84,5 @@ namespace pbar{
         gtk_widget_show_all(progress_bar->window);
 
     }
-
+*/
 }

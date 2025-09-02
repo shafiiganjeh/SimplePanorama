@@ -1,6 +1,8 @@
 
 #ifndef VIEWT_H
 #define VIEWT_H
+
+#include "_panorama.h"
 #include "_gtk_vars.h"
 #include "_gtk_ops.h"
 

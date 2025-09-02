@@ -111,7 +111,7 @@ namespace gcut {
 
     cv::Mat computeOverlapMatrix(const std::vector<cv::Rect>& rois);
 
-    std::vector<cv::Mat> graph_cut(const std::vector<cv::Mat>& images,const std::vector<cv::Mat>& masks,const std::vector<cv::Point>& top_lefts,std::vector<int>& seq);
+    std::vector<cv::Mat> graph_cut(const std::vector<cv::Mat>& images,const std::vector<cv::Mat>& masks,const std::vector<cv::Point>& top_lefts,std::vector<int>& seq,std::atomic<double>* f_adress = NULL);
 
 
     std::vector<int> define_graph_full(class gcut::graph_object &obj,class EdgeWeight &reader);
