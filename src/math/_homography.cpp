@@ -385,10 +385,14 @@ namespace util {
     }
 
 
-    adj_calculator::adj_calculator(const std::vector<cv::Mat> & imgs,const std::vector<keypoints> &key_p){
+    adj_calculator::adj_calculator(const std::vector<cv::Mat> & imgs,const std::vector<keypoints> &key_p,std::atomic<double>* fadress,std::atomic<bool>* cancel){
+
 
             adj.create(imgs.size(), imgs.size(), CV_64F);
             adj = cv::Mat::zeros(imgs.size(), imgs.size(), CV_64F);
+
+            f_adress = fadress;
+            c_adress = cancel;
 
             kpmat.resize(key_p.size());
             kpmat = key_p;
@@ -428,13 +432,13 @@ namespace util {
 
             for(const std::vector<int> & i : TR[T]){
 
+                if(not (f_adress == NULL)){(*f_adress) = (*f_adress) + add/2;}
+
                 if (i[0] == i[1]){
 
                     adj.at<double>(i[0],i[1]) = 0;
 
-                }
-
-                else{
+                }else{
 
                     double q = match_quality(kpmat[i[0]],imgs[i[0]],kpmat[i[1]],imgs[i[1]],i[0],i[1]);
 
@@ -583,6 +587,8 @@ namespace util {
 
             for(const std::vector<int> & i : TR[T]){
 
+                if(not (f_adress == NULL)){(*f_adress) = (*f_adress) + add/2;} //progress bar counbter
+
                 if (i[0] == i[1]){
 
                     adj.at<double>(i[0],i[1]) = 0;
@@ -590,10 +596,29 @@ namespace util {
                 }
 
                 else{
-                    std::pair<std::vector<cv::DMatch>, std::vector<cv::DMatch>> match = match_keypoints(kpmat[i[0]],kpmat[i[1]]);
+                    std::pair<std::vector<cv::DMatch>, std::vector<cv::DMatch>> match;
 
-                    adj.at<double>(i[0],i[1]) = match.first.size();
-                    match_mat_raw[i[0]][i[1]] = match.first;
+                    if(not (c_adress == NULL)){
+
+                        if(*c_adress){
+
+                            adj.at<double>(i[0],i[1])  = 0;
+
+                        }else{
+
+                            match = match_keypoints(kpmat[i[0]],kpmat[i[1]]);
+                            adj.at<double>(i[0],i[1]) = match.first.size();
+                            match_mat_raw[i[0]][i[1]] = match.first;
+
+                        }
+
+                    }else{
+
+                        match = match_keypoints(kpmat[i[0]],kpmat[i[1]]);
+                        adj.at<double>(i[0],i[1]) = match.first.size();
+                        match_mat_raw[i[0]][i[1]] = match.first;
+
+                    }
 
                 }
 
@@ -628,10 +653,12 @@ namespace util {
 
     std::vector<keypoints> extrace_kp_vector(const std::vector<cv::Mat> & imgs,std::vector<int> idx){
 
+
         std::vector<keypoints> kp;
         for(const int& s : idx) {
 
             kp.push_back(extract_keypoints(imgs[s]));
+
 
         }
 
@@ -643,15 +670,19 @@ namespace util {
 
             int size = adj.rows;
             std::vector<std::vector<int>> calcs;
+            double elem_counter = 0;
 
             for (int i = 0;i < size;i++){
 
                 for (int j = i;j < size;j++){
 
                     calcs.push_back({i,j});
+                    elem_counter++;
 
                 }
             }
+
+            add = (1.0/6.0) * (1.0/elem_counter);
 
             TR = splitVector(calcs, n);
 

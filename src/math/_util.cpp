@@ -362,52 +362,57 @@ float focal_from_hom(const std::vector<std::vector< cv::Matx33f >> & H_mat,const
             return a.nodes > b.nodes;
         }
 
-
-
     std::vector<struct adj_str> extract_adj(const cv::Mat &source_adj){
+
+
+        if (source_adj.empty()) {
+            throw std::invalid_argument("Input matrix is empty");
+        }
+
+        if (source_adj.rows != source_adj.cols) {
+            throw std::invalid_argument("Input matrix is not square");
+        }
 
         cv::Mat adj;
         source_adj.copyTo(adj);
         adj = adj + adj.t();
-        cv::Mat zeromat = cv::Mat::zeros(1,adj.cols,adj.type());
+        cv::Mat zeromat = cv::Mat::zeros(1, adj.cols, adj.type());
 
-        std::vector<struct adj_str> adj_mats;
+        std::vector<adj_str> adj_mats;
 
-        for(int i = 0; i < adj.rows; i++){
-
-            if(cv::countNonZero(adj.row(i))){
-                //std::cout <<"\n"<<"row : "<<i<<"\n";
-
+        for (int i = 0; i < adj.rows; i++) {
+            if (cv::countNonZero(adj.row(i))) {
                 std::vector<int> graph = dfs(adj, i);
-                cv::Mat sub_graph = cv::Mat::zeros(adj.size(),adj.type());
+                cv::Mat sub_graph = cv::Mat::zeros(adj.size(), adj.type());
 
-                for(int nodes : graph){
-
-                    adj.row(nodes).copyTo(sub_graph.row(nodes));
-                    zeromat.row(0).copyTo(adj.row(nodes));
+                for (int node : graph) {
+                    adj.row(node).copyTo(sub_graph.row(node));
+                    zeromat.row(0).copyTo(adj.row(node));
                 }
 
-                struct adj_str temp;
-
+                adj_str temp;
                 temp.connectivity = computeRowSumDividedByZeroCount(sub_graph);
 
-                for(int i = 1; i < sub_graph.rows; i++) {
-                    sub_graph.row(i).colRange(0, i).setTo(0);
+                for (int j = 1; j < sub_graph.rows; j++) {
+                    sub_graph.row(j).colRange(0, j).setTo(0);
                 }
 
                 temp.adj = sub_graph;
                 temp.nodes = graph.size();
                 adj_mats.push_back(temp);
-
             }
+        }
 
+
+        if (adj_mats.empty()) {
+            throw std::runtime_error("No connected subgraphs found");
         }
 
         std::sort(adj_mats.begin(), adj_mats.end(), compareDescending);
 
         return adj_mats;
 
-    }
+}
 
 
 

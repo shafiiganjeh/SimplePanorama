@@ -5,7 +5,7 @@ namespace gcut {
 
 
     //https://faculty.cc.gatech.edu/~turk/my_papers/graph_cuts.pdf
-std::vector<cv::Mat> graph_cut(const std::vector<cv::Mat>& images,const std::vector<cv::Mat>& masks,const std::vector<cv::Point>& top_lefts,std::vector<int>& seq){
+std::vector<cv::Mat> graph_cut(const std::vector<cv::Mat>& images,const std::vector<cv::Mat>& masks,const std::vector<cv::Point>& top_lefts,std::vector<int>& seq,std::atomic<double>* f_adress){
 
     struct util::size_data dim = util::get_pan_dimension(top_lefts,images);
 
@@ -54,6 +54,8 @@ std::vector<cv::Mat> graph_cut(const std::vector<cv::Mat>& images,const std::vec
     masks[seq[0]].copyTo(scene(image_roi[seq[0]]),masks[seq[0]]);
     std::vector<int> added;
 
+    double add = (1.0/3.2) * (1.0/(double)seq.size());
+
     for(int s = 1;s < seq.size();s++){
 
         cv::Mat gray_image1,gray_image2;
@@ -71,7 +73,7 @@ std::vector<cv::Mat> graph_cut(const std::vector<cv::Mat>& images,const std::vec
         images[seq[s]].copyTo(panorama(image_roi[seq[s]]),cmat);
 
         masks_copy[seq[s]] = cmat;
-
+        if(not (f_adress == NULL)){*f_adress = *f_adress + add;}
     }
 
 

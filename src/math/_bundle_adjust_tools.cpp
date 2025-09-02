@@ -79,25 +79,25 @@ namespace bund {
 
         double theta = rotv(0,0)*rotv(0,0)+rotv(1,0)*rotv(1,0)+rotv(2,0)*rotv(2,0);
         if(theta < eps){
-        rot << 1,-rotv(2,0),rotv(1,0),rotv(2,0),1,-rotv(0,0),-rotv(1,0),rotv(0,0),1;
+        rot << 1.0,-rotv(2,0),rotv(1,0),rotv(2,0),1.0,-rotv(0,0),-rotv(1,0),rotv(0,0),1.0;
         return rot;
         }
 
         theta = sqrt(theta);
-        double norm = 1/theta;
+        double norm = 1.0/theta;
         u << rotv(0,0),rotv(1,0),rotv(2,0);
         u = u*norm;
 
         Eigen::Matrix3d K;
-        K << 0, -u.z(), u.y(),
-            u.z(), 0, -u.x(),
-            -u.y(), u.x(), 0;
+        K << 0.0, -u.z(), u.y(),
+            u.z(), 0.0, -u.x(),
+            -u.y(), u.x(), 0.0;
 
         const double sin_theta = std::sin(theta);
         const double cos_theta = std::cos(theta);
         const Eigen::Matrix3d K_squared = K * K;
 
-        return Eigen::Matrix3d::Identity() + sin_theta * K + (1 - cos_theta) * K_squared;
+        return Eigen::Matrix3d::Identity() + sin_theta * K + (1.0 - cos_theta) * K_squared;
     }
 
 
@@ -110,7 +110,7 @@ namespace bund {
         Eigen::Matrix3d R_solved = svd.matrixU() * (svd.matrixV().transpose());
 
         if (R_solved.determinant() < 0){
-            R_solved *= -1;
+            R_solved *= -1.0;
         }
 
         v << R_solved(2,1) - R_solved(1,2),R_solved(0,2) - R_solved(2,0),R_solved(1,0) - R_solved(0,1);
@@ -141,7 +141,7 @@ namespace bund {
     Eigen::MatrixXd to_K(double focal,const Eigen::Vector2d &pvec){
 
         Eigen::MatrixXd v(3,3);
-        v << focal,0,pvec[0],0,focal,pvec[1],0,0,1;
+        v << focal,0,pvec[0],0.0,focal,pvec[1],0.0,0.0,1.0;
 
         return v;
     }
@@ -149,7 +149,7 @@ namespace bund {
     Eigen::MatrixXd to_K_inv(double focal,const Eigen::Vector2d &pvec){
 
         Eigen::MatrixXd v(3,3);
-        v << focal,0,pvec[0],0,focal,pvec[1],0,0,1;
+        v << focal,0.0,pvec[0],0.0,focal,pvec[1],0.0,0.0,1.0;
 
         return v.inverse().eval();
     }
@@ -191,11 +191,11 @@ namespace bund {
                         Eigen::VectorXd temp(3);
                         Eigen::VectorXd measure = Eigen::VectorXd::Zero(6);
 
-                        write_to_eigen(measure, static_cast<cv::Point2d>(kp[j].keypoint[match[i][j][p].trainIdx].pt),2,0);
-                        measure[2] = 1;
+                        write_to_eigen(measure, static_cast<cv::Point2d>(kp[j].keypoint[match[i][j][p].trainIdx].pt),2.0,0.0);
+                        measure[2] = 1.0;
 
-                        write_to_eigen(temp, static_cast<cv::Point2d>(kp[j].keypoint[match[i][j][p].trainIdx].pt),2,0);
-                        temp[2] = 1;
+                        write_to_eigen(temp, static_cast<cv::Point2d>(kp[j].keypoint[match[i][j][p].trainIdx].pt),2.0,0.0);
+                        temp[2] = 1.0;
                         temp = hom * temp;
                         temp = temp / temp[2];
                         measure({3,4,5}) = temp;
@@ -302,7 +302,7 @@ namespace bund {
             Eigen::VectorXd t_tr = hom_mat[i][j]*t;
 
             Eigen::MatrixXd B1(2,3);
-            B1 << 1/t_tr[2],0,-t_tr[0]/(t_tr[2]*t_tr[2]),0,1/t_tr[2],-t_tr[1]/(t_tr[2]*t_tr[2]);
+            B1 << 1.0/t_tr[2],0.0,-t_tr[0]/(t_tr[2]*t_tr[2]),0.0,1.0/t_tr[2],-t_tr[1]/(t_tr[2]*t_tr[2]);
             B1 = B1 *  hom_mat[i][j]({0,1,2},{0,1});
 
             B_insert({2,3},{0,1}) = B1;
@@ -365,7 +365,7 @@ namespace bund {
 
         Eigen::VectorXd v(3);
         v({0,1}) = par;
-        v[2] = 1;
+        v[2] = 1.0;
         v = hom * v;
         v = v/v[2];
 
@@ -397,7 +397,7 @@ namespace bund {
             Eigen::VectorXd p_x = d_funcb(inp_v,xph);
             Eigen::VectorXd m_x = d_funcb(inp_v,xmh);
 
-            Eigen::VectorXd df = (p_x - m_x)/(2*h);
+            Eigen::VectorXd df = (p_x - m_x)/(2.0*h);
 
             for (int j = 0;j < df.size();j++){
 
@@ -569,13 +569,13 @@ namespace bund {
         }
 
         Eigen::Matrix3d df;
-        df << 1,0,0,0,1,0,0,0,0;
+        df << 1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0;
 
         Eigen::Matrix3d dx;
-        dx << 0,0,1,0,0,0,0,0,0;
+        dx << 0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0;
 
         Eigen::Matrix3d dy;
-        dy << 0,0,0,0,0,1,0,0,0;
+        dy << 0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0;
 
         std::vector<Eigen::Matrix3d> D = {df,dx,dy};
 
@@ -615,7 +615,7 @@ namespace bund {
 
         Eigen::Vector3d x;
         x({0,1}) = inp_v;
-        x[2] = 1;
+        x[2] = 1.0;
 
         Eigen::Matrix3d Ki_inv  = to_K_inv(par[0],par({1,2}));
         Eigen::Matrix3d Kj = to_K(par[6],par({7,8}));
@@ -793,7 +793,7 @@ namespace bund {
                         saved.measurements[i][j][p]({0,1}) = current.measurements[i][j][p]({0,1}) + delta_b[c];
 
                         temp({0,1}) = saved.measurements[i][j][p]({0,1});
-                        temp[2] = 1;
+                        temp[2] = 1.0;
                         temp = hom * temp;
                         temp = temp/temp[2];
                         saved.measurements[i][j][p]({3,4,5}) = temp;

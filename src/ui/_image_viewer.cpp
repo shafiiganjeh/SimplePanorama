@@ -1,7 +1,102 @@
 #include "_image_viewer.h"
-#include "_progress_bar.h"
 
 namespace imgv{
+
+
+    gboolean update_progress(gpointer data) {
+
+        progress_bar_ *progress_bar = static_cast<progress_bar_*>(data);
+        if(progress_bar->finished) {
+
+            return G_SOURCE_REMOVE;
+
+        }
+
+        gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(progress_bar->pbar_progress_bar), progress_bar->fraction);
+
+        const gchar* number = "%d%%";
+        gchar* temp = new gchar[strlen(number) + strlen(progress_bar->loading_text) + 1];
+        strcpy(temp, progress_bar->loading_text);
+        strcat(temp, number);
+
+        gchar *text = g_strdup_printf(temp, (int)(progress_bar->fraction * 100));
+        gtk_progress_bar_set_text(GTK_PROGRESS_BAR(progress_bar->pbar_progress_bar), text);
+
+        g_free(text);
+        delete[] temp;
+
+        if (progress_bar->fraction >= 1.0) {
+
+            progress_bar->finished = true;
+            gtk_widget_destroy(progress_bar->window);
+
+            return G_SOURCE_REMOVE;
+        }
+        gtk_widget_show_all(progress_bar->window);
+
+        return G_SOURCE_CONTINUE;
+    }
+
+
+    void bar_closed(GtkWidget *widget, progress_bar_ *progress_bar){
+
+        if(progress_bar->finished){
+
+            show_image(progress_bar);
+            g_free(progress_bar);
+            gtk_widget_set_sensitive(GTK_WIDGET(progress_bar->main_window->toolbar.toolbar_main_new),true);
+            return;
+
+        }
+
+        progress_bar->finished = true;
+        gtk_widget_set_sensitive(GTK_WIDGET(progress_bar->main_window->toolbar.toolbar_main_new),true);
+        g_free(progress_bar);
+
+    }
+
+
+    void connect_signals_bar(progress_bar_ *progress_bar){
+
+        g_signal_connect(progress_bar->window, "destroy", G_CALLBACK(bar_closed), progress_bar);
+        g_signal_connect(progress_bar->pbar_button_box_cancel, "clicked", G_CALLBACK(gtk_window_close), GTK_WINDOW(progress_bar->window));
+
+    }
+
+
+    void open_progress_bar(GtkWidget *add_to,struct progress_bar_ *progress_bar,struct main_window_ *main_window){
+
+        progress_bar->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+        gtk_window_set_title(GTK_WINDOW(progress_bar->window), "Working...");
+        gtk_window_set_default_size(GTK_WINDOW(progress_bar->window), 300, 100);
+        gtk_window_set_resizable(GTK_WINDOW(progress_bar->window), FALSE);
+        gtk_window_set_position(GTK_WINDOW(progress_bar->window), GTK_WIN_POS_CENTER_ON_PARENT);
+        gtk_window_set_transient_for(GTK_WINDOW(progress_bar->window), GTK_WINDOW(add_to));
+
+        progress_bar->pbar_main_vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+        gtk_container_add(GTK_CONTAINER(progress_bar->window), progress_bar->pbar_main_vbox);
+        gtk_widget_set_margin_top(progress_bar->pbar_main_vbox, 5);
+        gtk_widget_set_margin_bottom(progress_bar->pbar_main_vbox, 5);
+        gtk_widget_set_margin_start(progress_bar->pbar_main_vbox, 5);
+        gtk_widget_set_margin_end(progress_bar->pbar_main_vbox, 5);
+
+        progress_bar->pbar_progress_bar = gtk_progress_bar_new();
+        gtk_progress_bar_set_show_text(GTK_PROGRESS_BAR(progress_bar->pbar_progress_bar), TRUE);
+        gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(progress_bar->pbar_progress_bar), 0);
+        gtk_box_pack_start(GTK_BOX(progress_bar->pbar_main_vbox), progress_bar->pbar_progress_bar, TRUE, TRUE, 0);
+
+        progress_bar->pbar_button_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+        gtk_box_pack_start(GTK_BOX(progress_bar->pbar_main_vbox), progress_bar->pbar_button_box, FALSE, FALSE, 10);
+
+        progress_bar->pbar_button_box_cancel = gtk_button_new_with_label("CANCEL");
+        gtk_box_pack_end(GTK_BOX(progress_bar->pbar_button_box), progress_bar->pbar_button_box_cancel, TRUE, FALSE, 0);
+
+        progress_bar->bar_text("sample text: ");
+
+        connect_signals_bar(progress_bar);
+        gtk_widget_show_all(progress_bar->window);
+
+}
 
 
 gboolean on_mouse_press(GtkWidget *widget, GdkEventButton *event, struct viewer_window_ *viewer_window) {
@@ -64,6 +159,7 @@ void window_quit(GtkWidget *widget, gpointer data){
 
     struct widget_and_Id* wind_id;
     wind_id = (struct widget_and_Id*)data;
+    wind_id->window->view[wind_id->id].panorama_.reset();
     wind_id->window->view.erase(wind_id->id);
 
     delete wind_id;
@@ -98,14 +194,90 @@ void get_files(GtkFlowBoxChild *child,struct widget_and_Id *for_list){
 
     if (ind >= 0){
 
-        for_list->window->view[for_list->id].panorama->add_images(for_list->window->ipts.f_list[ind]);
+        for_list->window->view[for_list->id].panorama_->add_images(for_list->window->ipts.f_list[ind]);
 
     }
     else{
-            std::cout<< gtk_widget_get_name (GTK_WIDGET( widget))<<" not found";
+        std::cout<< gtk_widget_get_name (GTK_WIDGET( widget))<<" not found";
     }
 
     g_list_free(g_steal_pointer (&children));
+}
+
+
+gboolean show_image(struct progress_bar_ *bar) {
+
+    struct viewer_window_ *progress_bar = bar->view;
+    std::cout<<"\n"<<"exec"<<"\n";
+
+    gtk_window_set_default_size(GTK_WINDOW(progress_bar->window), 800, 600);
+
+    progress_bar->viewer_box = gtk_box_new (GTK_ORIENTATION_VERTICAL,0);
+    gtk_box_set_homogeneous (GTK_BOX(progress_bar->viewer_box),FALSE);
+    gtk_container_add (GTK_CONTAINER(progress_bar->window),progress_bar->viewer_box);
+
+    progress_bar->viewer_scrolled_window = gtk_scrolled_window_new (NULL, NULL);
+    progress_bar->viewer_scrolled_window_viewpoint = gtk_viewport_new (NULL, NULL);
+    gtk_container_add(GTK_CONTAINER(progress_bar->viewer_scrolled_window), progress_bar->viewer_scrolled_window_viewpoint);
+    gtk_box_pack_end(GTK_BOX(progress_bar->viewer_box),progress_bar->viewer_scrolled_window,TRUE,TRUE,0);
+
+    //progress_bar->image = bar->view->future_.get();
+    progress_bar->image = progress_bar->panorama_->get_preview();
+
+    //progress_bar->image = cv::imread("/home/sd_bert/Pictures/1725014833368114.png", cv::IMREAD_COLOR);
+
+    if ( 200 < (progress_bar->image.cols - 800)){
+
+        float z_num = (progress_bar->image.cols - 800)/200;
+        if (z_num < 3){
+
+            progress_bar->zoom_val.resize(2);
+            progress_bar->zoom_val[0] = 800;
+            progress_bar->zoom_val[1] = progress_bar->image.cols;
+
+        }else{
+
+            int zooms = (int)z_num;
+            progress_bar->zoom_val.resize(zooms+1);
+            progress_bar->zoom_val[0] = 800;
+            progress_bar->zoom_val[zooms] = progress_bar->image.cols;
+            for(int i = 1; i < zooms;i++){
+
+                progress_bar->zoom_val[i] = 800 + 200*i;
+            }
+
+        }
+
+    }
+
+    if (1 > progress_bar->zoom_val.size()){
+
+        progress_bar->image_zoomed = progress_bar->image;
+        progress_bar->current_zoom = -1;
+
+    }else{
+
+        progress_bar->image_zoomed = imgm::resizeKeepAspectRatio(progress_bar->image, progress_bar->zoom_val[1]);
+        progress_bar->current_zoom = 1;
+
+    }
+
+    progress_bar->img_test = gops::cv_image_to_gtk_image(progress_bar->image_zoomed);
+
+    progress_bar->image_window_event = gtk_event_box_new();
+    gtk_container_add(GTK_CONTAINER(progress_bar->image_window_event), GTK_WIDGET(progress_bar->img_test));
+
+    gtk_container_add(GTK_CONTAINER(progress_bar->viewer_scrolled_window_viewpoint),progress_bar->image_window_event);
+
+    gtk_widget_add_events(progress_bar->image_window_event, GDK_BUTTON_PRESS_MASK bitor GDK_BUTTON_RELEASE_MASK bitor GDK_POINTER_MOTION_MASK);
+
+    imgvt::create_toolbar(progress_bar->viewer_box,&(progress_bar->toolbar),progress_bar);
+
+    gtk_widget_show_all(progress_bar->window);
+    connect_signals(bar->main_window,progress_bar->windows_idx);
+
+    return true;
+
 }
 
 
@@ -116,107 +288,45 @@ void create_viewer(struct main_window_ *main_window,GtkWidget* self,GdkEventButt
     main_window->view_number++;
     if (main_window->view.count(test)){return;}
 
+    gtk_widget_set_sensitive(GTK_WIDGET(main_window->toolbar.toolbar_main_new),false);
+
     struct viewer_window_ viewer;
     viewer.window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     main_window->view[test] = std::move(viewer);
+    main_window->view[test].windows_idx = test;
     std::vector<std::string> files;
     //pan::panorama pan(files);
-    auto ptr = std::make_unique<pan::panorama>(files);
-    main_window->view[test].panorama = std::move(ptr);
 
     GList* s_list = gtk_flow_box_get_selected_children(GTK_FLOW_BOX( main_window->flowbox.flowbox_main));
+
     struct widget_and_Id for_list;
     for_list.id = test;
     for_list.window = main_window;
-    g_list_foreach(s_list,(GFunc)get_files,&for_list);
-    struct pan::config _CONF_;
 
-    pbar::progress_bar_ *progress_bar = g_new0(pbar::progress_bar_, 1);
+    main_window->view[test].progress_bar = g_new0(progress_bar_, 1);
+    main_window->view[test].progress_bar->init();
+    main_window->view[test].progress_bar->view = &(main_window->view[test]);
+    main_window->view[test].progress_bar->main_window = main_window;
 
+    main_window->view[test].panorama_ = std::make_shared<pan::panorama>(files,main_window->view[test].progress_bar);
 
-    pbar::open_progress_bar(main_window->window,progress_bar,main_window);
+    g_list_foreach(s_list,(GFunc)get_files,&for_list); //deletes files
 
-    progress_bar->bar_timer_id = g_timeout_add(200, pbar::update_progress, progress_bar);
+    open_progress_bar(main_window->window,main_window->view[test].progress_bar,main_window);
+    gdk_threads_add_idle(update_progress, main_window->view[test].progress_bar);
 
+    pan::config _CONF_;
 
-    main_window->view[test].panorama->stitch_panorama(8,_CONF_);
-/*
-    auto handle = std::async(std::launch::async, [&ptr](){
-            return ptr->foo(); // Ofcourse make foo public in your snippet
-    });
+    auto get_pan = [main_window,test](pan::config& _CONF_) {
 
+        main_window->view[test].panorama_->stitch_panorama(_CONF_);
+        cv::Mat prev = main_window->view[test].panorama_->get_preview();
+        main_window->view[test].progress_bar->fraction = 1;
 
-    std::thread stitch_thread = std::thread(&pan::panorama::stitch_panorama,&main_window->view[test].panorama, 8,_CONF_);
+    };
 
-
-    if (stitch_thread.joinable()) {
-        stitch_thread.join();
-    }
-*/
-    //adding box
-    gtk_window_set_default_size(GTK_WINDOW(main_window->view[test].window), 800, 600);
-    main_window->view[test].viewer_box = gtk_box_new (GTK_ORIENTATION_VERTICAL,0);
-    gtk_box_set_homogeneous (GTK_BOX(main_window->view[test].viewer_box),FALSE);
-    gtk_container_add (GTK_CONTAINER(main_window->view[test].window),main_window->view[test].viewer_box);
-
-    main_window->view[test].viewer_scrolled_window = gtk_scrolled_window_new (NULL, NULL);
-    main_window->view[test].viewer_scrolled_window_viewpoint = gtk_viewport_new (NULL, NULL);
-    gtk_container_add(GTK_CONTAINER(main_window->view[test].viewer_scrolled_window), main_window->view[test].viewer_scrolled_window_viewpoint);
-    gtk_box_pack_end(GTK_BOX(main_window->view[test].viewer_box),main_window->view[test].viewer_scrolled_window,TRUE,TRUE,0);
-
-    main_window->view[test].image = main_window->view[test].panorama->get_preview();
-    main_window->view[test].panorama.reset();
-    //main_window->view[test].image = cv::imread("/home/sd_bert/Pictures/1725014833368114.png", cv::IMREAD_COLOR);
-
-    if ( 200 < (main_window->view[test].image.cols - 800)){
-
-        float z_num = (main_window->view[test].image.cols - 800)/200;
-        if (z_num < 3){
-
-            main_window->view[test].zoom_val.resize(2);
-            main_window->view[test].zoom_val[0] = 800;
-            main_window->view[test].zoom_val[1] = main_window->view[test].image.cols;
-
-        }else{
-
-            int zooms = (int)z_num;
-            main_window->view[test].zoom_val.resize(zooms+1);
-            main_window->view[test].zoom_val[0] = 800;
-            main_window->view[test].zoom_val[zooms] = main_window->view[test].image.cols;
-            for(int i = 1; i < zooms;i++){
-
-                main_window->view[test].zoom_val[i] = 800 + 200*i;
-            }
-
-        }
-
-    }
-
-    if (1 > main_window->view[test].zoom_val.size()){
-
-        main_window->view[test].image_zoomed = main_window->view[test].image;
-        main_window->view[test].current_zoom = -1;
-
-    }else{
-
-        main_window->view[test].image_zoomed = imgm::resizeKeepAspectRatio(main_window->view[test].image, main_window->view[test].zoom_val[1]);
-        main_window->view[test].current_zoom = 1;
-
-    }
-
-    main_window->view[test].img_test = gops::cv_image_to_gtk_image(main_window->view[test].image_zoomed);
-
-    main_window->view[test].image_window_event = gtk_event_box_new();
-    gtk_container_add(GTK_CONTAINER(main_window->view[test].image_window_event), GTK_WIDGET(main_window->view[test].img_test));
-
-    gtk_container_add(GTK_CONTAINER(main_window->view[test].viewer_scrolled_window_viewpoint),main_window->view[test].image_window_event);
-
-    gtk_widget_add_events(main_window->view[test].image_window_event, GDK_BUTTON_PRESS_MASK bitor GDK_BUTTON_RELEASE_MASK bitor GDK_POINTER_MOTION_MASK);
-
-    imgvt::create_toolbar(main_window->view[test].viewer_box,&(main_window->view[test].toolbar),&(main_window->view[test]));
-
-    gtk_widget_show_all(main_window->view[test].window);
-    connect_signals(main_window,test);
+    auto thread = std::thread(get_pan,std::ref(_CONF_));
+    thread.detach();
 
 }
 

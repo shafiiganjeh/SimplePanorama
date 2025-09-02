@@ -59,7 +59,7 @@ namespace img {
 
             std::vector<std::string> get_f_list();
 
-            void calculate_keypoints(int threads = 3);
+            void calculate_keypoints(int threads = 1,std::atomic<double> * frct = NULL);
 
             std::vector<util::keypoints> get_keypoints();
 

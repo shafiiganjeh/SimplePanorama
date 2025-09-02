@@ -6,20 +6,49 @@
 #include <vector>
 #include <string>
 #include <opencv2/opencv.hpp>
-#include "_image.h"
-#include "_panorama.h"
+#include <atomic>
 
 extern GtkTargetEntry targetentries[];
+namespace pan { class panorama; }
 
+struct progress_bar_{
 
-
-
-
-struct task{
-
-    guint bar_timer_id;
-    std::atomic<bool> cancel = false;
+    guint bar_timer_id = false;
+    std::atomic<bool> finished = false;
     std::atomic<double> fraction = 0;
+    GtkWidget *window;
+    GtkWidget *pbar_main_vbox;
+    GtkWidget *pbar_progress_bar;
+    GtkWidget *pbar_button_box;
+    GtkWidget *pbar_button_box_cancel;
+
+    struct viewer_window_* view;
+    struct main_window_ * main_window;
+    bool canceld = false;
+    int test;
+
+    GtkWidget *instance;
+    gchar* loading_text;
+
+    void bar_text(const gchar* source) {
+
+        delete[] loading_text;
+        loading_text = nullptr;
+
+        if (source) {
+            loading_text = new char[strlen(source) + 1];
+            strcpy(loading_text, source);
+        }
+    }
+    //manual construction/cleanup since we interface with C
+
+    void init() {
+        bar_text("");
+    }
+
+    void cleanup() {
+        delete[] loading_text;
+    }
 
 };
 
@@ -117,6 +146,8 @@ struct toolbar_viewer{
 
 struct viewer_window_{
 
+    int windows_idx;
+
     GtkWidget *window;
     GtkWidget *viewer_box;
     GtkWidget *viewer_scrolled_window;
@@ -126,6 +157,7 @@ struct viewer_window_{
 
     GtkImage* img_test;
     GtkWidget *image_window_event;
+
     cv::Mat image;
     cv::Mat image_zoomed;
     std::vector<int> zoom_val;
@@ -135,8 +167,8 @@ struct viewer_window_{
     cv::Rect window_rect;
 
     struct Drag_Par dragging;
-
-    std::unique_ptr<pan::panorama> panorama;
+    struct progress_bar_* progress_bar;
+    std::shared_ptr<pan::panorama> panorama_;
 
 };
 
@@ -154,7 +186,6 @@ struct main_window_{
     int view_number = 1;
 
     struct image_paths ipts;
-
 
 };
 

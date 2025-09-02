@@ -16,6 +16,7 @@
 #include <opencv2/core/eigen.hpp>
 #include <limits>
 #include "_graph_cut.h"
+#include "_gtk_vars.h"
 
 #include <cmath>      /* sin */
 
@@ -42,6 +43,7 @@ namespace pan{
         int init_size = 800;
         float lambda = .0001;
         int max_images_per_match = 5;
+        int threads = 8;
 
     };
 
@@ -61,7 +63,7 @@ class stitch_parameters{
 
     public:
 
-        stitch_parameters(struct stch::stitch_result&& res,class panorama* pan): owned_res(std::move(res)),pan_address(pan){}
+        stitch_parameters(struct stch::stitch_result&& res,class panorama* pan,struct progress_bar_* prog = NULL): owned_res(std::move(res)),pan_address(pan),progress(prog){}
 
         void set_config(struct config& conf);
 
@@ -73,7 +75,7 @@ class stitch_parameters{
     private:
 
         cv::Mat blend(struct blend_data& temp,struct config& conf);
-
+        struct progress_bar_* progress = NULL;
         std::vector<double> gain;
         std::vector<cv::Mat> mask_cut;
         struct stch::stitch_result owned_res;
@@ -86,18 +88,20 @@ class panorama : public img::images {
 
     public:
 
-        panorama(std::vector<std::string> files) : img::images(files) {}
+        panorama(std::vector<std::string> files,struct progress_bar_* prog = NULL) : img::images(files),progress(prog) {}
 
-        void get_adj_par(int threads = 3);
+        void get_adj_par(int threads = 1);
         cv::Mat get_adj();
 
         std::vector<std::vector<std::vector<cv::DMatch>>> get_match_mat();
         std::vector<std::vector< cv::Matx33f >> get_hom_mat();
 
-        bool stitch_panorama(int threads,struct config& conf);
+        bool stitch_panorama(struct config& conf);
 
         cv::Mat get_preview();
         cv::Mat get_panorama(cv::Rect ROI = cv::Rect());
+
+        void cancel();
 
     private:
 
@@ -111,6 +115,8 @@ class panorama : public img::images {
         cv::Mat adj;
         std::vector<std::vector< cv::Matx33f >> hom_mat;
         std::vector<std::vector<std::vector<cv::DMatch>>> match_mat;
+
+        struct progress_bar_* progress = NULL;
 
 };
 

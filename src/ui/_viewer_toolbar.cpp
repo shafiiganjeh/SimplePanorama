@@ -75,7 +75,7 @@ namespace imgvt{
 
         //cv::imshow("Image Display", main_window->image(ROI));
         //cv::waitKey(0);
-        cv::Mat test = main_window->panorama->get_panorama(ROI);
+        cv::Mat test = main_window->panorama_->get_panorama(ROI);
         cv::imshow("Image Display", test);
         cv::waitKey(0);
 
