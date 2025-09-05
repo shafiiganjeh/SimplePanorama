@@ -7,11 +7,23 @@
 #include "_panorama.h"
 #include <filesystem>
 
+#include "_config_parser.h"
+
 int main(int argc, char **argv) {
+
+        pan::config current_conf;
+        conf::ConfigParser test(&current_conf);
+
+        std::cout<<"\n"<<current_conf.focal<<"\n";
+
+        test.read_cfg("/home/sd_bert/projects/Panorama/build/conf");
+
+        std::cout<<"\n"<<current_conf.focal<<"\n";
+
 
         struct main_window_ main_window;
 
-        build_window(argc,argv,&main_window);
+        build_window(argc,argv,&main_window,&current_conf);
         gtk_main();
 /*
 for(int i = 0;i<10;i++){

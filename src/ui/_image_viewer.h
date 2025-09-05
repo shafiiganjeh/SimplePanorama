@@ -6,7 +6,6 @@
 #include "_gtk_ops.h"
 #include "_viewer_toolbar.h"
 #include "_img_manipulation.h"
-#include "_progress_bar.h"
 
 namespace imgv{
 
@@ -16,6 +15,8 @@ struct widget_and_Id{
     struct main_window_ *window;
 
 };
+
+void window_quit(GtkWidget *widget, gpointer data);
 
 gboolean update_progress(gpointer data);
 

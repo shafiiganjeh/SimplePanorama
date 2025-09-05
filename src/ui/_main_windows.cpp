@@ -13,16 +13,18 @@ void connect_signals(struct main_window_ *main_window){
 
 }
 
-void build_window(int argc, char** argv,struct main_window_ *main_window){
+void build_window(int argc, char** argv,struct main_window_ *main_window,struct pan::config* conf){
         gtk_init(&argc, &argv);
 
         GtkCssProvider *provider = gtk_css_provider_new();
         gtk_css_provider_load_from_path(provider,"/home/sd_bert/projects/Panorama/res/gtk.css",NULL);
 
-
         gtk_style_context_add_provider_for_screen(gdk_screen_get_default(),GTK_STYLE_PROVIDER(provider),GTK_STYLE_PROVIDER_PRIORITY_USER);
 
+        main_window->config_ = conf;
         main_window->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+        main_window->window_accel_group = gtk_accel_group_new();
+        gtk_window_add_accel_group(GTK_WINDOW(main_window->window), main_window->window_accel_group);
 
         gtk_window_set_default_size(GTK_WINDOW(main_window->window), 200, 200);
 

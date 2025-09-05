@@ -432,15 +432,26 @@ namespace util {
 
             for(const std::vector<int> & i : TR[T]){
 
-                if(not (f_adress == NULL)){(*f_adress) = (*f_adress) + add/2;}
+                if(not (f_adress == NULL)){
+
+                    f_adress->fetch_add(add/2, std::memory_order_relaxed);
+
+                }
 
                 if (i[0] == i[1]){
 
                     adj.at<double>(i[0],i[1]) = 0;
 
                 }else{
+                    double q;
+                    if(c_adress and c_adress->load()){
 
-                    double q = match_quality(kpmat[i[0]],imgs[i[0]],kpmat[i[1]],imgs[i[1]],i[0],i[1]);
+                        q = 0;
+
+                    }else{
+
+                        q = match_quality(kpmat[i[0]],imgs[i[0]],kpmat[i[1]],imgs[i[1]],i[0],i[1]);
+                    }
 
                     if(q > 0){
 
@@ -572,7 +583,6 @@ namespace util {
                 return (float)(overlap.second/100);
                 //return orat;
 
-
             }else{
 
                 return 0;
@@ -587,7 +597,9 @@ namespace util {
 
             for(const std::vector<int> & i : TR[T]){
 
-                if(not (f_adress == NULL)){(*f_adress) = (*f_adress) + add/2;} //progress bar counbter
+                if(not (f_adress == NULL)){
+                    f_adress->fetch_add(add/2, std::memory_order_relaxed);
+                } //progress bar counbter
 
                 if (i[0] == i[1]){
 
@@ -598,19 +610,9 @@ namespace util {
                 else{
                     std::pair<std::vector<cv::DMatch>, std::vector<cv::DMatch>> match;
 
-                    if(not (c_adress == NULL)){
+                    if(c_adress and c_adress->load()){
 
-                        if(*c_adress){
-
-                            adj.at<double>(i[0],i[1])  = 0;
-
-                        }else{
-
-                            match = match_keypoints(kpmat[i[0]],kpmat[i[1]]);
-                            adj.at<double>(i[0],i[1]) = match.first.size();
-                            match_mat_raw[i[0]][i[1]] = match.first;
-
-                        }
+                        continue;
 
                     }else{
 
@@ -658,7 +660,6 @@ namespace util {
         for(const int& s : idx) {
 
             kp.push_back(extract_keypoints(imgs[s]));
-
 
         }
 

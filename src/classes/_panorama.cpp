@@ -1,13 +1,10 @@
 
-#ifndef PAN_H
-#define PAN_H
-
 #include "_panorama.h"
 
 namespace pan{
 
 
-    void stitch_parameters::set_config(struct config& conf){
+    void stitch_parameters::set_config(struct config& conf,std::atomic<bool> *cancel_var){
 
         std::atomic<double>* f_adress = NULL;
         if(not (progress == NULL)){progress->bar_text("Blending Images...");
@@ -24,7 +21,7 @@ namespace pan{
 
         if(conf.cut){
 
-            mask_cut = gcut::graph_cut(owned_res.imgs,owned_res.masks,owned_res.corners,owned_res.ord,f_adress);
+            mask_cut = gcut::graph_cut(owned_res.imgs,owned_res.masks,owned_res.corners,owned_res.ord,f_adress,cancel_var);
 
         }
 
@@ -178,6 +175,13 @@ namespace pan{
     }
 
 
+    void panorama::cancel(){
+
+        cancel_var = true;
+
+    }
+
+
     cv::Mat panorama::get_adj(){
 
         return adj;
@@ -208,7 +212,7 @@ namespace pan{
             }
 
 
-            class util::adj_calculator ctest(img_data,keypnts,f_adress);
+            class util::adj_calculator ctest(img_data,keypnts,f_adress,&cancel_var);
             ctest.get_threads(threads);
 
             std::vector<std::thread> thread_vector;
@@ -228,6 +232,8 @@ namespace pan{
 
             }
 
+            if(cancel_var){return;}
+
             ctest.heuristic_match_filter(conf_local.max_images_per_match);
 
             for(int i = 0;i < threads;i++){
@@ -244,6 +250,7 @@ namespace pan{
 
             }
 
+            if(cancel_var){return;}
             adj = ctest.adj;
             hom_mat = ctest.hom_mat;
             match_mat = ctest.match_mat;
@@ -252,10 +259,10 @@ namespace pan{
 
 //(kp match) adjust blend
 
-    bool panorama::stitch_panorama(struct config& conf){
+    bool panorama::stitch_panorama(struct config* conf){
 
-        conf_local = conf;
-        load_resized(conf.init_size);
+        conf_local = *conf;
+        load_resized(conf_local.init_size);
         int threads = conf_local.threads;
         int threadsimg;
         if(threads > img_data.size()){
@@ -267,7 +274,7 @@ namespace pan{
         if(not (progress == NULL)){
 
             progress->bar_text("Finding Keypoints...");
-            calculate_keypoints(threadsimg,&(progress->fraction));
+            calculate_keypoints(threadsimg,&(progress->fraction),&cancel_var);
 
         }else{
 
@@ -275,10 +282,14 @@ namespace pan{
 
         }
 
+        if(cancel_var){return false;}
+
         if(not (progress == NULL)){
             progress->bar_text("Matching Images...");
         }
         get_adj_par(threadsimg);
+
+        if(cancel_var){return false;}
 
         std::vector<struct util::adj_str> adj_string;
         std::cout <<adj;
@@ -287,20 +298,20 @@ namespace pan{
         imgm::pan_img_transform Tr(&adj_string[0],&img_data);
 
         Tr.focal = util::focal_from_hom(hom_mat,adj_string[0].adj);
-        if(Tr.focal == -1) {Tr.focal = conf.focal;}
+        if(Tr.focal == -1) {Tr.focal = conf_local.focal;}
 
         imgm::calc_stitch_from_adj(Tr,hom_mat,match_mat,keypnts);
 
         if(not (progress == NULL)){
             progress->bar_text("Adjusting Images...");
-            stitched = stitch_parameters(stch::bundleadjust_stitching(Tr,hom_mat,keypnts,match_mat,threads,&(progress->fraction)),this,progress);
+            stitched = stitch_parameters(stch::bundleadjust_stitching(Tr,hom_mat,keypnts,match_mat,threads,&(progress->fraction),&cancel_var),this,progress);
         }else{
 
             stitched = stitch_parameters(stch::bundleadjust_stitching(Tr,hom_mat,keypnts,match_mat,threads),this);
 
         }
 
-
+        if(cancel_var){return false;}
 
         for(int i = 0;i<adj_string[0].connectivity.size();i++){
 
@@ -309,6 +320,8 @@ namespace pan{
             }
 
         }
+
+        if(cancel_var){return false;}
 
         if (stitched.has_value()) {
             stitched->set_config(conf_local);
@@ -353,4 +366,4 @@ namespace pan{
     }
 
 }
-#endif
+

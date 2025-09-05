@@ -1,9 +1,10 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.1)
 project(panorama)
 
 find_package(PkgConfig REQUIRED)
 find_package( OpenCV REQUIRED )
 pkg_check_modules(GTK REQUIRED gtk+-3.0)
+set (CMAKE_CXX_STANDARD 20)
 
 find_package(OpenMP)
 if (NOT OPENMP_FOUND)
@@ -53,8 +54,8 @@ add_library(code
     ${CMAKE_SOURCE_DIR}/src/ui/_image_viewer.h
     ${CMAKE_SOURCE_DIR}/src/ui/_viewer_toolbar.cpp
     ${CMAKE_SOURCE_DIR}/src/ui/_viewer_toolbar.h
-    ${CMAKE_SOURCE_DIR}/src/ui/_progress_bar.cpp
-    ${CMAKE_SOURCE_DIR}/src/ui/_progress_bar.h
+    ${CMAKE_SOURCE_DIR}/src/ui/_config.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/_config.h
     ${CMAKE_SOURCE_DIR}/src/math/_img_manipulation.cpp
     ${CMAKE_SOURCE_DIR}/src/math/_img_manipulation.h
     ${CMAKE_SOURCE_DIR}/src/math/_util.h
@@ -77,6 +78,9 @@ add_library(code
     ${CMAKE_SOURCE_DIR}/src/math/_graph_cut_helper.h
     ${CMAKE_SOURCE_DIR}/src/math/_homography.cpp
     ${CMAKE_SOURCE_DIR}/src/math/_homography.h
+    ${CMAKE_SOURCE_DIR}/src/math/_config_parser.cpp
+    ${CMAKE_SOURCE_DIR}/src/math/_config_parser.h
+
 )
 
 add_executable(panorama src/main.cpp)

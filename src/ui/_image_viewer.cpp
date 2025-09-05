@@ -12,20 +12,23 @@ namespace imgv{
 
         }
 
-        gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(progress_bar->pbar_progress_bar), progress_bar->fraction);
+        double frac = progress_bar->fraction.load(std::memory_order_relaxed);
+
+        gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(progress_bar->pbar_progress_bar), frac);
 
         const gchar* number = "%d%%";
         gchar* temp = new gchar[strlen(number) + strlen(progress_bar->loading_text) + 1];
         strcpy(temp, progress_bar->loading_text);
         strcat(temp, number);
 
-        gchar *text = g_strdup_printf(temp, (int)(progress_bar->fraction * 100));
+
+        gchar *text = g_strdup_printf(temp, (int)(frac * 100));
         gtk_progress_bar_set_text(GTK_PROGRESS_BAR(progress_bar->pbar_progress_bar), text);
 
         g_free(text);
         delete[] temp;
 
-        if (progress_bar->fraction >= 1.0) {
+        if (frac >= 1.0) {
 
             progress_bar->finished = true;
             gtk_widget_destroy(progress_bar->window);
@@ -43,15 +46,19 @@ namespace imgv{
         if(progress_bar->finished){
 
             show_image(progress_bar);
-            g_free(progress_bar);
+            //progress_bar->thread_save.wait(false, std::memory_order_acquire);
             gtk_widget_set_sensitive(GTK_WIDGET(progress_bar->main_window->toolbar.toolbar_main_new),true);
+            progress_bar->cleanup();
+            g_free(progress_bar);
             return;
 
         }
 
         progress_bar->finished = true;
+        progress_bar->view->panorama_->cancel();
         gtk_widget_set_sensitive(GTK_WIDGET(progress_bar->main_window->toolbar.toolbar_main_new),true);
-        g_free(progress_bar);
+        progress_bar->cleanup();
+        //g_free(progress_bar);
 
     }
 
@@ -91,7 +98,7 @@ namespace imgv{
         progress_bar->pbar_button_box_cancel = gtk_button_new_with_label("CANCEL");
         gtk_box_pack_end(GTK_BOX(progress_bar->pbar_button_box), progress_bar->pbar_button_box_cancel, TRUE, FALSE, 0);
 
-        progress_bar->bar_text("sample text: ");
+        progress_bar->bar_text(" ");
 
         connect_signals_bar(progress_bar);
         gtk_widget_show_all(progress_bar->window);
@@ -208,7 +215,6 @@ void get_files(GtkFlowBoxChild *child,struct widget_and_Id *for_list){
 gboolean show_image(struct progress_bar_ *bar) {
 
     struct viewer_window_ *progress_bar = bar->view;
-    std::cout<<"\n"<<"exec"<<"\n";
 
     gtk_window_set_default_size(GTK_WINDOW(progress_bar->window), 800, 600);
 
@@ -307,25 +313,27 @@ void create_viewer(struct main_window_ *main_window,GtkWidget* self,GdkEventButt
     main_window->view[test].progress_bar->init();
     main_window->view[test].progress_bar->view = &(main_window->view[test]);
     main_window->view[test].progress_bar->main_window = main_window;
+    main_window->view[test].progress_bar->test = test;
 
     main_window->view[test].panorama_ = std::make_shared<pan::panorama>(files,main_window->view[test].progress_bar);
 
     g_list_foreach(s_list,(GFunc)get_files,&for_list); //deletes files
 
     open_progress_bar(main_window->window,main_window->view[test].progress_bar,main_window);
-    gdk_threads_add_idle(update_progress, main_window->view[test].progress_bar);
+    //gdk_threads_add_idle(update_progress, main_window->view[test].progress_bar);
+    g_timeout_add(100,update_progress, main_window->view[test].progress_bar);
+    //pan::config _CONF_;
 
-    pan::config _CONF_;
 
-    auto get_pan = [main_window,test](pan::config& _CONF_) {
+    auto get_pan = [main_window,test](pan::config* conf) {
 
-        main_window->view[test].panorama_->stitch_panorama(_CONF_);
+        main_window->view[test].panorama_->stitch_panorama(conf);
         cv::Mat prev = main_window->view[test].panorama_->get_preview();
         main_window->view[test].progress_bar->fraction = 1;
 
     };
 
-    auto thread = std::thread(get_pan,std::ref(_CONF_));
+    auto thread = std::thread(get_pan,main_window->config_);
     thread.detach();
 
 }

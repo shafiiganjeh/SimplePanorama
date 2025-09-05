@@ -5,7 +5,7 @@ namespace gcut {
 
 
     //https://faculty.cc.gatech.edu/~turk/my_papers/graph_cuts.pdf
-std::vector<cv::Mat> graph_cut(const std::vector<cv::Mat>& images,const std::vector<cv::Mat>& masks,const std::vector<cv::Point>& top_lefts,std::vector<int>& seq,std::atomic<double>* f_adress){
+std::vector<cv::Mat> graph_cut(const std::vector<cv::Mat>& images,const std::vector<cv::Mat>& masks,const std::vector<cv::Point>& top_lefts,std::vector<int>& seq,std::atomic<double>* f_adress,std::atomic<bool>* c_adress){
 
     struct util::size_data dim = util::get_pan_dimension(top_lefts,images);
 
@@ -57,6 +57,10 @@ std::vector<cv::Mat> graph_cut(const std::vector<cv::Mat>& images,const std::vec
     double add = (1.0/3.2) * (1.0/(double)seq.size());
 
     for(int s = 1;s < seq.size();s++){
+
+        if(c_adress and c_adress->load()){
+            std::vector<cv::Mat> empty;
+            return empty;}
 
         cv::Mat gray_image1,gray_image2;
         cv::cvtColor(panorama(image_roi[seq[s]]), gray_image1, cv::COLOR_BGR2GRAY);

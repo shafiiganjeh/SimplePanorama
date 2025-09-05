@@ -3,6 +3,7 @@
 #include "_gtk_vars.h"
 #include "_flowbox.h"
 #include "_toolbar.h"
+#include "_config.h"
 
 namespace cmenu{
 

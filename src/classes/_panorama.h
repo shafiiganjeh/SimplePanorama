@@ -34,16 +34,33 @@ namespace pan{
     };
 
     struct config{
-
-        std::vector<bool> use;
+        //system
+        int threads = 8;
+        float focal = 700; //initial focal if estimation fails
+        int init_size = 800; //set calc size
+        //blending
+        Blending blend = NO_BLEND;
         bool gain_compensation = true;
         bool cut = false;
-        int blend = NO_BLEND;
-        float focal = 700;
-        int init_size = 800;
-        float lambda = .0001;
+        //MULTI_BLEND
+        int bands = 3;
+        double sigma_blend = 7;
+        //adjustment
+        float lambda = .0001; //initial lambda
+        //matching
         int max_images_per_match = 5;
-        int threads = 8;
+        int max_keypoints = 100;
+        int x_margin = 5;
+        int y_margin = 5;
+        //SIFT
+        int nfeatures = 0;
+        int nOctaveLayers = 4;
+        double contrastThreshold = 3e-2;
+        double edgeThreshold = 6;
+        double sigma_sift = 1.4142;
+
+        //non settings
+        std::vector<bool> use;
 
     };
 
@@ -65,7 +82,7 @@ class stitch_parameters{
 
         stitch_parameters(struct stch::stitch_result&& res,class panorama* pan,struct progress_bar_* prog = NULL): owned_res(std::move(res)),pan_address(pan),progress(prog){}
 
-        void set_config(struct config& conf);
+        void set_config(struct config& conf,std::atomic<bool>* cancel_var = NULL);
 
         cv::Mat get_preview(struct config& conf);
         cv::Size get_preview_size(struct config& conf);
@@ -96,12 +113,13 @@ class panorama : public img::images {
         std::vector<std::vector<std::vector<cv::DMatch>>> get_match_mat();
         std::vector<std::vector< cv::Matx33f >> get_hom_mat();
 
-        bool stitch_panorama(struct config& conf);
+        bool stitch_panorama(struct config* conf);
 
         cv::Mat get_preview();
         cv::Mat get_panorama(cv::Rect ROI = cv::Rect());
 
         void cancel();
+        struct config conf_local;
 
     private:
 
@@ -109,7 +127,6 @@ class panorama : public img::images {
         bool pan_exist = false;
 
         std::optional<class stitch_parameters> stitched;
-        struct config conf_local;
         std::vector<int> image_order;
 
         cv::Mat adj;
@@ -117,6 +134,7 @@ class panorama : public img::images {
         std::vector<std::vector<std::vector<cv::DMatch>>> match_mat;
 
         struct progress_bar_* progress = NULL;
+        std::atomic<bool> cancel_var = false;
 
 };
 
