@@ -208,7 +208,7 @@ Eigen::MatrixXd approximate_rot(Eigen::MatrixXd &R_i,
 }
 
 
-struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,const std::vector<std::vector< cv::Matx33f >> &Hom_mat,const std::vector<util::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match_mat,int threads,std::atomic<double>* f_adress){
+struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,const std::vector<std::vector< cv::Matx33f >> &Hom_mat,const std::vector<util::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match_mat,int threads,std::atomic<double>* f_adress,std::atomic<bool>* c_adress){
 
     struct stitch_result res;
 /*
@@ -282,7 +282,10 @@ struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,con
 
 
     struct bundm::inter_par teees = testad.iterate();
-    if(not (f_adress == NULL)){*f_adress = *f_adress + add_to_fraction; }
+    if(not (f_adress == NULL)){
+
+        f_adress->fetch_add(add_to_fraction, std::memory_order_relaxed);
+    }
     rret = testad.ret_rot();
     Kret = testad.ret_K();
 
@@ -295,7 +298,14 @@ struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,con
     }
 
     for (int l = 2;l<paths_clac.size();l++){
-        if(not (f_adress == NULL)){*f_adress = *f_adress + add_to_fraction; }
+
+        if(c_adress and c_adress->load()){continue;}
+
+        if(not (f_adress == NULL)){
+
+            f_adress->fetch_add(add_to_fraction, std::memory_order_relaxed);
+
+        }
         //*progress = *progress + .1;
         Eigen::MatrixXd K = T.K[paths_clac[l].connectedTo];
         K(0,2) = 0;
@@ -343,6 +353,8 @@ struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,con
 
     }
 
+    if(c_adress and c_adress->load()){return res;}
+
     std::vector<Eigen::MatrixXd> Crret = T.rot;
     res.K = T.K;
 
@@ -366,6 +378,9 @@ struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,con
             indices.push_back(i);
             res.ord.push_back(par.numb2ind[i]);
             cv::Mat masks_temp = blnd::createSurroundingMask(ret.imgs[par.numb2ind[i]], true, 1);
+
+            cv::erode(masks_temp, masks_temp, cv::Mat(), cv::Point(-1, -1), 1); // remove bad borders
+
             res.masks.push_back(masks_temp);
         }
     }

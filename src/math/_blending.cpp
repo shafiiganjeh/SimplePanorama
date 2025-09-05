@@ -89,7 +89,6 @@ cv::Mat no_blend(const std::vector<cv::Mat>& images,const std::vector<cv::Mat>& 
         cv::Scalar(0, 0, 0)
     );
 
-    //Copy warped images into panorama
     for (int i = 0; i < images.size(); i++) {
 
         cv::Rect roi(

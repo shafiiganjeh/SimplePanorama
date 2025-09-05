@@ -1,5 +1,6 @@
 
 #include "_create_menu.h"
+
 namespace fs = std::filesystem;
 
 namespace cmenu{
@@ -80,13 +81,17 @@ gboolean cut(GtkMenuItem* *widget,struct main_window_ *main_window){
 
         g_list_foreach (s_list,(GFunc)gops::cut_operation,main_window);
 
-
         g_list_free(g_steal_pointer (&s_list));
         return FALSE;
 
 }
 
+gboolean open_config(GtkMenuItem* *widget,struct main_window_ *main_window){
 
+        conf::open_conf_window(&main_window->menu_bar,&(main_window->menu_bar.config),main_window);
+
+        return FALSE;
+}
 
 
 void connect_signals(struct main_window_ *main_window){
@@ -96,7 +101,7 @@ void connect_signals(struct main_window_ *main_window){
         g_signal_connect(main_window->menu_bar.bar_edit_unselect, "activate", G_CALLBACK(unselect_all), main_window);
         g_signal_connect(main_window->menu_bar.bar_edit_select, "activate", G_CALLBACK(select_all), main_window);
         g_signal_connect(main_window->menu_bar.bar_edit_cut, "activate", G_CALLBACK(cut), main_window);
-
+        g_signal_connect(main_window->menu_bar.bar_edit_config, "activate", G_CALLBACK(open_config), main_window);
 }
 
 
@@ -125,13 +130,17 @@ void create_menu_bar(GtkWidget *add_to,struct menu_bar_ *menu_bar,struct main_wi
 
         menu_bar->bar_file_quit = gtk_menu_item_new_with_label ("Quit");
         gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar->bar_file_submenu),menu_bar->bar_file_quit);
+        gtk_widget_add_accelerator(menu_bar->bar_file_quit, "activate", main_window->window_accel_group,
+                        GDK_KEY_q,
+                        GDK_CONTROL_MASK,
+                        GTK_ACCEL_VISIBLE);
 
 
         menu_bar->bar_edit = gtk_menu_item_new_with_label ("Edit");
         gtk_container_add(GTK_CONTAINER(menu_bar->bar),menu_bar->bar_edit);
         menu_bar->bar_edit_submenu = gtk_menu_new();
         gtk_menu_item_set_submenu(GTK_MENU_ITEM(menu_bar->bar_edit),menu_bar->bar_edit_submenu);
-        gtk_widget_set_sensitive(GTK_WIDGET(menu_bar->bar_edit),FALSE);
+        //gtk_widget_set_sensitive(GTK_WIDGET(menu_bar->bar_edit),FALSE);
 
 
         menu_bar->bar_edit_create = gtk_menu_item_new_with_label ("Panorama From Selection");
@@ -139,15 +148,31 @@ void create_menu_bar(GtkWidget *add_to,struct menu_bar_ *menu_bar,struct main_wi
 
         menu_bar->bar_edit_cut = gtk_menu_item_new_with_label ("Cut Selection");
         gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar->bar_edit_submenu),menu_bar->bar_edit_cut);
+        gtk_widget_add_accelerator(menu_bar->bar_edit_cut, "activate", main_window->window_accel_group,
+                        GDK_KEY_x,
+                        GDK_CONTROL_MASK,
+                        GTK_ACCEL_VISIBLE);
+
 
         menu_bar->bar_edit_select = gtk_menu_item_new_with_label ("Select All");
         gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar->bar_edit_submenu),menu_bar->bar_edit_select);
+        gtk_widget_add_accelerator(menu_bar->bar_edit_select, "activate", main_window->window_accel_group,
+                        GDK_KEY_a,
+                        GDK_CONTROL_MASK,
+                        GTK_ACCEL_VISIBLE);
 
         menu_bar->bar_edit_unselect = gtk_menu_item_new_with_label ("Unselect All");
         gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar->bar_edit_submenu),menu_bar->bar_edit_unselect);
+        gtk_widget_add_accelerator(menu_bar->bar_edit_unselect, "activate", main_window->window_accel_group,
+                        GDK_KEY_a,
+                        static_cast<GdkModifierType>(GDK_CONTROL_MASK | GDK_SHIFT_MASK),
+                        GTK_ACCEL_VISIBLE);
 
-        menu_bar->bar_edit_order = gtk_menu_item_new_with_label ("Order Selection");
-        gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar->bar_edit_submenu),menu_bar->bar_edit_order);
+        menu_bar->bar_edit_separator = gtk_separator_menu_item_new ();
+        gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar->bar_edit_submenu),menu_bar->bar_edit_separator);
+
+        menu_bar->bar_edit_config = gtk_menu_item_new_with_label ("Config");
+        gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar->bar_edit_submenu),menu_bar->bar_edit_config);
 
 
         gtk_box_pack_start (GTK_BOX(menu_bar->menu_box),menu_bar->bar,TRUE,TRUE,0);

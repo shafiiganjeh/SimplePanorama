@@ -9,13 +9,15 @@
 #include <atomic>
 
 extern GtkTargetEntry targetentries[];
-namespace pan { class panorama; }
+namespace pan { class panorama;
+                struct config;}
 
 struct progress_bar_{
 
     guint bar_timer_id = false;
     std::atomic<bool> finished = false;
     std::atomic<double> fraction = 0;
+    std::atomic<bool> thread_save = false;
     GtkWidget *window;
     GtkWidget *pbar_main_vbox;
     GtkWidget *pbar_progress_bar;
@@ -80,26 +82,54 @@ struct flowbox_{
 
 };
 
+
+struct config_{
+
+    GtkWidget *conf_menu;
+    GtkWidget *conf_menu_paned;
+    GtkWidget *conf_menu_paned_sidebar;
+    GtkWidget *conf_menu_paned_sidebar_box;
+
+    GtkWidget *conf_menu_stack;
+    //adv
+    GtkWidget *conf_menu_stack_advanced_scrolled_window;
+    GtkWidget *conf_menu_stack_advanced_viewport;
+    GtkWidget *conf_menu_stack_advanced_box;
+
+    //bas
+    GtkWidget *conf_menu_stack_basic_scrolled_window;
+    GtkWidget *conf_menu_stack_basic_viewport;
+    GtkWidget *conf_menu_stack_basic_box;
+
+    GtkWidget *conf_menu_stack_basic_box_method;
+    GtkWidget *conf_menu_stack_basic_box_method_choose;
+
+};
+
+
 struct menu_bar_{
 
-   GtkWidget *menu_box;
-   GtkWidget *bar;
+    GtkWidget *menu_box;
+    GtkWidget *bar;
 
-   GtkWidget *bar_file;
-   GtkWidget *bar_file_submenu;
-   GtkWidget *bar_file_open;
-   GtkWidget *bar_file_save;
-   GtkWidget *bar_file_quit;
+    GtkWidget *bar_file;
+    GtkWidget *bar_file_submenu;
+    GtkWidget *bar_file_open;
+    GtkWidget *bar_file_save;
+    GtkWidget *bar_file_quit;
 
-   GtkWidget *bar_edit;
-   GtkWidget *bar_edit_submenu;
-   GtkWidget *bar_edit_create;
+    GtkWidget *bar_edit;
+    GtkWidget *bar_edit_config;
+    GtkWidget *bar_edit_separator;
+    GtkWidget *bar_edit_submenu;
+    GtkWidget *bar_edit_create;
 
-   GtkWidget *bar_edit_cut;
-   GtkWidget *bar_edit_select;
-   GtkWidget *bar_edit_unselect;
-   GtkWidget *bar_edit_order;
+    GtkWidget *bar_edit_cut;
+    GtkWidget *bar_edit_select;
+    GtkWidget *bar_edit_unselect;
+    GtkWidget *bar_edit_order;
 
+    struct config_ config;
 };
 
 struct toolbar_{
@@ -175,6 +205,8 @@ struct viewer_window_{
 
 struct main_window_{
     GtkWidget *window;
+    pan::config* config_;
+    GtkAccelGroup *window_accel_group;
     GtkWidget *box;
     GtkWidget *img_dragdrop;
     GtkWidget *img_dragdrop_frame;
