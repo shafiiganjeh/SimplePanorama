@@ -22,14 +22,14 @@ namespace conf{
         explicit ConfigParser(pan::config* cfg) : config_(cfg) {
 
         registerEntry("Threads", [&]() { return std::to_string(config_->threads); },
-                          [&](const std::string& val) { config_->threads = std::stoi(val); });
+                          [&](const std::string& val) { config_->threads = util::stringToInt(val); });
         std::vector<std::string> keyOrder;
 
         registerEntry("Focal", [&]() { return std::to_string(config_->focal); },
-                          [&](const std::string& val) { config_->focal = std::stof(val); });
+                          [&](const std::string& val) { config_->focal = util::stringToFloat(val); });
 
         registerEntry("Init_size", [&]() { return std::to_string(config_->init_size); },
-                          [&](const std::string& val) { config_->init_size = std::stoi(val); });
+                          [&](const std::string& val) { config_->init_size = util::stringToInt(val); });
 
         registerEntry("Method", [&]() { return methodToString(config_->blend); },
                           [&](const std::string& val) { config_->blend = stringToMethod(val); });
@@ -41,40 +41,43 @@ namespace conf{
                           [&](const std::string& val) { config_->cut = (val == "true"); });
 
         registerEntry("Bands", [&]() { return std::to_string(config_->bands); },
-                          [&](const std::string& val) { config_->bands = std::stoi(val); });
+                          [&](const std::string& val) { config_->bands = util::stringToInt(val); });
 
         registerEntry("Blend_Sigma", [&]() { return std::to_string(config_->sigma_blend); },
-                          [&](const std::string& val) { config_->sigma_blend = std::stod(val); });
+                          [&](const std::string& val) { config_->sigma_blend = util::stringToDouble(val); });
 
         registerEntry("Lambda", [&]() { return std::to_string(config_->lambda); },
-                          [&](const std::string& val) { config_->lambda = std::stof(val); });
+                          [&](const std::string& val) { config_->lambda = util::stringToFloat(val); });
 
         registerEntry("Max_Images_Per_Match", [&]() { return std::to_string(config_->max_images_per_match); },
-                          [&](const std::string& val) { config_->max_images_per_match = std::stoi(val); });
+                          [&](const std::string& val) { config_->max_images_per_match = util::stringToInt(val); });
 
         registerEntry("Max_Keypoints", [&]() { return std::to_string(config_->max_keypoints); },
-                          [&](const std::string& val) { config_->max_keypoints = std::stoi(val); });
+                          [&](const std::string& val) { config_->max_keypoints = util::stringToInt(val); });
+
+        registerEntry("RANSAC_iterations", [&]() { return std::to_string(config_->RANSAC_iterations); },
+                          [&](const std::string& val) { config_->RANSAC_iterations = util::stringToInt(val); });
 
         registerEntry("x_Margin", [&]() { return std::to_string(config_->x_margin); },
-                          [&](const std::string& val) { config_->x_margin = std::stoi(val); });
+                          [&](const std::string& val) { config_->x_margin = util::stringToInt(val); });
 
         registerEntry("y_Margin", [&]() { return std::to_string(config_->y_margin); },
-                          [&](const std::string& val) { config_->y_margin = std::stoi(val); });
+                          [&](const std::string& val) { config_->y_margin = util::stringToInt(val); });
 
         registerEntry("nfeatures", [&]() { return std::to_string(config_->nfeatures); },
-                          [&](const std::string& val) { config_->nfeatures = std::stoi(val); });
+                          [&](const std::string& val) { config_->nfeatures = util::stringToInt(val); });
 
         registerEntry("nOctaveLayers", [&]() { return std::to_string(config_->nOctaveLayers); },
-                          [&](const std::string& val) { config_->nOctaveLayers = std::stoi(val); });
+                          [&](const std::string& val) { config_->nOctaveLayers = util::stringToInt(val); });
 
         registerEntry("contrastThreshold", [&]() { return std::to_string(config_->contrastThreshold); },
-                          [&](const std::string& val) { config_->contrastThreshold = std::stod(val); });
+                          [&](const std::string& val) { config_->contrastThreshold = util::stringToDouble(val); });
 
         registerEntry("edgeThreshold", [&]() { return std::to_string(config_->edgeThreshold); },
-                          [&](const std::string& val) { config_->edgeThreshold = std::stod(val); });
+                          [&](const std::string& val) { config_->edgeThreshold = util::stringToDouble(val); });
 
         registerEntry("sigma_sift", [&]() { return std::to_string(config_->sigma_sift); },
-                          [&](const std::string& val) { config_->sigma_sift = std::stod(val); });
+                          [&](const std::string& val) { config_->sigma_sift = util::stringToDouble(val); });
 
 
         }
@@ -90,7 +93,6 @@ namespace conf{
 
         std::map<std::string, std::pair<std::function<std::string()>,std::function<void(const std::string&)>>> entries;
         std::vector<std::string> entries_order;
-
 
         void registerEntry(const std::string& name,std::function<std::string()> read,std::function<void(const std::string&)> write) {
             entries[name] = {read, write};

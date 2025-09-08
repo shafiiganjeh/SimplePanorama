@@ -5,6 +5,52 @@
 namespace util {
 
 
+double stringToDouble(const std::string& str) {
+    double value;
+    auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), value);
+
+    if (ec == std::errc()) {
+        return value;
+    } else {
+        throw std::runtime_error("String to double conversion failed");
+    }
+}
+
+
+float stringToFloat(const std::string& str) {
+    float value;
+    auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), value);
+
+    if (ec == std::errc()) {
+        return value;
+    } else {
+        throw std::runtime_error("String to float conversion failed");
+    }
+}
+
+
+int stringToInt(const std::string& str) {
+    int value;
+    auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), value);
+
+    if (ec == std::errc()) {
+        return value;
+    } else {
+        throw std::runtime_error("String to integer conversion failed");
+    }
+}
+
+
+val processValue(double value, int max_val) {
+    int rounded_up = static_cast<int>(std::ceil(value));
+    int capped_int = (rounded_up > max_val) ? max_val : rounded_up;
+
+    double capped_double = (value > max_val) ? max_val : value;
+
+    return {capped_int, capped_double};
+}
+
+
 cv::Rect scaleRect(const cv::Rect& r, double xs, double sy) {
 
     int x = (int)std::round(r.x * xs);

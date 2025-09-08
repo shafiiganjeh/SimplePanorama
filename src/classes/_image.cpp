@@ -101,7 +101,8 @@ namespace img {
 
     std::vector<util::keypoints> images::get_keypoints(){return keypnts;}
 
-    void images::calculate_keypoints(int threads,std::atomic<double> * frct,std::atomic<bool> * cancel){
+    void images::calculate_keypoints(int threads,util::match_conf* conf,std::atomic<double> * frct,std::atomic<bool> * cancel){
+
 
         std::vector<util::keypoints> kpmat;
         kpmat.resize( img_data.size() );
@@ -121,7 +122,7 @@ namespace img {
         }
 */
         for (int i = 0; i < threads; i++) {
-            kp[i] = std::async(std::launch::async, [this,split_id,i,frct,threads,cancel]() {
+            kp[i] = std::async(std::launch::async, [this,split_id,i,frct,threads,cancel,conf]() {
 
                 std::vector<util::keypoints> result;
 
@@ -129,7 +130,7 @@ namespace img {
                     return result;
                 }
 
-                result = util::extrace_kp_vector(std::ref(img_data), split_id[i]);
+                result = util::extrace_kp_vector(std::ref(img_data), split_id[i],conf);
 
                 if(not (frct == NULL)){
 
