@@ -1,5 +1,6 @@
 
 #include <gtk/gtk.h>
+#include <glib-object.h>
 #include "_gtk_vars.h"
 #include "_main_windows.h"
 #include <Eigen/Dense>
@@ -14,11 +15,10 @@ int main(int argc, char **argv) {
         pan::config current_conf;
         conf::ConfigParser test(&current_conf);
 
-        std::cout<<"\n"<<current_conf.focal<<"\n";
 
+        //test.write_cfg("/home/sd_bert/projects/Panorama/build/conf");
         test.read_cfg("/home/sd_bert/projects/Panorama/build/conf");
 
-        std::cout<<"\n"<<current_conf.focal<<"\n";
 
 
         struct main_window_ main_window;

@@ -4,21 +4,17 @@
 namespace conf{
 
     enum pan::Blending ConfigParser::stringToMethod(const std::string& str) {
-        if (str == "NO_BLEND") return pan::NO_BLEND;
-        if (str == "SIMPLE_BLEND") return pan::SIMPLE_BLEND;
-        if (str == "MULTI_BLEND") return pan::MULTI_BLEND;
-        return pan::SIMPLE_BLEND;
+
+        return static_cast<pan::Blending>(pan::StringToBlending(str));
+
     }
 
 
     std::string ConfigParser::methodToString(pan::Blending method) {
 
-        switch(method) {
-            case pan::NO_BLEND: return "NO_BLEND";
-            case pan::SIMPLE_BLEND: return "SIMPLE_BLEND";
-            case pan::MULTI_BLEND: return "MULTI_BLEND";
-            default: return "SIMPLE_BLEND";
-        }
+        const char* str=pan::BlendingToString(method);
+        std::string s = str;
+        return s;
 
     }
 
@@ -26,6 +22,7 @@ namespace conf{
     void ConfigParser::write_cfg(const std::string& filename) {
         std::ofstream file(filename);
         for (const auto& key : entries_order) {
+            //std::cout<<entries[key].first()<< "\n";
             file << "\n"<< key << "=" << entries[key].first() << "\n";
         }
     }

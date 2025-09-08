@@ -21,6 +21,19 @@
 
 namespace util {
 
+    struct val {
+        int int_part;
+        double double_part;
+    };
+
+    double stringToDouble(const std::string& str);
+
+    float stringToFloat(const std::string& str);
+
+    int stringToInt(const std::string& str);
+
+    val processValue(double value, int max_val);
+
         //function for performance check
     class Timer {
         using Clock = std::chrono::high_resolution_clock;

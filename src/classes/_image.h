@@ -59,7 +59,7 @@ namespace img {
 
             std::vector<std::string> get_f_list();
 
-            void calculate_keypoints(int threads = 1,std::atomic<double> * frct = NULL,std::atomic<bool> * cancel = NULL);
+            void calculate_keypoints(int threads = 1,util::match_conf* conf = NULL,std::atomic<double> * frct = NULL,std::atomic<bool> * cancel = NULL);
 
             std::vector<util::keypoints> get_keypoints();
 
@@ -70,6 +70,7 @@ namespace img {
 
         protected:
 
+            util::match_conf img_conf;
             std::vector<util::keypoints> keypnts;
             std::vector<cv::Mat> img_data;
             std::vector<std::string> f_list;

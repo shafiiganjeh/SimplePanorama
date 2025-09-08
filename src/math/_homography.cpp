@@ -385,8 +385,11 @@ namespace util {
     }
 
 
-    adj_calculator::adj_calculator(const std::vector<cv::Mat> & imgs,const std::vector<keypoints> &key_p,std::atomic<double>* fadress,std::atomic<bool>* cancel){
+    adj_calculator::adj_calculator(const std::vector<cv::Mat> & imgs,const std::vector<keypoints> &key_p,struct match_conf* conf,std::atomic<double>* fadress,std::atomic<bool>* cancel){
 
+            if(not (conf == NULL)){
+              conf_local = *conf;
+            }
 
             adj.create(imgs.size(), imgs.size(), CV_64F);
             adj = cv::Mat::zeros(imgs.size(), imgs.size(), CV_64F);
@@ -504,7 +507,7 @@ namespace util {
             float rows = img1.rows;
             float cols = img1.cols;
 
-            std::vector<float> T12 = {4,4};
+            std::vector<float> T12 = {(float)conf_local.x_margin,(float)conf_local.y_margin};
 
             //std::pair<std::vector<cv::DMatch>, std::vector<cv::DMatch>> match12 = maths::match_keypoints(kp1,kp2);
 
@@ -518,12 +521,11 @@ namespace util {
             std::vector<cv::Point2f> obj;
             std::vector<cv::Point2f> scene;
 
-/*
 
-            struct Homography H12 = find_homography(kp1,kp2,match12,1500,4,img1,img2);
+            struct Homography H12 = find_homography(kp1,kp2,match12,conf_local.RANSAC_iterations,4,img1,img2);
             H12.H = H12.H / H12.H(2,2);
             //std::cout <<"homography: "<<H12.H<<"\n";
-*/
+/*
             struct Homography H12;
             std::vector<cv::Point2f> points1, points2;
             for (int i = 0; i < match12.size(); i++)
@@ -540,7 +542,7 @@ namespace util {
                 return 0;
 
             }
-
+*/
             //std::cout<<"homog: "<<H12.H;
 
             hom_mat[row][col] = H12.H;
@@ -653,13 +655,16 @@ namespace util {
     }
 
 
-    std::vector<keypoints> extrace_kp_vector(const std::vector<cv::Mat> & imgs,std::vector<int> idx){
+    std::vector<keypoints> extrace_kp_vector(const std::vector<cv::Mat> & imgs,std::vector<int> idx,match_conf* conf){
 
 
         std::vector<keypoints> kp;
         for(const int& s : idx) {
-
-            kp.push_back(extract_keypoints(imgs[s]));
+            if(conf == NULL){
+                kp.push_back(extract_keypoints(imgs[s]));
+            }else{
+                kp.push_back(extract_keypoints(imgs[s],conf->nfeatures,conf->nOctaveLayers,conf->contrastThreshold,conf->edgeThreshold,conf->sigma_sift));
+            }
 
         }
 
@@ -767,7 +772,7 @@ namespace util {
         }
 
         std::vector<cv::DMatch> rank_match;
-        std::vector<size_t> rank = find_n_smallest_indices(dist, 200);
+        std::vector<size_t> rank = find_n_smallest_indices(dist, conf_local.max_keypoints);
 
         for(const int &r : rank){
 

@@ -27,16 +27,25 @@ using thread = std::vector<std::vector<std::vector<int>>>;
 
 namespace pan{
 
+    #define BLENDING_ENUM \
+        X(NO_BLEND, 0)     \
+        X(SIMPLE_BLEND, 1) \
+        X(MULTI_BLEND, 2)  \
+        X(_enum_sizeoff_, 3)
+
     enum Blending {
-        NO_BLEND,
-        SIMPLE_BLEND,
-        MULTI_BLEND,
+        #define X(name, value) name = value,
+        BLENDING_ENUM
+        #undef X
     };
+
+
+    const char* BlendingToString(int value);
+    int StringToBlending(const std::string& str);
 
     struct config{
         //system
         int threads = 8;
-        float focal = 700; //initial focal if estimation fails
         int init_size = 800; //set calc size
         //blending
         Blending blend = NO_BLEND;
@@ -46,10 +55,12 @@ namespace pan{
         int bands = 3;
         double sigma_blend = 7;
         //adjustment
+        float focal = 700; //initial focal if estimation fails
         float lambda = .0001; //initial lambda
         //matching
         int max_images_per_match = 5;
         int max_keypoints = 100;
+        int RANSAC_iterations = 1500;
         int x_margin = 5;
         int y_margin = 5;
         //SIFT
@@ -120,6 +131,7 @@ class panorama : public img::images {
 
         void cancel();
         struct config conf_local;
+        util::match_conf conf_m;
 
     private:
 

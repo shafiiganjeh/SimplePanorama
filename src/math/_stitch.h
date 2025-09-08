@@ -79,7 +79,7 @@ struct stitch_result {
         int maxLoc,
         std::vector<double> &con);
 
-    struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,const std::vector<std::vector< cv::Matx33f >> &Hom_mat,const std::vector<util::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match_mat, int threads = 1,std::atomic<double>* f_adress = NULL,std::atomic<bool>* c_adress = NULL);
+    struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,const std::vector<std::vector< cv::Matx33f >> &Hom_mat,const std::vector<util::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match_mat,float lambda = .0001 ,int threads = 1,std::atomic<double>* f_adress = NULL,std::atomic<bool>* c_adress = NULL);
 
     std::vector<double> computeRowSumDividedByZeroCount(const cv::Mat& mat);
 

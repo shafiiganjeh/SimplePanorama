@@ -3,6 +3,23 @@
 
 namespace pan{
 
+    const char* BlendingToString(int value) {
+    switch (value) {
+        #define X(name, value) case value: return #name;
+        BLENDING_ENUM
+        #undef X
+        default: return "SIMPLE_BLEND";
+        }
+
+    }
+
+    int StringToBlending(const std::string& str) {
+        #define X(name, value) if (str == #name) return value;
+        BLENDING_ENUM
+        #undef X
+
+        throw std::invalid_argument("Invalid Blending string: " + str);
+    }
 
     void stitch_parameters::set_config(struct config& conf,std::atomic<bool> *cancel_var){
 
@@ -95,7 +112,7 @@ namespace pan{
 
             case MULTI_BLEND:
 
-                blend = blnd::multi_blend(temp.imgs,temp.msks_cut,temp.msks,temp.corners,3,5);
+                blend = blnd::multi_blend(temp.imgs,temp.msks_cut,temp.msks,temp.corners,conf.bands,conf.sigma_blend);
                 blend = blend * 255;
                 blend.convertTo(blend, CV_8UC3);
 
@@ -211,8 +228,7 @@ namespace pan{
                 f_adress = &(progress->fraction);
             }
 
-
-            class util::adj_calculator ctest(img_data,keypnts,f_adress,&cancel_var);
+            class util::adj_calculator ctest(img_data,keypnts,&conf_m,f_adress,&cancel_var);
             ctest.get_threads(threads);
 
             std::vector<std::thread> thread_vector;
@@ -261,6 +277,17 @@ namespace pan{
 
     bool panorama::stitch_panorama(struct config* conf){
 
+        conf_m.contrastThreshold = conf_local.contrastThreshold;
+        conf_m.edgeThreshold = conf_local.edgeThreshold;
+        conf_m.max_images_per_match = conf_local.max_images_per_match;
+        conf_m.max_keypoints = conf_local.max_keypoints;
+        conf_m.nfeatures = conf_local.nfeatures;
+        conf_m.nOctaveLayers = conf_local.nOctaveLayers;
+        conf_m.sigma_sift = conf_local.sigma_sift;
+        conf_m.RANSAC_iterations = conf_local.RANSAC_iterations;
+        conf_m.x_margin = conf_local.x_margin;
+        conf_m.y_margin = conf_local.y_margin;
+
         conf_local = *conf;
         load_resized(conf_local.init_size);
         int threads = conf_local.threads;
@@ -274,11 +301,11 @@ namespace pan{
         if(not (progress == NULL)){
 
             progress->bar_text("Finding Keypoints...");
-            calculate_keypoints(threadsimg,&(progress->fraction),&cancel_var);
+            calculate_keypoints(threadsimg,&conf_m,&(progress->fraction),&cancel_var);
 
         }else{
 
-            calculate_keypoints(threadsimg);
+            calculate_keypoints(threadsimg,&conf_m);
 
         }
 
@@ -304,10 +331,10 @@ namespace pan{
 
         if(not (progress == NULL)){
             progress->bar_text("Adjusting Images...");
-            stitched = stitch_parameters(stch::bundleadjust_stitching(Tr,hom_mat,keypnts,match_mat,threads,&(progress->fraction),&cancel_var),this,progress);
+            stitched = stitch_parameters(stch::bundleadjust_stitching(Tr,hom_mat,keypnts,match_mat,conf_local.lambda,threads,&(progress->fraction),&cancel_var),this,progress);
         }else{
 
-            stitched = stitch_parameters(stch::bundleadjust_stitching(Tr,hom_mat,keypnts,match_mat,threads),this);
+            stitched = stitch_parameters(stch::bundleadjust_stitching(Tr,hom_mat,keypnts,match_mat,conf_local.lambda,threads),this);
 
         }
 

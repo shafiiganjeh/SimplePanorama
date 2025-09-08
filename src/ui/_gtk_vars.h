@@ -3,6 +3,7 @@
 #define GTKVARS_H
 
 #include <gtk/gtk.h>
+#include <glib-object.h>
 #include <vector>
 #include <string>
 #include <opencv2/opencv.hpp>
@@ -88,7 +89,10 @@ struct config_{
     GtkWidget *conf_menu;
     GtkWidget *conf_menu_paned;
     GtkWidget *conf_menu_paned_sidebar;
-    GtkWidget *conf_menu_paned_sidebar_box;
+    GtkWidget *conf_menu_box;
+    GtkWidget *conf_menu_cancelok_box;
+    GtkWidget *conf_menu_OK;
+    GtkWidget *conf_menu_CANCEL;
 
     GtkWidget *conf_menu_stack;
     //adv
@@ -96,13 +100,49 @@ struct config_{
     GtkWidget *conf_menu_stack_advanced_viewport;
     GtkWidget *conf_menu_stack_advanced_box;
 
+    GtkWidget *conf_menu_stack_advanced_frame_system;
+    GtkWidget *conf_menu_stack_advanced_frame_system_box;//val
+    GtkWidget *conf_menu_stack_advanced_frame_system_entry_threads;
+    GtkWidget *conf_menu_stack_advanced_frame_system_entry_size;
+
+    GtkWidget *conf_menu_stack_advanced_frame_matching;
+    GtkWidget *conf_menu_stack_advanced_frame_matching_box;//val
+    GtkWidget *conf_menu_stack_advanced_frame_matching_entry_maximages;
+    GtkWidget *conf_menu_stack_advanced_frame_matching_entry_maxkeypoints;
+    GtkWidget *conf_menu_stack_advanced_frame_matching_entry_RANSAC;
+    GtkWidget *conf_menu_stack_advanced_frame_matching_entry_xmargin;
+    GtkWidget *conf_menu_stack_advanced_frame_matching_entry_ymargin;
+
+    GtkWidget *conf_menu_stack_advanced_frame_SIFT;
+    GtkWidget *conf_menu_stack_advanced_frame_SIFT_box;//val
+    GtkWidget *conf_menu_stack_advanced_frame_system_entry_nfeatures;
+    GtkWidget *conf_menu_stack_advanced_frame_system_entry_nOctaveLayers;
+    GtkWidget *conf_menu_stack_advanced_frame_system_entry_contrastThreshold;
+    GtkWidget *conf_menu_stack_advanced_frame_system_entry_edgeThreshold;
+    GtkWidget *conf_menu_stack_advanced_frame_system_entry_sigma;
+
+    GtkWidget *conf_menu_stack_advanced_frame_adjustment;
+    GtkWidget *conf_menu_stack_advanced_frame_adjustment_box;//val
+    GtkWidget *conf_menu_stack_advanced_frame_system_entry_focal;
+    GtkWidget *conf_menu_stack_advanced_frame_system_entry_lambda;
+
     //bas
     GtkWidget *conf_menu_stack_basic_scrolled_window;
     GtkWidget *conf_menu_stack_basic_viewport;
     GtkWidget *conf_menu_stack_basic_box;
 
-    GtkWidget *conf_menu_stack_basic_box_method;
-    GtkWidget *conf_menu_stack_basic_box_method_choose;
+    GtkWidget *conf_menu_stack_basic_frame_method;
+    GtkWidget *conf_menu_stack_basic_frame_method_combo;
+    GtkWidget *conf_menu_stack_basic_frame_method_box;
+
+    GtkWidget *conf_menu_stack_basic_frame_method_switch_cut;
+    GtkWidget *conf_menu_stack_basic_frame_method_switch_gain;
+    GtkWidget *conf_menu_stack_basic_frame_method_entry_sigma;
+    GtkWidget *conf_menu_stack_basic_frame_method_entry_bands;
+
+    std::vector<GtkCellRenderer *> method_combo_renderer;
+    pan::config* config_;
+
 
 };
 

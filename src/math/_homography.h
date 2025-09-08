@@ -12,6 +12,23 @@
 
 namespace util {
 
+    struct match_conf{
+
+        //matching
+        int max_images_per_match = 5;
+        int RANSAC_iterations = 1500;
+        int max_keypoints = 100;
+        int x_margin = 5;
+        int y_margin = 5;
+        //SIFT
+        int nfeatures = 0;
+        int nOctaveLayers = 4;
+        double contrastThreshold = 3e-2;
+        double edgeThreshold = 6;
+        double sigma_sift = 1.4142;
+
+    };
+
     using thread = std::vector<std::vector<std::vector<int>>>;
 
     struct keypoints{
@@ -39,7 +56,7 @@ namespace util {
 
     public:
 
-        adj_calculator(const std::vector<cv::Mat> & imgs,const std::vector<keypoints> &key_p,std::atomic<double>* fadress = NULL,std::atomic<bool>* cancel = NULL);
+        adj_calculator(const std::vector<cv::Mat> & imgs,const std::vector<keypoints> &key_p,struct  match_conf* conf = NULL,std::atomic<double>* fadress = NULL,std::atomic<bool>* cancel = NULL);
         std::vector<size_t> find_n_smallest_indices(const std::vector<double>& rank, int n);
 
         void cal_adj(const std::vector<cv::Mat> & imgs,int T);
@@ -54,6 +71,7 @@ namespace util {
 
     private:
 
+        struct match_conf conf_local;
         std::atomic<double>* f_adress;
         std::atomic<bool>* c_adress;
         double add = 0;
@@ -77,7 +95,7 @@ namespace util {
     cv::Matx33f solve_homography2D(const cv::Mat_<float> &A);
     std::pair<double, double> computeOverlapPercentages(const cv::Mat& imgA,const cv::Mat& imgB,Eigen::MatrixXd& H);
     std::pair<std::vector<cv::DMatch>, std::vector<cv::DMatch>> match_keypoints(const struct keypoints &kp1,const struct keypoints &kp2);
-    std::vector<keypoints> extrace_kp_vector(const std::vector<cv::Mat> & imgs,std::vector<int> idx);
+    std::vector<keypoints> extrace_kp_vector(const std::vector<cv::Mat> & imgs,std::vector<int> idx,match_conf* conf = NULL);
     struct keypoints extract_keypoints(const cv::Mat &img,int nfeatures = 0,int nOctaveLayers = 4,double contrastThreshold = 3e-2,double edgeThreshold = 6,double sigma = 1.4142);
 
 

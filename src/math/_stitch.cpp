@@ -208,7 +208,8 @@ Eigen::MatrixXd approximate_rot(Eigen::MatrixXd &R_i,
 }
 
 
-struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,const std::vector<std::vector< cv::Matx33f >> &Hom_mat,const std::vector<util::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match_mat,int threads,std::atomic<double>* f_adress,std::atomic<bool>* c_adress){
+struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,const std::vector<std::vector< cv::Matx33f >> &Hom_mat,const std::vector<util::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match_mat,float lambda,int threads,std::atomic<double>* f_adress,std::atomic<bool>* c_adress){
+
 
     struct stitch_result res;
 /*
@@ -276,7 +277,7 @@ struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,con
 
 
     cv::Mat adjclone = (*par.T.adj);
-    class bundm::adjuster testad(par.kp,par.match,.0001,par.T,threads);
+    class bundm::adjuster testad(par.kp,par.match,lambda,par.T,threads);
     std::vector<Eigen::MatrixXd> rret = testad.ret_rot();
     std::vector<Eigen::MatrixXd> Kret = testad.ret_K();
 
@@ -336,7 +337,7 @@ struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,con
 
         }
 
-        class bundm::adjuster testad(par.kp,par.match,.0001,par.T,threads);
+        class bundm::adjuster testad(par.kp,par.match,lambda,par.T,threads);
 
         struct bundm::inter_par teees = testad.iterate();
         Hom_mat_new = teees.hom;
