@@ -37,6 +37,21 @@ gboolean cut(GtkWidget* self,GdkEventButton *event,struct main_window_ *main_win
 
 gboolean new_pan(GtkWidget* self,GdkEventButton *event,struct main_window_ *main_window){
 
+
+        GList* s_list = gtk_flow_box_get_selected_children(GTK_FLOW_BOX( main_window->flowbox.flowbox_main));
+        guint size =g_list_length (s_list);
+
+        if(size < 2){
+
+                gchar message[] = "Select at least two images";
+                dbox(message);
+                g_list_free(g_steal_pointer (&s_list));
+
+                return FALSE;
+        }
+
+        g_list_free(g_steal_pointer (&s_list));
+
         imgv::create_viewer(main_window,self,event);
 
         return FALSE;
@@ -111,12 +126,12 @@ void create_toolbar(GtkWidget *add_to,struct toolbar_ *toolbar,struct main_windo
 
         toolbar->toolbar_main = gtk_toolbar_new ();
 
-        toolbar->toolbar_main_cut_img = gtk_image_new_from_icon_name ("edit-cut",GTK_ICON_SIZE_SMALL_TOOLBAR );
+        toolbar->toolbar_main_cut_img = gtk_image_new_from_icon_name ("edit-cut-symbolic",GTK_ICON_SIZE_SMALL_TOOLBAR );
         toolbar->toolbar_main_cut = gtk_tool_button_new (toolbar->toolbar_main_cut_img,"Cut");
         gtk_toolbar_insert(GTK_TOOLBAR(toolbar->toolbar_main),toolbar->toolbar_main_cut,0);
         gtk_widget_set_tooltip_text (GTK_WIDGET(toolbar->toolbar_main_cut),"Cut selection");
 
-        toolbar->toolbar_main_new_img = gtk_image_new_from_icon_name ("document-new",GTK_ICON_SIZE_SMALL_TOOLBAR );
+        toolbar->toolbar_main_new_img = gtk_image_new_from_icon_name ("document-new-symbolic",GTK_ICON_SIZE_SMALL_TOOLBAR );
         toolbar->toolbar_main_new = gtk_tool_button_new (toolbar->toolbar_main_new_img,"New");
         gtk_toolbar_insert(GTK_TOOLBAR(toolbar->toolbar_main),toolbar->toolbar_main_new,1);
         gtk_widget_set_tooltip_text (GTK_WIDGET(toolbar->toolbar_main_new),"Panorama from selection");

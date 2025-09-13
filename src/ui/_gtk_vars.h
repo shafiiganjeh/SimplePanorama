@@ -62,15 +62,6 @@ struct image_paths{
 };
 
 
-struct Drag_Par{
-    gdouble start_x;
-    gdouble start_y;
-    gdouble hadj_value;
-    gdouble vadj_value;
-    gboolean is_dragging;
-};
-
-
 struct flowbox_{
     GtkWidget *flowbox_main;
     GtkWidget *flowbox_scrolled_window;
@@ -197,12 +188,21 @@ struct toolbar_viewer{
     GtkWidget *toolbar_main;
 
     GtkToolItem *toolbar_seperator_1;
+    GtkToolItem *toolbar_seperator_0;
 
     GtkToolItem *toolbar_main_save;
     GtkWidget *toolbar_main_save_img;
 
+
+    GtkToolItem *toolbar_main_undo_crop;
+    GtkWidget *toolbar_main_undo_crop_img;
+
+    GtkToolItem *toolbar_main_redo_crop;
+    GtkWidget *toolbar_main_redo_crop_img;
+
     GtkToolItem *toolbar_main_crop;
     GtkWidget *toolbar_main_crop_img;
+
 
     GtkToolItem *toolbar_main_zin;
     GtkWidget *toolbar_main_zin_img;
@@ -210,7 +210,28 @@ struct toolbar_viewer{
     GtkToolItem *toolbar_main_zout;
     GtkWidget *toolbar_main_zout_img;
 
+    std::vector<cv::Rect> crop_vect;
 
+};
+
+
+struct Drag_Par{
+    gdouble start_x,start_y;
+    gdouble hadj_value,vadj_value;
+    gdouble dx, dy;
+    gdouble offset_x = 0;//xy offset due to resizing
+    gdouble offset_y = 0;
+    int rel_x = 0; //xy relative to window
+    int rel_y = 0;
+    int abs_x = 0;//xy change when cut
+    int abs_y = 0;
+    cv::Rect save;
+
+    gboolean is_dragging = FALSE;
+    gboolean is_drawing = FALSE;
+    gboolean is_config = FALSE;
+    gboolean add_offset = FALSE;
+    cv::Rect final_drawing;
 };
 
 
@@ -219,9 +240,12 @@ struct viewer_window_{
     int windows_idx;
 
     GtkWidget *window;
+    gint w_x,w_y;
     GtkWidget *viewer_box;
     GtkWidget *viewer_scrolled_window;
     GtkWidget *viewer_scrolled_window_viewpoint;
+    GtkWidget *viewer_scrolled_window_viewpoint_overlay;
+    GtkWidget *viewer_scrolled_window_viewpoint_drawing;
 
     struct toolbar_viewer toolbar;
 
@@ -239,6 +263,10 @@ struct viewer_window_{
     struct Drag_Par dragging;
     struct progress_bar_* progress_bar;
     std::shared_ptr<pan::panorama> panorama_;
+
+    cv::Rect crop_preview;
+    std::vector<cv::Rect> crop_vec;
+    int ret_counter;
 
 };
 

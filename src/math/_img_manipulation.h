@@ -51,7 +51,7 @@ namespace imgm {
 
     cv::Mat resize_image( const cv::Mat& img, int target_width = 300);
 
-    cv::Mat resizeKeepAspectRatio(const cv::Mat& input, int desiredWidth);
+    cv::Mat resizeKeepAspectRatio(const cv::Mat& input, int desiredWidth,const cv::Rect* mask = NULL);
 
 
     template <typename T> cv::Mat applyGeometricTransform(const cv::Mat& img, T& transformer,const cv::Size size) {

@@ -113,10 +113,16 @@ namespace imgm {
     }
 
 
-    cv::Mat resizeKeepAspectRatio(const cv::Mat& input, int desiredWidth) {
+    cv::Mat resizeKeepAspectRatio(const cv::Mat& input, int desiredWidth,const cv::Rect* mask) {
 
             int originalWidth = input.cols;
             int originalHeight = input.rows;
+            cv::Rect outp_roi;
+            if(not (mask == NULL)){
+
+                outp_roi = *mask;
+
+            }
 
             double scale = static_cast<double>(desiredWidth) / originalWidth;
             int desiredHeight = cvRound(originalHeight * scale);
@@ -129,6 +135,11 @@ namespace imgm {
             cv::Mat resizedImage;
             cv::resize(input, resizedImage, cv::Size(desiredWidth, desiredHeight), 0, 0, interpolation);
 
+            if(not (mask == NULL)){
+                double ratio = (double)resizedImage.cols / (double)input.cols;
+                outp_roi = util::scaleRect(outp_roi,ratio,ratio);
+                return resizedImage(outp_roi);
+            }
 
             return resizedImage;
     }

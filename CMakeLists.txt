@@ -56,6 +56,8 @@ add_library(code
     ${CMAKE_SOURCE_DIR}/src/ui/_viewer_toolbar.h
     ${CMAKE_SOURCE_DIR}/src/ui/_config.cpp
     ${CMAKE_SOURCE_DIR}/src/ui/_config.h
+    ${CMAKE_SOURCE_DIR}/src/ui/_dialog.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/_dialog.h
     ${CMAKE_SOURCE_DIR}/src/math/_img_manipulation.cpp
     ${CMAKE_SOURCE_DIR}/src/math/_img_manipulation.h
     ${CMAKE_SOURCE_DIR}/src/math/_util.h

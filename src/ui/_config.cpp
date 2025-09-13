@@ -460,9 +460,6 @@ namespace conf{
     }
 
 
-
-
-
     void connect_signals(struct config_* config_window,struct main_window_ *main_window){
 
         g_signal_connect(config_window->conf_menu_CANCEL, "button-release-event", G_CALLBACK(cancel), config_window);
