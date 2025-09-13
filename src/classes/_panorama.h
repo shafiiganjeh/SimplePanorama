@@ -59,7 +59,7 @@ namespace pan{
         float lambda = .0001; //initial lambda
         //matching
         int max_images_per_match = 5;
-        int max_keypoints = 100;
+        int max_keypoints = 200;
         int RANSAC_iterations = 1500;
         int x_margin = 5;
         int y_margin = 5;

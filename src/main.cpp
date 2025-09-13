@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
         conf::ConfigParser test(&current_conf);
 
 
-        //test.write_cfg("/home/sd_bert/projects/Panorama/build/conf");
+        test.write_cfg("/home/sd_bert/projects/Panorama/build/conf");
         test.read_cfg("/home/sd_bert/projects/Panorama/build/conf");
 
 
@@ -25,8 +25,8 @@ int main(int argc, char **argv) {
 
         build_window(argc,argv,&main_window,&current_conf);
         gtk_main();
+
 /*
-for(int i = 0;i<10;i++){
             struct pan::config conf;
             conf.focal = 700;
 
@@ -43,7 +43,7 @@ for(int i = 0;i<10;i++){
             pan::panorama test(path_list);
             class util::Timer timer;
 
-            test.stitch_panorama(conf);}
+            test.stitch_panorama(&conf);
  */
 }
 

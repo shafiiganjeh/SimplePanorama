@@ -59,7 +59,7 @@ gboolean open_folder(GtkMenuItem* *widget,struct main_window_ *main_window)
             }}
 
         g_object_unref (native);
-        return TRUE;
+        return FALSE;
 }
 
 

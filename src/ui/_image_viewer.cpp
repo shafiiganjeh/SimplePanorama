@@ -107,21 +107,46 @@ namespace imgv{
 
 
 gboolean on_mouse_press(GtkWidget *widget, GdkEventButton *event, struct viewer_window_ *viewer_window) {
+
+    viewer_window->dragging.start_x = event->x_root;
+    viewer_window->dragging.start_y = event->y_root;
+    GdkDisplay *display;
+    GdkCursor *cursor;
+
+    GtkAdjustment *hadj = gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW(widget));
+    GtkAdjustment *vadj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(widget));
+
+    viewer_window->dragging.hadj_value = gtk_adjustment_get_value(hadj);
+    viewer_window->dragging.vadj_value = gtk_adjustment_get_value(vadj);
+
+
+    GdkWindow *gdk_window = gtk_widget_get_window(GTK_WIDGET(viewer_window->img_test));
+    gdk_window_get_origin(gdk_window, &viewer_window->dragging.rel_x, &viewer_window->dragging.rel_y);
+
+
     if (event->button == GDK_BUTTON_PRIMARY) {
 
-        GtkAdjustment *hadj = gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW(widget));
-        GtkAdjustment *vadj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(widget));
-
-        viewer_window->dragging.start_x = event->x_root;
-        viewer_window->dragging.start_y = event->y_root;
-        viewer_window->dragging.hadj_value = gtk_adjustment_get_value(hadj);
-        viewer_window->dragging.vadj_value = gtk_adjustment_get_value(vadj);
         viewer_window->dragging.is_dragging = TRUE;
+        viewer_window->dragging.is_drawing = FALSE;
+        viewer_window->dragging.is_config = TRUE;
 
-        GdkDisplay *display = gtk_widget_get_display(widget);
-        GdkCursor *cursor = gdk_cursor_new_from_name(display, "grabbing");
+        display = gtk_widget_get_display(widget);
+        cursor = gdk_cursor_new_from_name(display, "grabbing");
         gdk_window_set_cursor(gtk_widget_get_window(widget), cursor);
         g_object_unref(cursor);
+        gdk_threads_add_idle((GSourceFunc)gtk_widget_queue_draw,(void*)viewer_window->viewer_scrolled_window_viewpoint_drawing);
+
+        return TRUE;
+    }else if(event->button == GDK_BUTTON_SECONDARY){
+
+        viewer_window->dragging.is_dragging = FALSE;
+        viewer_window->dragging.is_drawing = TRUE;
+        viewer_window->dragging.is_config = FALSE;
+
+        display = gtk_widget_get_display(widget);
+        cursor = gdk_cursor_new_from_name(display,"cell");
+        gdk_window_set_cursor(gtk_widget_get_window(widget), cursor);
+
 
         return TRUE;
     }
@@ -133,16 +158,21 @@ gboolean on_mouse_press(GtkWidget *widget, GdkEventButton *event, struct viewer_
 
 gboolean on_mouse_motion(GtkWidget *widget, GdkEventMotion *event, struct viewer_window_ *viewer_window) {
 
+    viewer_window->dragging.dx = event->x_root - viewer_window->dragging.start_x;
+    viewer_window->dragging.dy = event->y_root - viewer_window->dragging.start_y;
+
     if (viewer_window->dragging.is_dragging) {
 
         GtkAdjustment *hadj = gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW(widget));
         GtkAdjustment *vadj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(widget));
+        gtk_adjustment_set_value(hadj, viewer_window->dragging.hadj_value - viewer_window->dragging.dx);
+        gtk_adjustment_set_value(vadj, viewer_window->dragging.vadj_value - viewer_window->dragging.dy);
 
-        gdouble dx = event->x_root - viewer_window->dragging.start_x;
-        gdouble dy = event->y_root - viewer_window->dragging.start_y;
+    }else if(viewer_window->dragging.is_drawing){
 
-        gtk_adjustment_set_value(hadj, viewer_window->dragging.hadj_value - dx);
-        gtk_adjustment_set_value(vadj, viewer_window->dragging.vadj_value - dy);
+        viewer_window->dragging.add_offset = FALSE;
+        //gtk_widget_queue_draw(viewer_window->viewer_scrolled_window_viewpoint_drawing);
+        gdk_threads_add_idle((GSourceFunc)gtk_widget_queue_draw,(void*)viewer_window->viewer_scrolled_window_viewpoint_drawing);
 
     }
 
@@ -151,13 +181,35 @@ gboolean on_mouse_motion(GtkWidget *widget, GdkEventMotion *event, struct viewer
 
 
 gboolean on_mouse_release(GtkWidget *widget, GdkEventButton *event, struct viewer_window_ *viewer_window) {
+
     if (event->button == GDK_BUTTON_PRIMARY) {
 
         viewer_window->dragging.is_dragging = FALSE;
+        viewer_window->dragging.is_config = TRUE;
+        viewer_window->dragging.is_drawing = FALSE;
         gdk_window_set_cursor(gtk_widget_get_window(widget), NULL);
+        gdk_threads_add_idle((GSourceFunc)gtk_widget_queue_draw,(void*)viewer_window->viewer_scrolled_window_viewpoint_drawing);
+
+        return TRUE;
+    }else if(event->button == GDK_BUTTON_SECONDARY){
+
+
+        viewer_window->dragging.is_config = FALSE;
+        gdk_window_set_cursor(gtk_widget_get_window(widget), NULL);
+
+        if(viewer_window->dragging.is_drawing){
+            viewer_window->dragging.is_drawing = FALSE;
+            viewer_window->dragging.final_drawing =
+            cv::Rect((int)viewer_window->dragging.start_x - viewer_window->dragging.rel_x - (int)viewer_window->dragging.offset_x,
+                    (int)viewer_window->dragging.start_y - viewer_window->dragging.rel_y - (int)viewer_window->dragging.offset_y,
+                    (int)viewer_window->dragging.dx,
+                    (int)viewer_window->dragging.dy);
+        }
+
 
         return TRUE;
     }
+
     return FALSE;
 }
 
@@ -170,6 +222,58 @@ void window_quit(GtkWidget *widget, gpointer data){
     wind_id->window->view.erase(wind_id->id);
 
     delete wind_id;
+}
+
+
+gboolean on_resize(GtkWidget *widget,GdkEventConfigure *event, struct viewer_window_ *viewer_window){
+
+    GtkAllocation viewport_alloc;
+    gtk_widget_get_allocation(viewer_window->viewer_scrolled_window, &viewport_alloc);
+    gint viewport_w = viewport_alloc.width;
+    gint viewport_h = viewport_alloc.height;
+
+    int image_w = viewer_window->image_zoomed.cols;
+    int image_h = viewer_window->image_zoomed.rows;
+
+    if(viewport_w >= image_w){
+        viewer_window->dragging.offset_x = ((double)viewport_w - (double)image_w)/2;
+        viewer_window->dragging.add_offset = TRUE;
+    }else{
+        viewer_window->dragging.offset_x = 0;
+    }
+
+    if(viewport_h >= image_h){
+        viewer_window->dragging.offset_y = ((double)viewport_h - (double)image_h)/2;
+        viewer_window->dragging.add_offset = TRUE;
+    }else{
+        viewer_window->dragging.offset_y = 0;
+    }
+
+
+    viewer_window->dragging.is_drawing = FALSE;
+    if((not(event->width == viewer_window->w_x)) or (not(event->height == viewer_window->w_y))){
+
+        viewer_window->dragging.is_config = TRUE;
+        //gtk_widget_queue_draw(viewer_window->viewer_scrolled_window_viewpoint_drawing);
+        gdk_threads_add_idle((GSourceFunc)gtk_widget_queue_draw,(void*)viewer_window->viewer_scrolled_window_viewpoint_drawing);
+
+    }
+
+    viewer_window->w_x = event->width;
+    viewer_window->w_y = event->height;
+
+    return FALSE;
+}
+
+
+gboolean on_scroll(GtkWidget *widget,GdkEventScroll event, struct viewer_window_ *viewer_window){
+
+    viewer_window->dragging.is_drawing = FALSE;
+    viewer_window->dragging.is_config = TRUE;
+    //gtk_widget_queue_draw(viewer_window->viewer_scrolled_window_viewpoint_drawing);
+    gdk_threads_add_idle((GSourceFunc)gtk_widget_queue_draw,(void*)viewer_window->viewer_scrolled_window_viewpoint_drawing);
+
+    return FALSE;
 }
 
 
@@ -188,6 +292,15 @@ void connect_signals(struct main_window_ *main_window,int id){
         g_signal_connect(main_window->view[id].viewer_scrolled_window, "motion-notify-event", G_CALLBACK(on_mouse_motion), &main_window->view[id]);
 
         g_signal_connect(main_window->view[id].viewer_scrolled_window, "button-release-event", G_CALLBACK(on_mouse_release), &main_window->view[id]);
+
+        g_signal_connect(main_window->view[id].viewer_scrolled_window_viewpoint_drawing, "draw", G_CALLBACK(imgvt::on_draw), &(main_window->view[id].dragging));
+
+        g_signal_connect(main_window->view[id].window, "configure-event", G_CALLBACK(on_resize), &main_window->view[id]);
+
+        GtkAdjustment *hadj = gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW(main_window->view[id].viewer_scrolled_window));
+        GtkAdjustment *vadj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(main_window->view[id].viewer_scrolled_window));
+        g_signal_connect(hadj, "value-changed", G_CALLBACK(on_scroll), &main_window->view[id]);
+        g_signal_connect(vadj, "value-changed", G_CALLBACK(on_scroll), &main_window->view[id]);
 
 }
 
@@ -212,75 +325,103 @@ void get_files(GtkFlowBoxChild *child,struct widget_and_Id *for_list){
 }
 
 
+void on_drawing_area_realize(GtkWidget *widget, gpointer data) {
+    GdkWindow *gdk_window = gtk_widget_get_window(widget);
+    if (gdk_window) {
+        gdk_window_set_pass_through(gdk_window, TRUE);
+    }
+}
+
+
 gboolean show_image(struct progress_bar_ *bar) {
 
-    struct viewer_window_ *progress_bar = bar->view;
+    struct viewer_window_ *progress_bar_viewer = bar->view;
 
-    gtk_window_set_default_size(GTK_WINDOW(progress_bar->window), 800, 600);
+    gtk_window_set_default_size(GTK_WINDOW(progress_bar_viewer->window), 800, 600);
 
-    progress_bar->viewer_box = gtk_box_new (GTK_ORIENTATION_VERTICAL,0);
-    gtk_box_set_homogeneous (GTK_BOX(progress_bar->viewer_box),FALSE);
-    gtk_container_add (GTK_CONTAINER(progress_bar->window),progress_bar->viewer_box);
+    progress_bar_viewer->viewer_box = gtk_box_new (GTK_ORIENTATION_VERTICAL,0);
+    gtk_box_set_homogeneous (GTK_BOX(progress_bar_viewer->viewer_box),FALSE);
+    gtk_container_add (GTK_CONTAINER(progress_bar_viewer->window),progress_bar_viewer->viewer_box);
 
-    progress_bar->viewer_scrolled_window = gtk_scrolled_window_new (NULL, NULL);
-    progress_bar->viewer_scrolled_window_viewpoint = gtk_viewport_new (NULL, NULL);
-    gtk_container_add(GTK_CONTAINER(progress_bar->viewer_scrolled_window), progress_bar->viewer_scrolled_window_viewpoint);
-    gtk_box_pack_end(GTK_BOX(progress_bar->viewer_box),progress_bar->viewer_scrolled_window,TRUE,TRUE,0);
+    progress_bar_viewer->viewer_scrolled_window = gtk_scrolled_window_new (NULL, NULL);
+    progress_bar_viewer->viewer_scrolled_window_viewpoint = gtk_viewport_new (NULL, NULL);
+    gtk_container_add(GTK_CONTAINER(progress_bar_viewer->viewer_scrolled_window), progress_bar_viewer->viewer_scrolled_window_viewpoint);
+    gtk_box_pack_end(GTK_BOX(progress_bar_viewer->viewer_box),progress_bar_viewer->viewer_scrolled_window,TRUE,TRUE,0);
 
-    //progress_bar->image = bar->view->future_.get();
-    progress_bar->image = progress_bar->panorama_->get_preview();
+    //progress_bar_viewer->image = cv::imread("/home/sd_bert/Pictures/1725014833368114.png", cv::IMREAD_COLOR);
+    //progress_bar_viewer->image = bar->view->future_.get();
+    progress_bar_viewer->image = progress_bar_viewer->panorama_->get_preview();
+    int image_w = progress_bar_viewer->image.cols;
+    int image_h = progress_bar_viewer->image.rows;
 
-    //progress_bar->image = cv::imread("/home/sd_bert/Pictures/1725014833368114.png", cv::IMREAD_COLOR);
+    cv::Rect imagerect(0,0,image_w,image_h);
+    progress_bar_viewer->crop_preview = imagerect;
+    std::vector<cv::Rect>().swap(progress_bar_viewer->crop_vec);
+    progress_bar_viewer->crop_vec.push_back(imagerect);
+    progress_bar_viewer->ret_counter = 0;
 
-    if ( 200 < (progress_bar->image.cols - 800)){
 
-        float z_num = (progress_bar->image.cols - 800)/200;
+    if ( 200 < (progress_bar_viewer->image.cols - 800)){
+
+        float z_num = (progress_bar_viewer->image.cols - 800)/200;
         if (z_num < 3){
 
-            progress_bar->zoom_val.resize(2);
-            progress_bar->zoom_val[0] = 800;
-            progress_bar->zoom_val[1] = progress_bar->image.cols;
+            progress_bar_viewer->zoom_val.resize(2);
+            progress_bar_viewer->zoom_val[0] = 800;
+            progress_bar_viewer->zoom_val[1] = progress_bar_viewer->image.cols;
 
         }else{
 
             int zooms = (int)z_num;
-            progress_bar->zoom_val.resize(zooms+1);
-            progress_bar->zoom_val[0] = 800;
-            progress_bar->zoom_val[zooms] = progress_bar->image.cols;
+            progress_bar_viewer->zoom_val.resize(zooms+1);
+            progress_bar_viewer->zoom_val[0] = 800;
+            progress_bar_viewer->zoom_val[zooms] = progress_bar_viewer->image.cols;
             for(int i = 1; i < zooms;i++){
 
-                progress_bar->zoom_val[i] = 800 + 200*i;
+                progress_bar_viewer->zoom_val[i] = 800 + 200*i;
             }
 
         }
 
     }
 
-    if (1 > progress_bar->zoom_val.size()){
+    if (1 > progress_bar_viewer->zoom_val.size()){
 
-        progress_bar->image_zoomed = progress_bar->image;
-        progress_bar->current_zoom = -1;
+        progress_bar_viewer->image_zoomed = progress_bar_viewer->image;
+        progress_bar_viewer->current_zoom = -1;
 
     }else{
 
-        progress_bar->image_zoomed = imgm::resizeKeepAspectRatio(progress_bar->image, progress_bar->zoom_val[1]);
-        progress_bar->current_zoom = 1;
+        progress_bar_viewer->image_zoomed = imgm::resizeKeepAspectRatio(progress_bar_viewer->image, progress_bar_viewer->zoom_val[1]);
+        progress_bar_viewer->current_zoom = 1;
 
     }
 
-    progress_bar->img_test = gops::cv_image_to_gtk_image(progress_bar->image_zoomed);
+    progress_bar_viewer->img_test = gops::cv_image_to_gtk_image(progress_bar_viewer->image_zoomed);
 
-    progress_bar->image_window_event = gtk_event_box_new();
-    gtk_container_add(GTK_CONTAINER(progress_bar->image_window_event), GTK_WIDGET(progress_bar->img_test));
+    progress_bar_viewer->viewer_scrolled_window_viewpoint_overlay = gtk_overlay_new();
 
-    gtk_container_add(GTK_CONTAINER(progress_bar->viewer_scrolled_window_viewpoint),progress_bar->image_window_event);
+    progress_bar_viewer->image_window_event = gtk_event_box_new();
+    gtk_container_add(GTK_CONTAINER(progress_bar_viewer->image_window_event), GTK_WIDGET(progress_bar_viewer->img_test));
+    gtk_widget_add_events(progress_bar_viewer->image_window_event, GDK_BUTTON_PRESS_MASK bitor GDK_BUTTON_RELEASE_MASK bitor GDK_POINTER_MOTION_MASK);
 
-    gtk_widget_add_events(progress_bar->image_window_event, GDK_BUTTON_PRESS_MASK bitor GDK_BUTTON_RELEASE_MASK bitor GDK_POINTER_MOTION_MASK);
+    gtk_container_add(GTK_CONTAINER(progress_bar_viewer->viewer_scrolled_window_viewpoint_overlay),progress_bar_viewer->image_window_event);
 
-    imgvt::create_toolbar(progress_bar->viewer_box,&(progress_bar->toolbar),progress_bar);
+    progress_bar_viewer->viewer_scrolled_window_viewpoint_drawing = gtk_drawing_area_new();
 
-    gtk_widget_show_all(progress_bar->window);
-    connect_signals(bar->main_window,progress_bar->windows_idx);
+    gtk_overlay_add_overlay(GTK_OVERLAY(progress_bar_viewer->viewer_scrolled_window_viewpoint_overlay),progress_bar_viewer->viewer_scrolled_window_viewpoint_drawing);
+    gtk_widget_set_app_paintable(progress_bar_viewer->viewer_scrolled_window_viewpoint_drawing, TRUE);
+    gtk_widget_set_sensitive(progress_bar_viewer->viewer_scrolled_window_viewpoint_drawing, TRUE);
+    gtk_overlay_set_overlay_pass_through(GTK_OVERLAY(progress_bar_viewer->viewer_scrolled_window_viewpoint_overlay), progress_bar_viewer->viewer_scrolled_window_viewpoint_drawing, TRUE);
+
+    g_signal_connect(progress_bar_viewer->viewer_scrolled_window_viewpoint_drawing, "realize", G_CALLBACK(on_drawing_area_realize), NULL);
+
+    gtk_container_add(GTK_CONTAINER(progress_bar_viewer->viewer_scrolled_window_viewpoint),progress_bar_viewer->viewer_scrolled_window_viewpoint_overlay);
+
+    imgvt::create_toolbar(progress_bar_viewer->viewer_box,&(progress_bar_viewer->toolbar),progress_bar_viewer);
+
+    gtk_widget_show_all(progress_bar_viewer->window);
+    connect_signals(bar->main_window,progress_bar_viewer->windows_idx);
 
     return true;
 
