@@ -46,7 +46,7 @@ std::vector<cv::Mat> graph_cut(const std::vector<cv::Mat>& images,const std::vec
 
     std::vector<cv::Mat> masks_copy;
     for (const auto& mat : masks) {
-        masks_copy.push_back(mat.clone()); // clone() creates a deep copy
+        masks_copy.push_back(mat.clone());
     }
 
     images[seq[0]].copyTo(panorama(image_roi[seq[0]]),masks_copy[seq[0]]);

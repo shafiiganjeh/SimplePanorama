@@ -26,6 +26,10 @@ namespace util {
         double double_part;
     };
 
+    std::string doubleToString(double value, int precision = 8);
+
+    std::string floatToString(float value, int precision = 6);
+
     double stringToDouble(const std::string& str);
 
     float stringToFloat(const std::string& str);

@@ -7,6 +7,7 @@
 #include "_toolbar.h"
 #include "_image_viewer.h"
 #include "_panorama.h"
+#include <filesystem>
 
 void build_window(int argc, char** argv,struct main_window_ *main_window,struct pan::config* conf);
 

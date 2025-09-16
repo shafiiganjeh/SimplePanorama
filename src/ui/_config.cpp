@@ -51,6 +51,9 @@ namespace conf{
 
 
         config_window->config_->cut = gtk_switch_get_state(GTK_SWITCH(config_window->conf_menu_stack_basic_frame_method_switch_cut));
+
+        config_window->config_->cut_seams = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_window->conf_menu_stack_basic_frame_method_switch_cut_yesno));
+
         config_window->config_->gain_compensation = gtk_switch_get_state(GTK_SWITCH(config_window->conf_menu_stack_basic_frame_method_switch_gain));
 
         entry = gtk_entry_get_text(GTK_ENTRY(config_window->conf_menu_stack_basic_frame_method_entry_sigma));
@@ -90,9 +93,8 @@ namespace conf{
         entry = gtk_entry_get_text(GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_system_entry_lambda));
         config_window->config_->lambda = util::stringToFloat(e2str(entry));
 
-
         conf::ConfigParser test(config_window->config_);
-        test.write_cfg("/home/sd_bert/projects/Panorama/build/conf");
+        test.write_cfg(config_window->_path_conf);
         return FALSE;
 
     }
@@ -124,8 +126,6 @@ namespace conf{
     void on_combo_box_changed(GtkComboBox* combo_box, struct config_* config_window) {
         GtkTreeIter iter;
         if(gtk_combo_box_get_active_iter(combo_box, &iter)){
-
-
 
             gchar *entry;
             GtkTreeModel* model = gtk_combo_box_get_model(combo_box);
@@ -207,21 +207,34 @@ namespace conf{
         gtk_widget_set_margin_bottom(row, 5);
         gtk_container_add(GTK_CONTAINER(row), config_window->conf_menu_stack_basic_frame_method_combo);
         gtk_list_box_insert(GTK_LIST_BOX(config_window->conf_menu_stack_basic_frame_method_box), row, -1);
+
+
         row = gtk_list_box_row_new();
         gtk_widget_set_margin_top(row, 3);
         gtk_widget_set_margin_bottom(row, 3);
         hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
         gtk_container_set_border_width(GTK_CONTAINER(hbox), 5);
+
+        label = gtk_label_new("Cut Image seams");
+        gtk_label_set_xalign(GTK_LABEL(label), 0.0);
+        config_window->conf_menu_stack_basic_frame_method_switch_cut_yesno = gtk_check_button_new ();
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_window->conf_menu_stack_basic_frame_method_switch_cut_yesno),main_window->config_->cut_seams);
+        gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 0);
+        gtk_box_pack_start(GTK_BOX(hbox), config_window->conf_menu_stack_basic_frame_method_switch_cut_yesno, FALSE, FALSE, 0);
+
         config_window->conf_menu_stack_basic_frame_method_switch_cut = gtk_switch_new ();
         gtk_switch_set_state (GTK_SWITCH(config_window->conf_menu_stack_basic_frame_method_switch_cut),main_window->config_->cut);
         gtk_widget_set_margin_end(config_window->conf_menu_stack_basic_frame_method_switch_cut,30);
         label = gtk_label_new("Find Image seams using content aware cutting");
-        gtk_label_set_xalign(GTK_LABEL(label), 0.0);
+        gtk_label_set_xalign(GTK_LABEL(label), .8);
+
         gtk_box_pack_start(GTK_BOX(hbox), label, TRUE, TRUE, 0);
         gtk_box_pack_start(GTK_BOX(hbox), config_window->conf_menu_stack_basic_frame_method_switch_cut, FALSE, FALSE, 0);
+
         gtk_container_add(GTK_CONTAINER(row), hbox);
         gtk_list_box_insert(GTK_LIST_BOX(config_window->conf_menu_stack_basic_frame_method_box), row, -1);
         g_signal_connect(config_window->conf_menu_stack_basic_frame_method_combo, "changed", G_CALLBACK(on_combo_box_changed), config_window);
+
 
         row = gtk_list_box_row_new();
         gtk_widget_set_margin_top(row, 3);

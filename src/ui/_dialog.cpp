@@ -5,7 +5,7 @@ static void close_dialog(GtkWidget *widget, gpointer data) {
     gtk_widget_destroy(GTK_WIDGET(data));
 }
 
-void dbox(gchar *message) {
+void dbox(const gchar *message) {
     GtkWidget *dialog, *content_area, *label, *button;
 
     dialog = gtk_window_new(GTK_WINDOW_TOPLEVEL);

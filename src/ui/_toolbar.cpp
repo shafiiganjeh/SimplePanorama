@@ -117,7 +117,7 @@ void connect_signals(struct main_window_ *main_window){
 
         g_signal_connect(main_window->toolbar.toolbar_main_cut, "button-release-event", G_CALLBACK(cut), main_window);
         g_signal_connect(main_window->toolbar.toolbar_main_new, "button-release-event", G_CALLBACK(new_pan), main_window);
-        g_signal_connect(main_window->toolbar.toolbar_main_testing, "button-release-event", G_CALLBACK(_test_), main_window);
+        //g_signal_connect(main_window->toolbar.toolbar_main_testing, "button-release-event", G_CALLBACK(_test_), main_window);
 
 }
 
@@ -136,12 +136,12 @@ void create_toolbar(GtkWidget *add_to,struct toolbar_ *toolbar,struct main_windo
         gtk_toolbar_insert(GTK_TOOLBAR(toolbar->toolbar_main),toolbar->toolbar_main_new,1);
         gtk_widget_set_tooltip_text (GTK_WIDGET(toolbar->toolbar_main_new),"Panorama from selection");
 
-
+/*
         toolbar->toolbar_main_testing_img = gtk_image_new_from_icon_name ("system-run",GTK_ICON_SIZE_SMALL_TOOLBAR );
         toolbar->toolbar_main_testing = gtk_tool_button_new (toolbar->toolbar_main_testing_img,"Test");
         gtk_toolbar_insert(GTK_TOOLBAR(toolbar->toolbar_main),toolbar->toolbar_main_testing,2);
         gtk_widget_set_tooltip_text (GTK_WIDGET(toolbar->toolbar_main_testing),"This is a Test");
-
+*/
 
         gtk_box_pack_end (GTK_BOX(add_to),toolbar->toolbar_main,FALSE,FALSE,0);
 

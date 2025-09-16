@@ -5,6 +5,36 @@
 namespace util {
 
 
+std::string doubleToString(double value, int precision) {
+
+    std::array<char, 50> buffer{};
+
+    auto [ptr, ec] = std::to_chars(buffer.data(), buffer.data() + buffer.size(), value,
+                                  std::chars_format::fixed, precision);
+
+    if (ec == std::errc()) {
+        return std::string(buffer.data(), ptr);
+    } else {
+        throw std::runtime_error("Double to string conversion failed");
+    }
+}
+
+
+std::string floatToString(float value, int precision) {
+
+    std::array<char, 50> buffer{};
+
+    auto [ptr, ec] = std::to_chars(buffer.data(), buffer.data() + buffer.size(), value,
+                                  std::chars_format::fixed, precision);
+
+    if (ec == std::errc()) {
+        return std::string(buffer.data(), ptr);
+    } else {
+        throw std::runtime_error("Float to string conversion failed");
+    }
+}
+
+
 double stringToDouble(const std::string& str) {
     double value;
     auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), value);

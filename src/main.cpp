@@ -3,25 +3,36 @@
 #include <glib-object.h>
 #include "_gtk_vars.h"
 #include "_main_windows.h"
-#include <Eigen/Dense>
-#include <opencv2/core/eigen.hpp>
-#include "_panorama.h"
 #include <filesystem>
-
 #include "_config_parser.h"
+
+std::filesystem::path get_executable_path();
+
 
 int main(int argc, char **argv) {
 
+        struct main_window_ main_window;
         pan::config current_conf;
         conf::ConfigParser test(&current_conf);
 
+        std::filesystem::path exe_path = get_executable_path();
+        std::filesystem::file_status s;
 
-        test.write_cfg("/home/sd_bert/projects/Panorama/build/conf");
-        test.read_cfg("/home/sd_bert/projects/Panorama/build/conf");
+        main_window._path_ex= exe_path.parent_path();
+        main_window._path_css= exe_path.parent_path();
+        main_window._path_conf= exe_path.parent_path();
+
+        main_window._path_conf /= "config";
+        main_window._path_css /= "res";main_window._path_css /= "gtk.css";
 
 
-
-        struct main_window_ main_window;
+        if (std::filesystem::status_known(s) ? std::filesystem::exists(s) : std::filesystem::exists(main_window._path_conf)){
+            test.read_cfg(main_window._path_conf);
+            test.write_cfg(main_window._path_conf);
+        }else{
+            test.write_cfg(main_window._path_conf);
+            test.read_cfg(main_window._path_conf);
+        }
 
         build_window(argc,argv,&main_window,&current_conf);
         gtk_main();
@@ -42,9 +53,34 @@ int main(int argc, char **argv) {
 
             pan::panorama test(path_list);
             class util::Timer timer;
-
             test.stitch_panorama(&conf);
- */
+*/
+
 }
+
+#ifdef __linux__
+
+#include <unistd.h>
+
+std::filesystem::path get_executable_path() {
+    char result[PATH_MAX];
+    ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+    if (count != -1) {
+        return std::filesystem::path(std::string(result, count));
+    }
+    return {};
+}
+
+#elif defined(_WIN64)
+
+#include <windows.h>
+
+std::filesystem::path get_executable_path() {
+    wchar_t buffer[MAX_PATH];
+    GetModuleFileNameW(nullptr, buffer, MAX_PATH);
+    return std::filesystem::path(buffer);
+}
+
+#endif
 
 

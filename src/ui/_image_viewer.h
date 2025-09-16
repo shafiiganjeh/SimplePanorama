@@ -6,6 +6,7 @@
 #include "_gtk_ops.h"
 #include "_viewer_toolbar.h"
 #include "_img_manipulation.h"
+#include "_dialog.h"
 
 namespace imgv{
 
