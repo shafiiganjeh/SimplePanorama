@@ -4,7 +4,7 @@
 
 #include <gtk/gtk.h>
 
-void dbox(gchar *message);
+void dbox(const gchar *message);
 
 #endif
 

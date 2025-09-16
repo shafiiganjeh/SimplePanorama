@@ -17,7 +17,7 @@ void build_window(int argc, char** argv,struct main_window_ *main_window,struct 
         gtk_init(&argc, &argv);
 
         GtkCssProvider *provider = gtk_css_provider_new();
-        gtk_css_provider_load_from_path(provider,"/home/sd_bert/projects/Panorama/res/gtk.css",NULL);
+        gtk_css_provider_load_from_path(provider,main_window->_path_css.c_str(),NULL);
 
         gtk_style_context_add_provider_for_screen(gdk_screen_get_default(),GTK_STYLE_PROVIDER(provider),GTK_STYLE_PROVIDER_PRIORITY_USER);
 
@@ -32,7 +32,9 @@ void build_window(int argc, char** argv,struct main_window_ *main_window,struct 
         gtk_box_set_baseline_position (GTK_BOX(main_window->box),GTK_BASELINE_POSITION_CENTER);
         gtk_box_set_homogeneous (GTK_BOX(main_window->box),FALSE);
         gtk_container_add (GTK_CONTAINER(main_window->window),main_window->box);
-        main_window->img_dragdrop = gtk_image_new_from_file ("drag.jpg");
+        std::filesystem::path drag_path = main_window->_path_ex;
+        drag_path /= "res";drag_path /= "drag.png";
+        main_window->img_dragdrop = gtk_image_new_from_file (drag_path.c_str());
         gtk_box_set_center_widget (GTK_BOX(main_window->box),main_window->img_dragdrop);
         gtk_drag_dest_set(GTK_WIDGET(main_window->img_dragdrop), GTK_DEST_DEFAULT_ALL, targetentries, 1, GDK_ACTION_COPY);
 

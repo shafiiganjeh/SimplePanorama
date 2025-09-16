@@ -8,6 +8,7 @@
 #include <string>
 #include <opencv2/opencv.hpp>
 #include <atomic>
+#include <filesystem>
 
 extern GtkTargetEntry targetentries[];
 namespace pan { class panorama;
@@ -28,6 +29,8 @@ struct progress_bar_{
     struct viewer_window_* view;
     struct main_window_ * main_window;
     bool canceld = false;
+    bool error = false;
+    const gchar* what_error;
     int test;
 
     GtkWidget *instance;
@@ -127,12 +130,14 @@ struct config_{
     GtkWidget *conf_menu_stack_basic_frame_method_box;
 
     GtkWidget *conf_menu_stack_basic_frame_method_switch_cut;
+    GtkWidget *conf_menu_stack_basic_frame_method_switch_cut_yesno;
     GtkWidget *conf_menu_stack_basic_frame_method_switch_gain;
     GtkWidget *conf_menu_stack_basic_frame_method_entry_sigma;
     GtkWidget *conf_menu_stack_basic_frame_method_entry_bands;
 
     std::vector<GtkCellRenderer *> method_combo_renderer;
     pan::config* config_;
+    std::filesystem::path _path_conf;
 
 
 };
@@ -286,6 +291,9 @@ struct main_window_{
     int view_number = 1;
 
     struct image_paths ipts;
+    std::filesystem::path _path_ex;
+    std::filesystem::path _path_css;
+    std::filesystem::path _path_conf;
 
 };
 

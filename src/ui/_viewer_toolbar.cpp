@@ -7,8 +7,11 @@ namespace imgvt{
             main_window->dragging.is_config = TRUE;
             main_window->dragging.final_drawing = cv::Rect(0,0,0,0);
             gdk_threads_add_idle((GSourceFunc)gtk_widget_queue_draw,(void*)main_window->viewer_scrolled_window_viewpoint_drawing);
-
-            main_window->image_zoomed = imgm::resizeKeepAspectRatio(main_window->image, main_window->zoom_val[main_window->current_zoom],&(main_window->crop_preview));
+            if(main_window->current_zoom > 0){
+                main_window->image_zoomed = imgm::resizeKeepAspectRatio(main_window->image, main_window->zoom_val[main_window->current_zoom],&(main_window->crop_preview));
+            }else{
+                main_window->image_zoomed = main_window->image(main_window->crop_preview);
+            }
             gtk_widget_destroy (GTK_WIDGET(main_window->img_test));
             main_window->img_test = gops::cv_image_to_gtk_image(main_window->image_zoomed);
             gtk_container_add(GTK_CONTAINER(main_window->image_window_event), GTK_WIDGET(main_window->img_test));
@@ -171,7 +174,12 @@ namespace imgvt{
 
     gboolean return_rect(GtkWidget* self,GdkEventButton *event,struct viewer_window_ *main_window){
 
-        double ratio = (double)(main_window->image.cols) / (double)(main_window->zoom_val[main_window->current_zoom]);
+        double ratio;
+        if(main_window->current_zoom < 0){
+            ratio = 1;
+        }else{
+            ratio = (double)(main_window->image.cols) / (double)(main_window->zoom_val[main_window->current_zoom]);
+        }
 
         cv::Rect image(0,0,main_window->image.cols,main_window->image.rows);
         cv::Rect window;
@@ -197,13 +205,13 @@ namespace imgvt{
 
         }
 
-        //std::cout<<"window.x: "<<window.x<<"\n";
-
         window = util::scaleRect(window,ratio,ratio); // rescale rect from zoomed to prev
         window.x = main_window->crop_preview.x + window.x;
         window.y = main_window->crop_preview.y + window.y;
         cv::Rect ROI = image bitand window;
         ROI = ROI bitand main_window->crop_preview;
+
+        std::cout <<ROI<<"\n";
 
         if(ROI.area()>0){
 

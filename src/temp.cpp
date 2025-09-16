@@ -1,3 +1,14 @@
+
+
+
+
+
+
+
+
+
+
+
     gboolean return_rect(GtkWidget* self,GdkEventButton *event,struct viewer_window_ *main_window){
 
         int image_w = main_window->image_zoomed.cols;

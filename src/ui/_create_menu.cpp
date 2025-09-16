@@ -88,6 +88,8 @@ gboolean cut(GtkMenuItem* *widget,struct main_window_ *main_window){
 
 gboolean open_config(GtkMenuItem* *widget,struct main_window_ *main_window){
 
+
+        main_window->menu_bar.config._path_conf = main_window->_path_conf;
         conf::open_conf_window(&main_window->menu_bar,&(main_window->menu_bar.config),main_window);
 
         return FALSE;

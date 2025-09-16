@@ -21,6 +21,8 @@ namespace pan{
         throw std::invalid_argument("Invalid Blending string: " + str);
     }
 
+
+
     void stitch_parameters::set_config(struct config& conf,std::atomic<bool> *cancel_var){
 
         std::atomic<double>* f_adress = NULL;
@@ -39,6 +41,10 @@ namespace pan{
         if(conf.cut){
 
             mask_cut = gcut::graph_cut(owned_res.imgs,owned_res.masks,owned_res.corners,owned_res.ord,f_adress,cancel_var);
+
+        }else if((conf.blend == MULTI_BLEND) or (conf.cut_seams == TRUE)){
+
+            mask_cut = dcut::dist_cut(owned_res.masks,owned_res.corners);
 
         }
 
@@ -71,7 +77,7 @@ namespace pan{
 
             temp.corners.push_back(owned_res.corners[i]);
             temp.msks.push_back(owned_res.masks[i]);
-            if(conf.cut){temp.msks_cut.push_back(mask_cut[i]);}
+            if(conf.cut or conf.cut_seams){temp.msks_cut.push_back(mask_cut[i]);}
             temp.ord.push_back(owned_res.ord[i]);
 
         }
@@ -97,8 +103,10 @@ namespace pan{
 
             case NO_BLEND:
 
-                if(conf.cut){
+                if(conf.cut or conf.cut_seams){
+
                     blend = blnd::no_blend(temp.imgs,temp.msks_cut,temp.corners);
+
                 }else{
                     blend = blnd::no_blend(temp.imgs,temp.msks,temp.corners);
                 }
@@ -127,6 +135,7 @@ namespace pan{
 
 
     cv::Mat stitch_parameters::return_full(struct config& conf){
+
 
         std::vector<Eigen::MatrixXd> k_scaled = owned_res.K;
         struct blend_data blend_dat;
@@ -277,6 +286,20 @@ namespace pan{
 
     bool panorama::stitch_panorama(struct config* conf){
 
+        std::cout<<"\n"<<"threads "<< conf_local.threads<<"\n";
+        std::cout<<"\n"<<"init_size "<< conf_local.init_size<<"\n";
+        std::cout<<"\n"<<"focal "<< conf_local.focal<<"\n";
+        std::cout<<"\n"<<"lambda "<< conf_local.lambda<<"\n";
+        std::cout<<"\n"<<"max_images_per_match "<< conf_local.max_images_per_match<<"\n";
+        std::cout<<"\n"<<"max_keypoints "<< conf_local.max_keypoints<<"\n";
+        std::cout<<"\n"<<"RANSAC_iterations "<< conf_local.RANSAC_iterations<<"\n";
+        std::cout<<"\n"<<"x_margin "<< conf_local.x_margin<<"\n";
+        std::cout<<"\n"<<"nfeatures "<< conf_local.nfeatures<<"\n";
+        std::cout<<"\n"<<"nOctaveLayers "<< conf_local.nOctaveLayers<<"\n";
+        std::cout<<"\n"<<"contrastThreshold "<< conf_local.contrastThreshold<<"\n";
+        std::cout<<"\n"<<"edgeThreshold "<< conf_local.edgeThreshold<<"\n";
+        std::cout<<"\n"<<"sigma_sift "<< conf_local.sigma_sift<<"\n";
+
         conf_m.contrastThreshold = conf_local.contrastThreshold;
         conf_m.edgeThreshold = conf_local.edgeThreshold;
         conf_m.max_images_per_match = conf_local.max_images_per_match;
@@ -354,6 +377,29 @@ namespace pan{
             stitched->set_config(conf_local);
         }else{ throw std::invalid_argument("something went wrong"); return false;}
 
+
+/*
+        struct stch::stitch_result dt = stch::bundleadjust_stitching(Tr,hom_mat,keypnts,match_mat,conf_local.lambda,threads);
+        std::vector<cv::Mat> mask_cut = dcut::dist_cut(dt.masks,dt.corners);
+
+        for(int i = 0;i < mask_cut.size();i++){
+
+            cv::imshow("Display window", mask_cut[i]);
+            cv::waitKey(0);
+            cv::imshow("Display window", dt.masks[i]);
+            cv::waitKey(0);
+
+
+
+        }
+
+
+        cv::Mat img = blnd::multi_blend(dt.imgs,mask_cut,dt.masks,dt.corners,3,7);
+
+        cv::imshow("Display window", img);
+        cv::waitKey(0);
+*/
+
         return true;
     }
 
@@ -393,4 +439,3 @@ namespace pan{
     }
 
 }
-

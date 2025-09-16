@@ -14,7 +14,6 @@
 namespace conf{
 
 
-
     class ConfigParser {
 
     public:
@@ -25,7 +24,7 @@ namespace conf{
                           [&](const std::string& val) { config_->threads = util::stringToInt(val); });
         std::vector<std::string> keyOrder;
 
-        registerEntry("Focal", [&]() { return std::to_string(config_->focal); },
+        registerEntry("Focal", [&]() { return util::floatToString(config_->focal); },
                           [&](const std::string& val) { config_->focal = util::stringToFloat(val); });
 
         registerEntry("Init_size", [&]() { return std::to_string(config_->init_size); },
@@ -40,13 +39,16 @@ namespace conf{
         registerEntry("Cut", [&]() { return config_->cut ? "true" : "false"; },
                           [&](const std::string& val) { config_->cut = (val == "true"); });
 
+        registerEntry("Use_Cut", [&]() { return config_->cut_seams ? "true" : "false"; },
+                          [&](const std::string& val) { config_->cut_seams = (val == "true"); });
+
         registerEntry("Bands", [&]() { return std::to_string(config_->bands); },
                           [&](const std::string& val) { config_->bands = util::stringToInt(val); });
 
-        registerEntry("Blend_Sigma", [&]() { return std::to_string(config_->sigma_blend); },
+        registerEntry("Blend_Sigma", [&]() { return util::doubleToString(config_->sigma_blend); },
                           [&](const std::string& val) { config_->sigma_blend = util::stringToDouble(val); });
 
-        registerEntry("Lambda", [&]() { return std::to_string(config_->lambda); },
+        registerEntry("Lambda", [&]() { return util::floatToString(config_->lambda); },
                           [&](const std::string& val) { config_->lambda = util::stringToFloat(val); });
 
         registerEntry("Max_Images_Per_Match", [&]() { return std::to_string(config_->max_images_per_match); },
@@ -70,13 +72,13 @@ namespace conf{
         registerEntry("nOctaveLayers", [&]() { return std::to_string(config_->nOctaveLayers); },
                           [&](const std::string& val) { config_->nOctaveLayers = util::stringToInt(val); });
 
-        registerEntry("contrastThreshold", [&]() { return std::to_string(config_->contrastThreshold); },
+        registerEntry("contrastThreshold", [&]() { return util::doubleToString(config_->contrastThreshold); },
                           [&](const std::string& val) { config_->contrastThreshold = util::stringToDouble(val); });
 
-        registerEntry("edgeThreshold", [&]() { return std::to_string(config_->edgeThreshold); },
+        registerEntry("edgeThreshold", [&]() { return util::doubleToString(config_->edgeThreshold); },
                           [&](const std::string& val) { config_->edgeThreshold = util::stringToDouble(val); });
 
-        registerEntry("sigma_sift", [&]() { return std::to_string(config_->sigma_sift); },
+        registerEntry("sigma_sift", [&]() { return util::doubleToString(config_->sigma_sift); },
                           [&](const std::string& val) { config_->sigma_sift = util::stringToDouble(val); });
 
 

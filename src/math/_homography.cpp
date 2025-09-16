@@ -49,7 +49,17 @@ namespace util {
             cv::Matx33f H_temp = solve_homography2D(DES);
 
             H_temp = decondition_homography2D(T_b, T_a, H_temp);
+            double temp_loss = homography_loss(kp1,kp2,match ,H_temp);
 
+            if (temp_loss < loss){
+                //std::cout << loss <<"\n";
+                loss = temp_loss;
+
+                Hom.H = H_temp;
+
+            }
+
+            /*
             if(hom_sanity(H_temp,img1,img2)){
             //if(1){
 
@@ -63,7 +73,7 @@ namespace util {
 
                 }
             }
-
+*/
         }
         return Hom;
     }
@@ -508,9 +518,6 @@ namespace util {
             float cols = img1.cols;
 
             std::vector<float> T12 = {(float)conf_local.x_margin,(float)conf_local.y_margin};
-
-            //std::pair<std::vector<cv::DMatch>, std::vector<cv::DMatch>> match12 = maths::match_keypoints(kp1,kp2);
-
             std::vector<cv::DMatch> match12 = match_mat_raw[row][col];
 
             if (match12.size() < 25){
@@ -520,9 +527,20 @@ namespace util {
 
             std::vector<cv::Point2f> obj;
             std::vector<cv::Point2f> scene;
-/*
 
+/*
             struct Homography H12 = find_homography(kp1,kp2,match12,conf_local.RANSAC_iterations,4,img1,img2);
+
+            if(not hom_sanity(H_temp,img1,img2)){
+
+                struct Homography Hom;
+                cv::Matx33f H(1, 0, 0,
+                            0, 1, 0,
+                            0, 0, 1);
+                H12.H = H;
+
+            }
+
             H12.H = H12.H / H12.H(2,2);
             //std::cout <<"homography: "<<H12.H<<"\n";
 */

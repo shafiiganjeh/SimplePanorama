@@ -17,7 +17,7 @@
 #include <limits>
 #include "_graph_cut.h"
 #include "_gtk_vars.h"
-
+#include "_distance_cut.h"
 #include <cmath>      /* sin */
 
 #define PI 3.14159265
@@ -51,6 +51,7 @@ namespace pan{
         Blending blend = NO_BLEND;
         bool gain_compensation = true;
         bool cut = false;
+        bool cut_seams = false;
         //MULTI_BLEND
         int bands = 3;
         double sigma_blend = 7;
