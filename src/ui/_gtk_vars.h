@@ -105,7 +105,10 @@ struct config_{
     GtkWidget *conf_menu_stack_advanced_frame_matching_entry_maxkeypoints;
     GtkWidget *conf_menu_stack_advanced_frame_matching_entry_RANSAC;
     GtkWidget *conf_menu_stack_advanced_frame_matching_entry_xmargin;
-    GtkWidget *conf_menu_stack_advanced_frame_matching_entry_ymargin;
+    GtkWidget *conf_menu_stack_advanced_frame_matching_entry_minoverlap;
+    GtkWidget *conf_menu_stack_advanced_frame_matching_entry_overlapinlmatch;
+    GtkWidget *conf_menu_stack_advanced_frame_matching_entry_overlapinlkeyp;
+    GtkWidget *conf_menu_stack_advanced_frame_matching_entry_conf;
 
     GtkWidget *conf_menu_stack_advanced_frame_SIFT;
     GtkWidget *conf_menu_stack_advanced_frame_SIFT_box;//val

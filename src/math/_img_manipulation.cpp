@@ -174,52 +174,43 @@ namespace imgm {
     }
 
 
-/*legacy
+//legacy
     cv::Mat stitch(const cv::Mat &base, const cv::Mat &attach,const cv::Matx33f &H){
-            // compute corners
+    // compute corners of warped image
+        cv::Mat corners(1, 4, CV_32FC2);
+        corners.at<cv::Vec2f>(0, 0) = cv::Vec2f(0,0);
+        corners.at<cv::Vec2f>(0, 1) = cv::Vec2f(0,attach.rows);
+        corners.at<cv::Vec2f>(0, 2) = cv::Vec2f(attach.cols,0);
+        corners.at<cv::Vec2f>(0, 3) = cv::Vec2f(attach.cols,attach.rows);
+        perspectiveTransform(corners, corners, H);
 
-            std::vector<cv::Vec2f> cor;
+        // compute size of resulting image and allocate memory
+        float x_start = std::min( std::min( corners.at<cv::Vec2f>(0, 0)[0], corners.at<cv::Vec2f>(0, 1)[0]), (float)0);
+        float x_end   = std::max( std::max( corners.at<cv::Vec2f>(0, 2)[0], corners.at<cv::Vec2f>(0, 3)[0]), (float)base.cols);
+        float y_start = std::min( std::min( corners.at<cv::Vec2f>(0, 0)[1], corners.at<cv::Vec2f>(0, 2)[1]), (float)0);
+        float y_end   = std::max( std::max( corners.at<cv::Vec2f>(0, 1)[1], corners.at<cv::Vec2f>(0, 3)[1]), (float)base.rows);
 
-            cor.push_back(cv::Vec2f(0,0));
-            cor.push_back(cv::Vec2f(0,attach.rows));
-            cor.push_back(cv::Vec2f(attach.cols,0));
-            cor.push_back(cv::Vec2f(attach.cols,attach.rows));
+        // create translation matrix in order to copy both images to correct places
+        cv::Matx33f T = cv::Matx33f::zeros();
+        T(0, 0) = 1;
+        T(1, 1) = 1;
+        T(2, 2) = 1;
+        T(0, 2) = -x_start;
+        T(1, 2) = -y_start;
 
-            cv::perspectiveTransform(cor, cor, H);
+        // change homography to take necessary translation into account
+        T = T * H;
+        // warp second image and copy it to output image
+        cv::Mat panorama;
+        cv::warpPerspective(attach, panorama, T, cv::Size(x_end - x_start + 1, y_end - y_start + 1), cv::INTER_LINEAR);
 
-            float xstart = std::min( std::min( cor[0][0], cor[1][0]), (float)0);
-            float xend   = std::max( std::max( cor[2][0], cor[3][0]), (float)base.cols);
-            float ystart = std::min( std::min( cor[0][1], cor[2][1]), (float)0);
-            float yend   = std::max( std::max( cor[1][1], cor[3][1]), (float)base.rows);
+        // copy base image to correct position within output image
+        cv::Mat roi(panorama, cv::Rect(-x_start,-y_start,base.cols, base.rows));
+        base.copyTo(roi, base);
 
-            // create translation matrix
-            cv::Matx33f T = cv::Matx33f::zeros();
-            T(0, 0) = 1;
-            T(1, 1) = 1;
-            T(2, 2) = 1;
-            T(0, 2) = -xstart;
-            T(1, 2) = -ystart;
-            std::cout<<"\n"<< "H: "<<H<<"\n";
-            //std::cout <<"translation "<<T<<"\n";
-
-            T = T * H;
-
-            // warp second image
-            cv::Mat panorama;
-            cv::warpPerspective(attach, panorama, T, cv::Size(xend - xstart + 1, yend - ystart + 1), cv::INTER_LINEAR);
-
-            cv::imshow("Image Display", panorama);
-            cv::waitKey(0);
-
-            cv::Mat roi(panorama, cv::Rect(-xstart,-ystart,base.cols, base.rows));
-            base.copyTo(roi, base);
-
-            cv::imshow("Image Display", panorama);
-            cv::waitKey(0);
-
-            return panorama;
+        return panorama;
 }
-*/
+
 
     cv::Mat project(const cv::Mat& imags,float xc,float yc,float f,cv::Matx33f hom){
 

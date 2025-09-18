@@ -63,8 +63,17 @@ namespace conf{
         registerEntry("x_Margin", [&]() { return std::to_string(config_->x_margin); },
                           [&](const std::string& val) { config_->x_margin = util::stringToInt(val); });
 
-        registerEntry("y_Margin", [&]() { return std::to_string(config_->y_margin); },
-                          [&](const std::string& val) { config_->y_margin = util::stringToInt(val); });
+        registerEntry("min_overlap", [&]() { return util::floatToString(config_->min_overlap); },
+                          [&](const std::string& val) { config_->min_overlap = util::stringToFloat(val); });
+
+        registerEntry("overlap_inl_match", [&]() { return util::floatToString(config_->overlap_inl_match); },
+                          [&](const std::string& val) { config_->overlap_inl_match = util::stringToFloat(val); });
+
+        registerEntry("overlap_inl_keyp", [&]() { return util::floatToString(config_->overlap_inl_keyp); },
+                          [&](const std::string& val) { config_->overlap_inl_keyp = util::stringToFloat(val); });
+
+        registerEntry("confidence", [&]() { return util::floatToString(config_->conf); },
+                          [&](const std::string& val) { config_->conf = util::stringToFloat(val); });
 
         registerEntry("nfeatures", [&]() { return std::to_string(config_->nfeatures); },
                           [&](const std::string& val) { config_->nfeatures = util::stringToInt(val); });

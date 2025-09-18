@@ -1,11 +1,11 @@
 
 #include "_homography.h"
-
+#include "_img_manipulation.h"
 
 namespace util {
 
 
-    struct Homography find_homography(const struct keypoints &kp1,const struct keypoints &kp2,const std::vector<cv::DMatch> &match,int max_iter,int sample,const cv::Mat &img1,const cv::Mat &img2){
+    struct Homography find_homography(const struct keypoints &kp1,const struct keypoints &kp2,const std::vector<cv::DMatch> &match,int max_iter,int sample,const cv::Mat &img1,const cv::Mat &img2,double error_margin){
 
         struct Homography Hom;
         cv::Matx33f H(1, 0, 0,
@@ -17,7 +17,7 @@ namespace util {
                std::invalid_argument("non matching images");
         }
 
-        double loss = homography_loss(kp1,kp2,match ,Hom.H );
+        double loss = homography_loss(kp1,kp2,match ,Hom.H ,error_margin);
 
         for (int i = 0;i < max_iter;i++){
 
@@ -27,7 +27,7 @@ namespace util {
             std::vector<int> samples = randomN(sample, match.size());
 
             for(const int& s : samples) {
-                //std::cout << s <<"-";
+
                 cv::Vec2f imgkp(kp1.keypoint[match[s].queryIdx ].pt);
                 cv::Vec2f trainkp(kp2.keypoint[match[s].trainIdx ].pt );
 
@@ -45,11 +45,11 @@ namespace util {
             train = applyH_2D(train,T_a,GEOM_TYPE_POINT);
 
             cv::Mat_<float> DES = getDesignMatrix_homography2D(img, train);
-
             cv::Matx33f H_temp = solve_homography2D(DES);
-
             H_temp = decondition_homography2D(T_b, T_a, H_temp);
-            double temp_loss = homography_loss(kp1,kp2,match ,H_temp);
+
+
+            double temp_loss = homography_loss(kp1,kp2,match ,H_temp,error_margin);
 
             if (temp_loss < loss){
                 //std::cout << loss <<"\n";
@@ -59,21 +59,6 @@ namespace util {
 
             }
 
-            /*
-            if(hom_sanity(H_temp,img1,img2)){
-            //if(1){
-
-                double temp_loss = homography_loss(kp1,kp2,match ,H_temp);
-
-                if (temp_loss < loss){
-                    //std::cout << loss <<"\n";
-                    loss = temp_loss;
-
-                    Hom.H = H_temp;
-
-                }
-            }
-*/
         }
         return Hom;
     }
@@ -223,7 +208,7 @@ namespace util {
     }
 
 
-    float N_outliers(const struct keypoints &kp1,const struct keypoints &kp2,std::vector<cv::DMatch> &match,const  cv::Matx33f &H,std::vector<float> &T){
+    float N_outliers(const struct keypoints &kp1,const struct keypoints &kp2,std::vector<cv::DMatch> &match,const  cv::Matx33f &H,float margin){
 
         std::vector<cv::Vec2f> true_;
         std::vector<cv::Vec2f> pred_;
@@ -236,14 +221,11 @@ namespace util {
 
         cv::perspectiveTransform(pred_, pred_, H);
 
-        std::vector<cv::Vec2f> val;
-        cv::absdiff(true_,pred_,val);
-
         int out = 0;
 
-        for (const cv::Vec2f& v : val){
+        for(int i = 0;i < match.size();i++){
 
-            if (( v[0] > T[0] )|| ( v[1] > T[1] )){
+            if (margin < cv::norm(true_[i]-pred_[i])){
 
                 out++;
 
@@ -255,7 +237,7 @@ namespace util {
     }
 
 
-    double homography_loss(const struct keypoints &kp1,const struct keypoints &kp2,const std::vector<cv::DMatch> &match , const cv::Matx33f &H ){
+    double homography_loss(const struct keypoints &kp1,const struct keypoints &kp2,const std::vector<cv::DMatch> &match , const cv::Matx33f &H,double error_margin){
 
         std::vector<cv::Vec2f> true_;
         std::vector<cv::Vec2f> pred_;
@@ -266,132 +248,80 @@ namespace util {
             pred_.push_back(kp2.keypoint[match[i].trainIdx ].pt);
         }
 
-        double loss = 0;
-
+        int inlier = 0;
         cv::perspectiveTransform(pred_, pred_, H);
         for (int i = 0;i < match.size();i++){
-            //loss = loss + cv::norm(true_[i]-pred_[i]);
-            loss = loss + cv::norm(true_[i]-pred_[i]);
-            //std::cout << true_[i] - pred_[i] <<"-";
+
+            inlier = inlier + (int)(cv::norm(true_[i]-pred_[i]) < error_margin);
+
         }
-        return loss/match.size();
+
+        return 1.0-((double)inlier/(double)match.size());
+
     }
 
 
-    bool hom_sanity(cv::Matx33f hom,const cv::Mat &img1,const cv::Mat &img2){
+    bool hom_sanity(cv::Matx33f H,const cv::Mat &img1,const cv::Mat &img2){
 
-        //validate
-        if(hom(2,2) < 1e-6 ){
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < 3; ++j) {
+                float val = H(i,j);
+                if (std::isnan(val) || std::isinf(val))
+                    return false;
+            }
+        }
 
+        //reflection
+        float det = H(0,0)*H(1,1) - H(0,1)*H(1,0);
+        if (det <= 0){
+           return false;
+        }
+
+        //skew
+
+        if((H(2,0) > .003) or (H(2,1) > .003)){
             return false;
+        }
+
+        std::vector<cv::Vec3f> corners_img1 = {
+                cv::Vec3f(0, 0, 1),
+                cv::Vec3f(img1.cols, 0, 1),
+                cv::Vec3f(img1.cols, img1.rows, 1),
+                cv::Vec3f(0, img1.rows, 1)
+            };
+
+        std::vector<cv::Vec3f> proj_corners_homog = applyH_2D(corners_img1, H, GEOM_TYPE_POINT);
+        std::vector<cv::Point2f> proj_corners;
+
+        for (const auto& corner : proj_corners_homog) {
+            if (std::abs(corner[2]) < 1e-6){
+                return false;
+            }
+            cv::Point2f p(corner[0]/corner[2], corner[1]/corner[2]);
+            proj_corners.push_back(p);
+        }
+        //is convex
+        if (!cv::isContourConvex(proj_corners)){
+            return false;
+        }
+        //is not too large
+        float area = cv::contourArea(proj_corners);
+        if (area < img1.total() / 200.0f){
+            return false;
+        }
+
+        // points at "infinity"
+        for (const auto& corner : proj_corners) {
+            if (std::abs(corner.x) > 8000 * img2.cols or std::abs(corner.y) > 8000 * img2.rows){
+                return false;
+            }
 
         }
 
-        hom = hom / hom(2,2);
 
-        cv::Matx22f upper_square;
-        upper_square(0,0) = hom(0,0);
-        upper_square(1,0) = hom(1,0);
-        upper_square(1,1) = hom(1,1);
-        upper_square(0,1) = hom(0,1);
-
-        double upper_det = cv::determinant(upper_square);
-
-        //orientation
-        if(upper_det <= 0){
-            //std::cout <<"\n"<< "orientation: ";
-            return false;
-
-        }
-
-        //area scaling
-        if((abs(upper_det) < 0.1 ) or ( abs(upper_det) > 10)){
-            //std::cout <<"\n"<< "area scaling: ";
-            return false;
-
-        }
-
-
-        //skew factor
-        if((abs(hom(2,0)) > 0.002 ) or ( abs(hom(2,1)) > 0.002)){
-            //std::cout <<"\n"<< "skew factor: ";
-            return false;
-
-        }
 
 
         return true;
-    }
-
-
-    std::pair<double, double> computeOverlapPercentages(
-    const cv::Mat& imgA,
-    const cv::Mat& imgB,
-    Eigen::MatrixXd& H){
-
-        Eigen::Matrix3d H_eigen;
-        H_eigen << H(0,0), H(0,1), H(0,2),
-                H(1,0), H(1,1), H(1,2),
-                H(2,0), H(2,1), H(2,2);
-
-        Eigen::Matrix3d H_inv = H_eigen.inverse();
-
-        // Helper function to transform points
-        auto transformPoints = [](const std::vector<cv::Point2f>& points,
-                                const Eigen::Matrix3d& homography)
-        {
-            std::vector<cv::Point2f> transformed;
-            for (const auto& p : points) {
-                Eigen::Vector3d hp(p.x, p.y, 1.0);
-                Eigen::Vector3d result = homography * hp;
-                transformed.emplace_back(
-                    result.x() / result.z(),
-                    result.y() / result.z()
-                );
-            }
-            return transformed;
-        };
-
-
-        auto createImagePolygon = [](float width, float height)
-        {
-            return std::vector<cv::Point2f>{
-                {0, 0},
-                {width, 0},
-                {width, height},
-                {0, height}
-            };
-        };
-
-
-        auto calculateOverlap = [](const std::vector<cv::Point2f>& poly1,
-                                const std::vector<cv::Point2f>& poly2,
-                                double imageArea)
-        {
-            std::vector<cv::Point2f> intersection;
-            float area = cv::intersectConvexConvex(poly1, poly2, intersection, true);
-            return (area / imageArea) * 100.0;
-        };
-
-        // Image A's perspective (transform B to A's space)
-        std::vector<cv::Point2f> cornersB = createImagePolygon(imgB.cols, imgB.rows);
-        auto transformedB = transformPoints(cornersB, H_inv);
-        double overlapA = calculateOverlap(
-            transformedB,
-            createImagePolygon(imgA.cols, imgA.rows),
-            imgA.cols * imgA.rows
-        );
-
-        // Image B's perspective (transform A to B's space)
-        std::vector<cv::Point2f> cornersA = createImagePolygon(imgA.cols, imgA.rows);
-        auto transformedA = transformPoints(cornersA, H_eigen);
-        double overlapB = calculateOverlap(
-            transformedA,
-            createImagePolygon(imgB.cols, imgB.rows),
-            imgB.cols * imgB.rows
-        );
-
-        return {overlapA, overlapB};
     }
 
 
@@ -488,7 +418,7 @@ namespace util {
 
         matcher->knnMatch( kp1.descriptor, kp2.descriptor, knn_matches, 2 );
 
-        const float ratio_thresh = 0.7f;
+        const float ratio_thresh = 0.8f;
         std::pair<std::vector<cv::DMatch>, std::vector<cv::DMatch>> good_matches;
 
         for (size_t i = 0; i < knn_matches.size(); i++){
@@ -510,17 +440,71 @@ namespace util {
     }
 
 
+
+void keypoints_in_overlap_centered(const std::vector<cv::Point2f>& matches,
+                                                 const std::vector<cv::KeyPoint>& keypoints,
+                                                 struct Homography& H,
+                                                 const cv::Size& image_size1,
+                                                 const cv::Size& image_size2) {
+    // Define the centered rectangle of image1
+    std::vector<cv::Point2f> image1_rect_centered(4);
+    float w1 = image_size1.width;
+    float h1 = image_size1.height;
+    image1_rect_centered[0] = cv::Point2f(-w1/2, -h1/2);
+    image1_rect_centered[1] = cv::Point2f(w1/2, -h1/2);
+    image1_rect_centered[2] = cv::Point2f(w1/2, h1/2);
+    image1_rect_centered[3] = cv::Point2f(-w1/2, h1/2);
+
+    // Define the centered rectangle of image2
+    std::vector<cv::Point2f> image2_rect_centered(4);
+    float w2 = image_size2.width;
+    float h2 = image_size2.height;
+    image2_rect_centered[0] = cv::Point2f(-w2/2, -h2/2);
+    image2_rect_centered[1] = cv::Point2f(w2/2, -h2/2);
+    image2_rect_centered[2] = cv::Point2f(w2/2, h2/2);
+    image2_rect_centered[3] = cv::Point2f(-w2/2, h2/2);
+
+    cv::Matx33f H_centered = H.H;
+    std::vector<cv::Point2f> image2_in_image1_centered;
+    cv::perspectiveTransform(image2_rect_centered, image2_in_image1_centered, H_centered);
+
+    std::vector<cv::Point2f> overlap_polygon;
+    double area = cv::intersectConvexConvex(image1_rect_centered, image2_in_image1_centered, overlap_polygon);
+
+    if (overlap_polygon.size() < 3) {
+        return;
+    }
+
+    int keypoints_in_overlap_count = 0;
+    for (const auto& kp : keypoints) {
+        if (cv::pointPolygonTest(overlap_polygon, kp.pt, false) >= 0) {
+            keypoints_in_overlap_count++;
+        }
+    }
+
+    int matches_in_overlap_count = 0;
+    for (const auto& match_pt : matches) {
+        if (cv::pointPolygonTest(overlap_polygon, match_pt, false) >= 0) {
+            matches_in_overlap_count++;
+        }
+    }
+
+    H.area_kp = keypoints_in_overlap_count;
+    H.area_match = matches_in_overlap_count;
+    H.overlap_perc = (float)area/(float)(image_size1.width*image_size1.height);
+
+}
+
+
     float adj_calculator::match_quality(const struct keypoints &kp1,const cv::Mat img1,const struct keypoints &kp2,const cv::Mat img2,int row,int col){
 
             std::vector<cv::DMatch> ransac_matchf;
-            std::vector<cv::DMatch> ransac_matchs;
             float rows = img1.rows;
             float cols = img1.cols;
 
-            std::vector<float> T12 = {(float)conf_local.x_margin,(float)conf_local.y_margin};
             std::vector<cv::DMatch> match12 = match_mat_raw[row][col];
 
-            if (match12.size() < 25){
+            if (match12.size() < 30){
 
                 return 0;
             }
@@ -528,22 +512,20 @@ namespace util {
             std::vector<cv::Point2f> obj;
             std::vector<cv::Point2f> scene;
 
-/*
-            struct Homography H12 = find_homography(kp1,kp2,match12,conf_local.RANSAC_iterations,4,img1,img2);
+            struct Homography H12 = find_homography(kp1,kp2,match12,conf_local.RANSAC_iterations,4,img1,img2,conf_local.x_margin);
 
-            if(not hom_sanity(H_temp,img1,img2)){
-
-                struct Homography Hom;
-                cv::Matx33f H(1, 0, 0,
-                            0, 1, 0,
-                            0, 0, 1);
-                H12.H = H;
-
-            }
+            std::vector<cv::Point2f> points1, points2;
+            for (int i = 0; i < match12.size(); i++)
+                {
+                        //-- Get the keypoints from the good matches
+                    points1.push_back(kp1.keypoint[match12[i].queryIdx].pt);
+                    points2.push_back(kp2.keypoint[match12[i].trainIdx].pt);
+                }
 
             H12.H = H12.H / H12.H(2,2);
             //std::cout <<"homography: "<<H12.H<<"\n";
-*/
+/*
+
             struct Homography H12;
             std::vector<cv::Point2f> points1, points2;
             for (int i = 0; i < match12.size(); i++)
@@ -560,56 +542,123 @@ namespace util {
                 return 0;
 
             }
-
+*/
             //std::cout<<"homog: "<<H12.H;
 
-            hom_mat[row][col] = H12.H;
-            hom_mat[col][row] = H12.H.inv();
-
-            int out = N_outliers(kp1,kp2,match12,H12.H,T12);
-            int n_in = match12.size() - out;
-
-
-            if(n_in > ( 8 + .3 * match12.size())){
-
-                ransac_matchf = clean_matches(kp1,kp2,match12,H12.H,T12);
-
-                match_mat[row][col].resize(ransac_matchf.size());
-                match_mat[row][col] = ransac_matchf;
-
-                for(int m = 0;m<match_mat[row][col].size();m++){
-                    cv::DMatch push;
-                    push.distance = match_mat[row][col][m].distance;
-                    push.trainIdx = match_mat[row][col][m].queryIdx;
-                    push.queryIdx = match_mat[row][col][m].trainIdx;
-                    push.imgIdx = match_mat[row][col][m].imgIdx;
-                    match_mat[col][row].push_back(push);
-                }
-
-
-                float orat = 1-out/((float)match12.size());
-
-
-                cv::Mat h_d = cv::Mat(H12.H,true);
-
-                Eigen::MatrixXd H;
-
-                cv::cv2eigen(h_d,H);
-                std::pair<double, double> overlap = computeOverlapPercentages(
-                img1,
-                img2,
-                H);
-
-                return (float)(overlap.second/100);
-                //return orat;
-
-            }else{
+            if(hom_sanity(H12.H,img1,img2) == false){
 
                 return 0;
 
             }
 
-            return 0;
+            hom_mat[row][col] = H12.H;
+            hom_mat[col][row] = H12.H.inv();
+
+            struct Homography H21 = H12;
+            H21.H = hom_mat[col][row];
+
+            int out = N_outliers(kp1,kp2,match12,H12.H,conf_local.x_margin);
+            int n_in = match12.size() - out;
+
+            keypoints_in_overlap_centered(points1,kp1.keypoint,H12,img1.size(),img2.size());
+/*
+            std::cout <<"\n"<<"kp in area "<<H12.area_kp<<"\n";
+            std::cout <<"kp total "<<kp1.keypoint.size()<<"\n";
+            std::cout <<"match in area "<<H12.area_match<<"\n";
+            std::cout <<"n_in/match "<<((double)n_in)/((double)H12.area_match)<<"\n";
+            std::cout <<"overlap area "<<H12.overlap_perc<<"\n";
+            std::cout <<"tot_match "<<match12.size()<<"\n";
+            std::cout <<"n_in "<<n_in<<"\n";
+*/
+            double overlap_inl_match_1 = ((double)n_in)/((double)H12.area_match);
+            double overlap_inl_keyp_1 = ((double)n_in)/((double)H12.area_kp);
+            float overlap_test = conf_local.min_overlap;
+            float overlap_inl_match = conf_local.overlap_inl_match;
+            float overlap_inl_keyp = conf_local.overlap_inl_keyp;
+            float conf = conf_local.conf;
+
+            //float overlap_inl_match = .05;
+            //float overlap_inl_keyp = .005;
+            //float conf = .025;
+
+            //inlier match in area test------------img1
+            //more imlier than matches in area
+            if((overlap_inl_match_1 > 1.00)){
+
+                return 0;
+
+            }
+
+            //overlpa area
+            if((overlap_test > H12.overlap_perc)){
+
+                return 0;
+
+            }
+
+            //inlier/ points in area
+            if(overlap_inl_match > overlap_inl_match_1){
+
+                return 0;
+            }
+
+            //inlier total match test
+            if (overlap_inl_keyp_1 < overlap_inl_keyp ){
+                return 0;
+            }
+
+            //image 2 --------------------
+            keypoints_in_overlap_centered(points2,kp2.keypoint,H21,img2.size(),img1.size());
+            double overlap_inl_match_2 = ((double)n_in)/((double)H21.area_match);
+            double overlap_inl_keyp_2 = ((double)n_in)/((double)H21.area_kp);
+
+            if((overlap_inl_match_2 > 1.00)){
+
+                return 0;
+            }
+
+            if((overlap_test > H21.overlap_perc)){
+
+                return 0;
+            }
+
+            if(overlap_inl_match > overlap_inl_match_2){
+
+                return 0;
+            }
+
+            if (overlap_inl_keyp_2 < overlap_inl_keyp ){
+
+                return 0;
+            }
+
+            //confidence check----------
+            if ((overlap_inl_keyp_2 + overlap_inl_keyp_2)/2 < conf){
+                return 0;
+            }
+
+
+            //std::cout <<"accepted "<<"\n";
+            //std::cout <<" "<<"\n";
+
+            ransac_matchf = clean_matches(kp1,kp2,match12,H12.H,conf_local.x_margin);
+
+            match_mat[row][col].resize(ransac_matchf.size());
+            match_mat[row][col] = ransac_matchf;
+
+            for(int m = 0;m<match_mat[row][col].size();m++){
+                cv::DMatch push;
+                push.distance = match_mat[row][col][m].distance;
+                push.trainIdx = match_mat[row][col][m].queryIdx;
+                push.queryIdx = match_mat[row][col][m].trainIdx;
+                push.imgIdx = match_mat[row][col][m].imgIdx;
+                match_mat[col][row].push_back(push);
+            }
+
+            //float orat = 1-((float)out/((float)match12.size()));
+
+            return H12.overlap_perc;
+
         }
 
         //change this
@@ -637,6 +686,7 @@ namespace util {
                     }else{
 
                         match = match_keypoints(kpmat[i[0]],kpmat[i[1]]);
+
                         adj.at<double>(i[0],i[1]) = match.first.size();
                         match_mat_raw[i[0]][i[1]] = match.first;
 
@@ -647,6 +697,34 @@ namespace util {
             }
 
         }
+
+
+    cv::Mat convert_to_rootsift(const cv::Mat& descriptors) {
+        cv::Mat rootsift_descriptors;
+
+        if (descriptors.empty()) {
+            return rootsift_descriptors;
+        }
+
+        cv::Mat float_descriptors;
+        descriptors.convertTo(float_descriptors, CV_32F);
+
+        for (int i = 0; i < float_descriptors.rows; i++) {
+            cv::Mat descriptor = float_descriptors.row(i);
+            double norm = cv::norm(descriptor, cv::NORM_L1);
+
+            // Avoid division by zero
+            if (norm > 0) {
+                descriptor /= norm;
+            }
+
+            cv::sqrt(descriptor, descriptor);
+        }
+
+        rootsift_descriptors = float_descriptors;
+        return rootsift_descriptors;
+    }
+
 
     struct keypoints extract_keypoints(const cv::Mat &img,int nfeatures,int nOctaveLayers ,double contrastThreshold ,double edgeThreshold ,double sigma ){
 
@@ -662,11 +740,54 @@ namespace util {
                                         sigma );
 
         f_detector->detectAndCompute(greyMat,cv::noArray(),kp.keypoint,kp.descriptor);
+        kp.descriptor = convert_to_rootsift(kp.descriptor);
+
         for(int i = 0;i < kp.keypoint.size();i++){
 
             kp.keypoint[i].pt.x = kp.keypoint[i].pt.x - (img.cols / 2);
             kp.keypoint[i].pt.y = kp.keypoint[i].pt.y - (img.rows / 2);
 
+        }
+
+        return kp;
+    }
+
+
+    keypoints extract_keypoints_detGFTT_descSIFT(const cv::Mat &img,
+                                        int maxCorners,
+                                        double qualityLevel,
+                                        double minDistance,
+                                        int blockSize,
+                                        bool useHarrisDetector,
+                                        double k,
+                                        int nFeatures,
+                                        int nOctaveLayers,
+                                        double contrastThreshold,
+                                        double edgeThreshold,
+                                        double sigma) {
+        cv::Mat greyMat;
+        keypoints kp;
+
+        cv::cvtColor(img, greyMat, cv::COLOR_BGR2GRAY);
+
+        // Detect keypoints using GFTT
+        std::vector<cv::Point2f> corners;
+        cv::goodFeaturesToTrack(greyMat, corners, maxCorners, qualityLevel, minDistance,
+                            cv::noArray(), blockSize, useHarrisDetector, k);
+
+        // Convert Point2f to KeyPoint
+        cv::KeyPoint::convert(corners, kp.keypoint);
+
+        // Compute descriptors using SIFT
+        auto descriptor_extractor = cv::SIFT::create(nFeatures, nOctaveLayers,
+                                                contrastThreshold, edgeThreshold, sigma);
+
+        descriptor_extractor->compute(greyMat, kp.keypoint, kp.descriptor);
+
+        // Adjust keypoint coordinates to be relative to image center
+        for (auto &kp_point : kp.keypoint) {
+            kp_point.pt.x -= (img.cols / 2);
+            kp_point.pt.y -= (img.rows / 2);
         }
 
         return kp;
@@ -680,8 +801,10 @@ namespace util {
         for(const int& s : idx) {
             if(conf == NULL){
                 kp.push_back(extract_keypoints(imgs[s]));
+                //kp.push_back(extract_keypoints_detGFTT_descSIFT(imgs[s]));
             }else{
                 kp.push_back(extract_keypoints(imgs[s],conf->nfeatures,conf->nOctaveLayers,conf->contrastThreshold,conf->edgeThreshold,conf->sigma_sift));
+                //kp.push_back(extract_keypoints_detGFTT_descSIFT(imgs[s]));
             }
 
         }
@@ -757,7 +880,7 @@ namespace util {
     }
 
 
-    std::vector<cv::DMatch> adj_calculator::clean_matches(const struct keypoints &kp1,const struct keypoints &kp2,std::vector<cv::DMatch> match,const  cv::Matx33f &H,const std::vector<float> &T){
+    std::vector<cv::DMatch> adj_calculator::clean_matches(const struct keypoints &kp1,const struct keypoints &kp2,std::vector<cv::DMatch> match,const  cv::Matx33f &H,double margin){
 
         std::vector<cv::DMatch> clean_match;
         std::vector<cv::Vec2f> true_;
@@ -770,17 +893,11 @@ namespace util {
         }
 
         cv::perspectiveTransform(pred_, pred_, H);
-
-        std::vector<cv::Vec2f> val;
         std::vector<double> dist;
 
+        for(int i = 0;i < match.size();i++){
 
-        cv::absdiff(true_,pred_,val);
-
-
-        for (int i = 0; i < val.size();i++){
-
-            if (( val[i][0] < T[0] ) and ( val[i][1] < T[1] )){
+            if (margin >= cv::norm(true_[i]-pred_[i])){
 
                 clean_match.push_back(match[i]);
                 dist.push_back(cv::norm(true_[i]-pred_[i]));
