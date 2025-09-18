@@ -57,13 +57,18 @@ namespace pan{
         double sigma_blend = 7;
         //adjustment
         float focal = 700; //initial focal if estimation fails
-        float lambda = .0001; //initial lambda
+        float lambda = .05; //initial lambda
         //matching
         int max_images_per_match = 5;
-        int max_keypoints = 200;
+        int max_keypoints = 250;
         int RANSAC_iterations = 1500;
-        int x_margin = 5;
-        int y_margin = 5;
+        int x_margin = 4;
+
+        float min_overlap = .15;
+        float overlap_inl_match = .1;
+        float overlap_inl_keyp = .005;
+        float conf = .025;
+
         //SIFT
         int nfeatures = 0;
         int nOctaveLayers = 4;
@@ -133,6 +138,8 @@ class panorama : public img::images {
         void cancel();
         struct config conf_local;
         util::match_conf conf_m;
+
+        void test(struct config* conf);
 
     private:
 

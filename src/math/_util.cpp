@@ -140,21 +140,22 @@ std::vector<double> computeRowSumDividedByZeroCount(const cv::Mat& mat) {
     return results;
 }
 
-
+//https://stackoverflow.com/questions/28287138/c-randomly-sample-k-numbers-from-range-0n-1-n-k-without-replacement
 std::vector<int> randomN(int n, int m){
 
         std::random_device rd;
-        std::mt19937 g(rd());
+        std::mt19937 gen(rd());
 
-        std::vector<int> numbers(m) ;
-        std::iota (std::begin(numbers), std::end(numbers), 0);
+        std::unordered_set<int> elems;
+        for (int r = m - n; r < m; ++r) {
+            int v = std::uniform_int_distribution<>(0, r)(gen);
 
-        std::vector<int> result;
-        if (n < m) {
-            std::sample(numbers.begin(), numbers.end(), std::back_inserter(result), n, g);
-        } else {
-            throw std::invalid_argument("n should be less than m");
+            if (!elems.insert(v).second) {
+                elems.insert(r);
+            }
         }
+
+        std::vector<int> result(elems.begin(), elems.end());
 
         return result;
 }

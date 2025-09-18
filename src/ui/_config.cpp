@@ -73,8 +73,15 @@ namespace conf{
         config_window->config_->RANSAC_iterations = util::stringToInt(e2str(entry));
         entry = gtk_entry_get_text(GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_matching_entry_xmargin));
         config_window->config_->x_margin = util::stringToInt(e2str(entry));
-        entry = gtk_entry_get_text(GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_matching_entry_ymargin));
-        config_window->config_->y_margin = util::stringToInt(e2str(entry));
+        entry = gtk_entry_get_text(GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_matching_entry_minoverlap));
+        config_window->config_->min_overlap = util::stringToFloat(e2str(entry));
+        entry = gtk_entry_get_text(GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_matching_entry_overlapinlmatch));
+        config_window->config_->overlap_inl_match = util::stringToFloat(e2str(entry));
+        entry = gtk_entry_get_text(GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_matching_entry_overlapinlkeyp));
+        config_window->config_->overlap_inl_keyp = util::stringToFloat(e2str(entry));
+        entry = gtk_entry_get_text(GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_matching_entry_conf));
+        config_window->config_->conf = util::stringToFloat(e2str(entry));
+
 
         entry = gtk_entry_get_text(GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_system_entry_nfeatures));
         config_window->config_->nfeatures = util::stringToInt(e2str(entry));
@@ -368,19 +375,50 @@ namespace conf{
         gtk_entry_set_text (GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_matching_entry_xmargin),varAsString.c_str());
         gtk_entry_set_input_purpose (GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_matching_entry_xmargin),GTK_INPUT_PURPOSE_NUMBER);
         gtk_entry_set_max_length(GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_matching_entry_xmargin),4);
-        label = gtk_label_new("Keypoint x-margin");
+        label = gtk_label_new("Keypoint inlier margin");
         entry_settings(row,hbox,label,config_window->conf_menu_stack_advanced_frame_matching_box,config_window->conf_menu_stack_advanced_frame_matching_entry_xmargin);
-        g_signal_connect(G_OBJECT(config_window->conf_menu_stack_advanced_frame_matching_entry_xmargin), "insert-text", G_CALLBACK(insert_text_event_int), NULL);
+        g_signal_connect(G_OBJECT(config_window->conf_menu_stack_advanced_frame_matching_entry_xmargin), "insert-text", G_CALLBACK(insert_text_event_float), NULL);
 
-        config_window->conf_menu_stack_advanced_frame_matching_entry_ymargin = gtk_entry_new ();
-        ret = util::processValue(main_window->config_->y_margin, 9999);
-        varAsString = std::to_string(ret.int_part);
-        gtk_entry_set_text (GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_matching_entry_ymargin),varAsString.c_str());
-        gtk_entry_set_input_purpose (GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_matching_entry_ymargin),GTK_INPUT_PURPOSE_NUMBER);
-        gtk_entry_set_max_length(GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_matching_entry_ymargin),3);
-        label = gtk_label_new("Keypoint x-margin");
-        entry_settings(row,hbox,label,config_window->conf_menu_stack_advanced_frame_matching_box,config_window->conf_menu_stack_advanced_frame_matching_entry_ymargin);
-        g_signal_connect(G_OBJECT(config_window->conf_menu_stack_advanced_frame_matching_entry_ymargin), "insert-text", G_CALLBACK(insert_text_event_int), NULL);
+        config_window->conf_menu_stack_advanced_frame_matching_entry_minoverlap = gtk_entry_new ();
+        ret = util::processValue(main_window->config_->min_overlap, 1);
+        varAsString = std::to_string(ret.double_part);
+        gtk_entry_set_text (GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_matching_entry_minoverlap),varAsString.c_str());
+        gtk_entry_set_input_purpose (GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_matching_entry_minoverlap),GTK_INPUT_PURPOSE_NUMBER);
+        gtk_entry_set_max_length(GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_matching_entry_minoverlap),6);
+        label = gtk_label_new("Imag-wise minimum overlap area");
+        entry_settings(row,hbox,label,config_window->conf_menu_stack_advanced_frame_matching_box,config_window->conf_menu_stack_advanced_frame_matching_entry_minoverlap);
+        g_signal_connect(G_OBJECT(config_window->conf_menu_stack_advanced_frame_matching_entry_minoverlap), "insert-text", G_CALLBACK(insert_text_event_float), NULL);
+
+        config_window->conf_menu_stack_advanced_frame_matching_entry_overlapinlmatch = gtk_entry_new ();
+        ret = util::processValue(main_window->config_->overlap_inl_match, 1);
+        varAsString = std::to_string(ret.double_part);
+        gtk_entry_set_text (GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_matching_entry_overlapinlmatch),varAsString.c_str());
+        gtk_entry_set_input_purpose (GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_matching_entry_overlapinlmatch),GTK_INPUT_PURPOSE_NUMBER);
+        gtk_entry_set_max_length(GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_matching_entry_overlapinlmatch),6);
+        label = gtk_label_new("Imag-wise min inlier/match-Ratio");
+        entry_settings(row,hbox,label,config_window->conf_menu_stack_advanced_frame_matching_box,config_window->conf_menu_stack_advanced_frame_matching_entry_overlapinlmatch);
+        g_signal_connect(G_OBJECT(config_window->conf_menu_stack_advanced_frame_matching_entry_overlapinlmatch), "insert-text", G_CALLBACK(insert_text_event_float), NULL);
+
+        config_window->conf_menu_stack_advanced_frame_matching_entry_overlapinlkeyp = gtk_entry_new ();
+        ret = util::processValue(main_window->config_->overlap_inl_keyp, 1);
+        varAsString = std::to_string(ret.double_part);
+        gtk_entry_set_text (GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_matching_entry_overlapinlkeyp),varAsString.c_str());
+        gtk_entry_set_input_purpose (GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_matching_entry_overlapinlkeyp),GTK_INPUT_PURPOSE_NUMBER);
+        gtk_entry_set_max_length(GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_matching_entry_overlapinlkeyp),6);
+        label = gtk_label_new("Imag-wise min inlier/keypoint-Ratio");
+        entry_settings(row,hbox,label,config_window->conf_menu_stack_advanced_frame_matching_box,config_window->conf_menu_stack_advanced_frame_matching_entry_overlapinlkeyp);
+        g_signal_connect(G_OBJECT(config_window->conf_menu_stack_advanced_frame_matching_entry_overlapinlkeyp), "insert-text", G_CALLBACK(insert_text_event_float), NULL);
+
+        config_window->conf_menu_stack_advanced_frame_matching_entry_conf = gtk_entry_new ();
+        ret = util::processValue(main_window->config_->conf, 1);
+        varAsString = std::to_string(ret.double_part);
+        gtk_entry_set_text (GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_matching_entry_conf),varAsString.c_str());
+        gtk_entry_set_input_purpose (GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_matching_entry_conf),GTK_INPUT_PURPOSE_NUMBER);
+        gtk_entry_set_max_length(GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_matching_entry_conf),6);
+        label = gtk_label_new("Min total inlier/keypoint-Ratio");
+        entry_settings(row,hbox,label,config_window->conf_menu_stack_advanced_frame_matching_box,config_window->conf_menu_stack_advanced_frame_matching_entry_conf);
+        g_signal_connect(G_OBJECT(config_window->conf_menu_stack_advanced_frame_matching_entry_conf), "insert-text", G_CALLBACK(insert_text_event_float), NULL);
+
 
         gtk_container_add(GTK_CONTAINER(config_window->conf_menu_stack_advanced_frame_matching),config_window->conf_menu_stack_advanced_frame_matching_box);
 
@@ -419,7 +457,7 @@ namespace conf{
         gtk_entry_set_max_length(GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_system_entry_contrastThreshold),8);
         label = gtk_label_new("Contrast threshold");
         entry_settings(row,hbox,label,config_window->conf_menu_stack_advanced_frame_SIFT_box,config_window->conf_menu_stack_advanced_frame_system_entry_contrastThreshold);
-        g_signal_connect(G_OBJECT(config_window->conf_menu_stack_advanced_frame_system_entry_contrastThreshold), "insert-text", G_CALLBACK(insert_text_event_int), NULL);
+        g_signal_connect(G_OBJECT(config_window->conf_menu_stack_advanced_frame_system_entry_contrastThreshold), "insert-text", G_CALLBACK(insert_text_event_float), NULL);
 
         config_window->conf_menu_stack_advanced_frame_system_entry_edgeThreshold = gtk_entry_new ();
         ret = util::processValue(main_window->config_->edgeThreshold, 99);
@@ -429,7 +467,7 @@ namespace conf{
         gtk_entry_set_max_length(GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_system_entry_edgeThreshold),8);
         label = gtk_label_new("Edge threshold");
         entry_settings(row,hbox,label,config_window->conf_menu_stack_advanced_frame_SIFT_box,config_window->conf_menu_stack_advanced_frame_system_entry_edgeThreshold);
-        g_signal_connect(G_OBJECT(config_window->conf_menu_stack_advanced_frame_system_entry_edgeThreshold), "insert-text", G_CALLBACK(insert_text_event_int), NULL);
+        g_signal_connect(G_OBJECT(config_window->conf_menu_stack_advanced_frame_system_entry_edgeThreshold), "insert-text", G_CALLBACK(insert_text_event_float), NULL);
 
         config_window->conf_menu_stack_advanced_frame_system_entry_sigma = gtk_entry_new ();
         ret = util::processValue(main_window->config_->sigma_sift, 99);
@@ -439,7 +477,7 @@ namespace conf{
         gtk_entry_set_max_length(GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_system_entry_sigma),8);
         label = gtk_label_new("Sigma");
         entry_settings(row,hbox,label,config_window->conf_menu_stack_advanced_frame_SIFT_box,config_window->conf_menu_stack_advanced_frame_system_entry_sigma);
-        g_signal_connect(G_OBJECT(config_window->conf_menu_stack_advanced_frame_system_entry_sigma), "insert-text", G_CALLBACK(insert_text_event_int), NULL);
+        g_signal_connect(G_OBJECT(config_window->conf_menu_stack_advanced_frame_system_entry_sigma), "insert-text", G_CALLBACK(insert_text_event_float), NULL);
 
         gtk_container_add(GTK_CONTAINER(config_window->conf_menu_stack_advanced_frame_SIFT),config_window->conf_menu_stack_advanced_frame_SIFT_box);
 
@@ -456,7 +494,7 @@ namespace conf{
         gtk_entry_set_max_length(GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_system_entry_focal),5);
         label = gtk_label_new("Default focal");
         entry_settings(row,hbox,label,config_window->conf_menu_stack_advanced_frame_adjustment_box,config_window->conf_menu_stack_advanced_frame_system_entry_focal);
-        g_signal_connect(G_OBJECT(config_window->conf_menu_stack_advanced_frame_system_entry_focal), "insert-text", G_CALLBACK(insert_text_event_int), NULL);
+        g_signal_connect(G_OBJECT(config_window->conf_menu_stack_advanced_frame_system_entry_focal), "insert-text", G_CALLBACK(insert_text_event_float), NULL);
 
         config_window->conf_menu_stack_advanced_frame_system_entry_lambda = gtk_entry_new ();
         ret = util::processValue(main_window->config_->lambda, 999);
@@ -466,7 +504,7 @@ namespace conf{
         gtk_entry_set_max_length(GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_system_entry_lambda),8);
         label = gtk_label_new("Initial optimization step size");
         entry_settings(row,hbox,label,config_window->conf_menu_stack_advanced_frame_adjustment_box,config_window->conf_menu_stack_advanced_frame_system_entry_lambda);
-        g_signal_connect(G_OBJECT(config_window->conf_menu_stack_advanced_frame_system_entry_lambda), "insert-text", G_CALLBACK(insert_text_event_int), NULL);
+        g_signal_connect(G_OBJECT(config_window->conf_menu_stack_advanced_frame_system_entry_lambda), "insert-text", G_CALLBACK(insert_text_event_float), NULL);
 
         gtk_container_add(GTK_CONTAINER(config_window->conf_menu_stack_advanced_frame_adjustment),config_window->conf_menu_stack_advanced_frame_adjustment_box);
 

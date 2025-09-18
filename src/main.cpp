@@ -54,8 +54,11 @@ int main(int argc, char **argv) {
             pan::panorama test(path_list);
             class util::Timer timer;
             test.stitch_panorama(&conf);
+            cv::Mat tes = test.get_preview();
+            //test.test(&conf);
+            cv::imshow("Display window", tes);
+            cv::waitKey(0);
 */
-
 }
 
 #ifdef __linux__

@@ -309,7 +309,11 @@ namespace pan{
         conf_m.sigma_sift = conf_local.sigma_sift;
         conf_m.RANSAC_iterations = conf_local.RANSAC_iterations;
         conf_m.x_margin = conf_local.x_margin;
-        conf_m.y_margin = conf_local.y_margin;
+        conf_m.min_overlap = conf_local.min_overlap;
+        conf_m.overlap_inl_match = conf_local.overlap_inl_match;
+        conf_m.overlap_inl_keyp = conf_local.overlap_inl_keyp;
+        conf_m.conf = conf_local.conf;
+
 
         conf_local = *conf;
         load_resized(conf_local.init_size);
@@ -425,11 +429,8 @@ namespace pan{
             cv::Size p_size_small = stitched->get_preview_size(conf_local);
             double ratio = ((double)panorama_full.cols/(double)p_size_small.width + (double)panorama_full.rows/(double)p_size_small.height)/2;
             ROI = util::scaleRect(ROI,ratio,ratio);
-
-            ROI.x = std::max(0,ROI.x);
-            ROI.y = std::max(0,ROI.y);
-            ROI.width = std::min(panorama_full.cols,ROI.width);
-            ROI.height = std::min(panorama_full.rows,ROI.height);
+            cv::Rect full = cv::Rect(0,0,panorama_full.cols,panorama_full.rows);
+            ROI = full bitand ROI;
 
             return panorama_full(ROI);
         }
@@ -437,5 +438,46 @@ namespace pan{
         return panorama_full;
 
     }
+
+
+    void panorama::test(struct config* conf){
+
+        conf_m.contrastThreshold = conf_local.contrastThreshold;
+        conf_m.edgeThreshold = conf_local.edgeThreshold;
+        conf_m.max_images_per_match = conf_local.max_images_per_match;
+        conf_m.max_keypoints = conf_local.max_keypoints;
+        conf_m.nfeatures = conf_local.nfeatures;
+        conf_m.nOctaveLayers = conf_local.nOctaveLayers;
+        conf_m.sigma_sift = conf_local.sigma_sift;
+        conf_m.RANSAC_iterations = conf_local.RANSAC_iterations;
+        conf_m.x_margin = conf_local.x_margin;
+
+
+        conf_local = *conf;
+        load_resized(conf_local.init_size);
+        int threads = 8;
+        int threadsimg;
+        if(threads > img_data.size()){
+            threadsimg = img_data.size();
+        }else{
+            threadsimg = threads;
+        }
+
+        calculate_keypoints(threadsimg,&conf_m);
+
+
+        class util::adj_calculator ctest(img_data,keypnts,&conf_m);
+        ctest.get_threads(1);
+
+
+        ctest.get_match_number_matrix(0);
+
+        ctest.heuristic_match_filter(conf_local.max_images_per_match);
+
+        ctest.cal_adj(img_data,0);
+
+
+    }
+
 
 }
