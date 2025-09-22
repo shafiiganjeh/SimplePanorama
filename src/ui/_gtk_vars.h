@@ -154,7 +154,6 @@ struct menu_bar_{
     GtkWidget *bar_file;
     GtkWidget *bar_file_submenu;
     GtkWidget *bar_file_open;
-    GtkWidget *bar_file_save;
     GtkWidget *bar_file_quit;
 
     GtkWidget *bar_edit;
@@ -251,6 +250,7 @@ struct viewer_window_{
     gint w_x,w_y;
     GtkWidget *viewer_box;
     GtkWidget *viewer_scrolled_window;
+
     GtkWidget *viewer_scrolled_window_viewpoint;
     GtkWidget *viewer_scrolled_window_viewpoint_overlay;
     GtkWidget *viewer_scrolled_window_viewpoint_drawing;
@@ -297,10 +297,7 @@ struct main_window_{
     std::filesystem::path _path_ex;
     std::filesystem::path _path_css;
     std::filesystem::path _path_conf;
-
 };
-
-
 
 
 #endif

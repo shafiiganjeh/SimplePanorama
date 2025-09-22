@@ -2,6 +2,7 @@
 
 namespace imgv{
 
+    const gchar* ret_path8(std::filesystem::path& path);
 
     gboolean update_progress(gpointer data) {
 
@@ -137,8 +138,10 @@ gboolean on_mouse_press(GtkWidget *widget, GdkEventButton *event, struct viewer_
         display = gtk_widget_get_display(widget);
         cursor = gdk_cursor_new_from_name(display, "grabbing");
         gdk_window_set_cursor(gtk_widget_get_window(widget), cursor);
+
         g_object_unref(cursor);
-        gdk_threads_add_idle((GSourceFunc)gtk_widget_queue_draw,(void*)viewer_window->viewer_scrolled_window_viewpoint_drawing);
+        gtk_widget_queue_draw(viewer_window->viewer_scrolled_window_viewpoint_drawing);
+        //gdk_threads_add_idle((GSourceFunc)gtk_widget_queue_draw,(void*)viewer_window->viewer_scrolled_window_viewpoint_drawing);
 
         return TRUE;
     }else if(event->button == GDK_BUTTON_SECONDARY){
@@ -178,8 +181,8 @@ gboolean on_mouse_motion(GtkWidget *widget, GdkEventMotion *event, struct viewer
         viewer_window->dragging.dy = event->y_root - viewer_window->dragging.start_y;
 
         viewer_window->dragging.add_offset = FALSE;
-        //gtk_widget_queue_draw(viewer_window->viewer_scrolled_window_viewpoint_drawing);
-        gdk_threads_add_idle((GSourceFunc)gtk_widget_queue_draw,(void*)viewer_window->viewer_scrolled_window_viewpoint_drawing);
+        gtk_widget_queue_draw(viewer_window->viewer_scrolled_window_viewpoint_drawing);
+        //gdk_threads_add_idle((GSourceFunc)gtk_widget_queue_draw,(void*)viewer_window->viewer_scrolled_window_viewpoint_drawing);
 
     }
 
@@ -195,7 +198,7 @@ gboolean on_mouse_release(GtkWidget *widget, GdkEventButton *event, struct viewe
         viewer_window->dragging.is_config = TRUE;
         viewer_window->dragging.is_drawing = FALSE;
         gdk_window_set_cursor(gtk_widget_get_window(widget), NULL);
-        gdk_threads_add_idle((GSourceFunc)gtk_widget_queue_draw,(void*)viewer_window->viewer_scrolled_window_viewpoint_drawing);
+        //gdk_threads_add_idle((GSourceFunc)gtk_widget_queue_draw,(void*)viewer_window->viewer_scrolled_window_viewpoint_drawing);
 
         return TRUE;
     }else if(event->button == GDK_BUTTON_SECONDARY){
@@ -229,6 +232,7 @@ void window_quit(GtkWidget *widget, gpointer data){
     wind_id->window->view.erase(wind_id->id);
 
     delete wind_id;
+
 }
 
 
@@ -262,8 +266,8 @@ gboolean on_resize(GtkWidget *widget,GdkRectangle *event, struct viewer_window_ 
     if((not(event->width == viewer_window->w_x)) or (not(event->height == viewer_window->w_y))){
 
         viewer_window->dragging.is_config = TRUE;
-        //gtk_widget_queue_draw(viewer_window->viewer_scrolled_window_viewpoint_drawing);
-        gdk_threads_add_idle((GSourceFunc)gtk_widget_queue_draw,(void*)viewer_window->viewer_scrolled_window_viewpoint_drawing);
+        gtk_widget_queue_draw(viewer_window->viewer_scrolled_window_viewpoint_drawing);
+        //gdk_threads_add_idle((GSourceFunc)gtk_widget_queue_draw,(void*)viewer_window->viewer_scrolled_window_viewpoint_drawing);
 
     }
 
@@ -278,30 +282,12 @@ gboolean on_scroll(GtkWidget *widget,GdkEventScroll event, struct viewer_window_
 
     viewer_window->dragging.is_drawing = FALSE;
     viewer_window->dragging.is_config = TRUE;
-    //gtk_widget_queue_draw(viewer_window->viewer_scrolled_window_viewpoint_drawing);
-    gdk_threads_add_idle((GSourceFunc)gtk_widget_queue_draw,(void*)viewer_window->viewer_scrolled_window_viewpoint_drawing);
+    gtk_widget_queue_draw(viewer_window->viewer_scrolled_window_viewpoint_drawing);
+    //gdk_threads_add_idle((GSourceFunc)gtk_widget_queue_draw,(void*)viewer_window->viewer_scrolled_window_viewpoint_drawing);
 
     return FALSE;
 }
 
-
-void get_recoord(struct viewer_window_ *viewer_window,gint & image_x,gint & image_y){
-
-    GtkAdjustment *hadj = gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW(viewer_window->viewer_scrolled_window));
-    GtkAdjustment *vadj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(viewer_window->viewer_scrolled_window));
-    gdouble hscroll = gtk_adjustment_get_value(hadj);
-    gdouble vscroll = gtk_adjustment_get_value(vadj);
-
-    gint viewport_x, viewport_y;
-    gtk_widget_translate_coordinates(viewer_window->viewer_scrolled_window_viewpoint, viewer_window->viewer_scrolled_window, 0, 0, &viewport_x, &viewport_y);
-
-    gint scrolled_x, scrolled_y;
-    gtk_widget_translate_coordinates(viewer_window->viewer_scrolled_window, viewer_window->window, 0, 0, &scrolled_x, &scrolled_y);
-
-    image_x = -hscroll + viewport_x + scrolled_x;
-    image_y = -vscroll + viewport_y + scrolled_y;
-
-}
 
 
 gboolean window_maximized(GtkWidget *widget, GdkEventWindowState *event, struct viewer_window_ *viewer_window){
@@ -338,11 +324,8 @@ gboolean window_maximized(GtkWidget *widget, GdkEventWindowState *event, struct 
             std::cout<<"min x: "<<viewport_w<<"\n";
             std::cout<<"min y: "<<viewport_h<<"\n";
 
-
         }
     }
-
-
 
     return FALSE;
 }
@@ -368,8 +351,13 @@ void connect_signals(struct main_window_ *main_window,int id){
 
         GtkAdjustment *hadj = gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW(main_window->view[id].viewer_scrolled_window));
         GtkAdjustment *vadj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(main_window->view[id].viewer_scrolled_window));
+
+        #ifdef __linux__
+
         g_signal_connect(hadj, "value-changed", G_CALLBACK(on_scroll), &main_window->view[id]);
         g_signal_connect(vadj, "value-changed", G_CALLBACK(on_scroll), &main_window->view[id]);
+
+        #endif
 
         //g_signal_connect(main_window->view[id].window, "window-state-event", G_CALLBACK(window_maximized), &main_window->view[id]);
 
@@ -422,7 +410,6 @@ gboolean show_image(struct progress_bar_ *bar) {
     gtk_box_pack_end(GTK_BOX(progress_bar_viewer->viewer_box),progress_bar_viewer->viewer_scrolled_window,TRUE,TRUE,0);
 
     //progress_bar_viewer->image = cv::imread("/home/sd_bert/Pictures/1725014833368114.png", cv::IMREAD_COLOR);
-    //progress_bar_viewer->image = bar->view->future_.get();
     progress_bar_viewer->image = progress_bar_viewer->panorama_->get_preview();
     int image_w = progress_bar_viewer->image.cols;
     int image_h = progress_bar_viewer->image.rows;
@@ -529,15 +516,15 @@ void create_viewer(struct main_window_ *main_window,GtkWidget* self,GdkEventButt
     main_window->view[test].progress_bar->main_window = main_window;
     main_window->view[test].progress_bar->test = test;
 
+    //show_image(main_window->view[test].progress_bar);
+
     main_window->view[test].panorama_ = std::make_shared<pan::panorama>(files,main_window->view[test].progress_bar);
 
     g_list_foreach(s_list,(GFunc)get_files,&for_list); //deletes files
 
     open_progress_bar(main_window->window,main_window->view[test].progress_bar,main_window);
-    //gdk_threads_add_idle(update_progress, main_window->view[test].progress_bar);
-    g_timeout_add(100,update_progress, main_window->view[test].progress_bar);
-    //pan::config _CONF_;
 
+    g_timeout_add(100,update_progress, main_window->view[test].progress_bar);
 
     auto get_pan = [main_window,test](pan::config* conf) {
         try {
@@ -565,7 +552,6 @@ void create_viewer(struct main_window_ *main_window,GtkWidget* self,GdkEventButt
     thread.detach();
 
 }
-
 
 }
 

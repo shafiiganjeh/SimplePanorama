@@ -7,67 +7,64 @@ namespace util {
 
 std::string doubleToString(double value, int precision) {
 
-    std::array<char, 50> buffer{};
+    std::ostringstream oss;
 
-    auto [ptr, ec] = std::to_chars(buffer.data(), buffer.data() + buffer.size(), value,
-                                  std::chars_format::fixed, precision);
+    oss.imbue(std::locale::classic());
+    oss << std::fixed << std::setprecision(precision) << value;
 
-    if (ec == std::errc()) {
-        return std::string(buffer.data(), ptr);
-    } else {
+    if (oss.fail()) {
         throw std::runtime_error("Double to string conversion failed");
     }
+
+    return oss.str();
 }
 
 
 std::string floatToString(float value, int precision) {
 
-    std::array<char, 50> buffer{};
+    std::ostringstream oss;
 
-    auto [ptr, ec] = std::to_chars(buffer.data(), buffer.data() + buffer.size(), value,
-                                  std::chars_format::fixed, precision);
+    oss.imbue(std::locale::classic());
+    oss << std::fixed << std::setprecision(precision) << value;
 
-    if (ec == std::errc()) {
-        return std::string(buffer.data(), ptr);
-    } else {
+    if (oss.fail()) {
         throw std::runtime_error("Float to string conversion failed");
     }
+
+    return oss.str();
 }
 
 
 double stringToDouble(const std::string& str) {
-    double value;
-    auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), value);
-
-    if (ec == std::errc()) {
-        return value;
-    } else {
-        throw std::runtime_error("String to double conversion failed");
-    }
+    std::istringstream totalSString(str);
+    double valueAsDouble;
+    // maybe use some manipulators
+    totalSString >> valueAsDouble;
+    if(!totalSString)
+        throw std::runtime_error("Error converting to double");
+    return valueAsDouble;
 }
 
 
 float stringToFloat(const std::string& str) {
-    float value;
-    auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), value);
-
-    if (ec == std::errc()) {
-        return value;
-    } else {
-        throw std::runtime_error("String to float conversion failed");
-    }
+    std::istringstream totalSString(str);
+    float valueAsFloat;
+    // maybe use some manipulators
+    totalSString >> valueAsFloat;
+    if(!totalSString)
+        throw std::runtime_error("Error converting to float");
+    return valueAsFloat;
 }
 
 
 int stringToInt(const std::string& str) {
-    int value;
-    auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), value);
-
-    if (ec == std::errc()) {
-        return value;
-    } else {
-        throw std::runtime_error("String to integer conversion failed");
-    }
+    std::istringstream totalSString(str);
+    int valueAsInt;
+    // maybe use some manipulators
+    totalSString >> valueAsInt;
+    if(!totalSString)
+        throw std::runtime_error("Error converting to int");
+    return valueAsInt;
 }
 
 

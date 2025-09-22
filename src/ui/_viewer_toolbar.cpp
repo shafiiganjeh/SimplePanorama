@@ -6,7 +6,8 @@ namespace imgvt{
 
             main_window->dragging.is_config = TRUE;
             main_window->dragging.final_drawing = cv::Rect(0,0,0,0);
-            gdk_threads_add_idle((GSourceFunc)gtk_widget_queue_draw,(void*)main_window->viewer_scrolled_window_viewpoint_drawing);
+            //gdk_threads_add_idle((GSourceFunc)gtk_widget_queue_draw,(void*)main_window->viewer_scrolled_window_viewpoint_drawing);
+            gtk_widget_queue_draw(main_window->viewer_scrolled_window_viewpoint_drawing);
             if(main_window->current_zoom > 0){
                 main_window->image_zoomed = imgm::resizeKeepAspectRatio(main_window->image, main_window->zoom_val[main_window->current_zoom],&(main_window->crop_preview));
             }else{
@@ -122,7 +123,8 @@ namespace imgvt{
             gtk_widget_show_all(main_window->window);
             get_offset(main_window);
 
-            gdk_threads_add_idle((GSourceFunc)gtk_widget_queue_draw,(void*)main_window->viewer_scrolled_window_viewpoint_drawing);
+            //gdk_threads_add_idle((GSourceFunc)gtk_widget_queue_draw,(void*)main_window->viewer_scrolled_window_viewpoint_drawing);
+            gtk_widget_queue_draw(main_window->viewer_scrolled_window_viewpoint_drawing);
             //main_window->dragging.is_config = FALSE;
 
         }
@@ -162,8 +164,8 @@ namespace imgvt{
             gtk_widget_show_all(main_window->window);
             get_offset(main_window);
 
-            gdk_threads_add_idle((GSourceFunc)gtk_widget_queue_draw,(void*)main_window->viewer_scrolled_window_viewpoint_drawing);
-
+            //gdk_threads_add_idle((GSourceFunc)gtk_widget_queue_draw,(void*)main_window->viewer_scrolled_window_viewpoint_drawing);
+            gtk_widget_queue_draw(main_window->viewer_scrolled_window_viewpoint_drawing);
         }
 
 
@@ -257,15 +259,16 @@ namespace imgvt{
         if (res == GTK_RESPONSE_ACCEPT){
 
             gchar* username = gtk_file_chooser_get_filename (chooser);
-            //gchar* cname = gtk_file_chooser_get_current_name (chooser);
 
-            gchar* location = gtk_file_chooser_get_filename (chooser);
             cv::imwrite(username, test);
 
         }
 
-        g_object_unref (native);
+        #ifdef __linux__
 
+        g_object_unref(native);
+
+        #endif
 
         return FALSE;
     }

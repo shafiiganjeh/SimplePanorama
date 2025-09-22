@@ -27,9 +27,11 @@ int main(int argc, char **argv) {
 
 
         if (std::filesystem::status_known(s) ? std::filesystem::exists(s) : std::filesystem::exists(main_window._path_conf)){
+            std::cout <<"Reading config file.\n";
             test.read_cfg(main_window._path_conf);
             test.write_cfg(main_window._path_conf);
         }else{
+            std::cout <<"Creating config file.\n";
             test.write_cfg(main_window._path_conf);
             test.read_cfg(main_window._path_conf);
         }
@@ -74,7 +76,7 @@ std::filesystem::path get_executable_path() {
     return {};
 }
 
-#elif defined(_WIN64)
+#elif defined(_WIN32)
 
 #include <windows.h>
 
