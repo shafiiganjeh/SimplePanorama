@@ -13,7 +13,6 @@
 
 namespace conf{
 
-
     class ConfigParser {
 
     public:
@@ -93,9 +92,9 @@ namespace conf{
 
         }
 
-        void read_cfg(const std::string& filename);
+        void read_cfg(const std::filesystem::path& filename);
 
-        void write_cfg(const std::string& filename);
+        void write_cfg(const std::filesystem::path& filename);
 
     private:
 

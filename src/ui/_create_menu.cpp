@@ -16,6 +16,7 @@ gboolean open_folder(GtkMenuItem* *widget,struct main_window_ *main_window)
         int thumbnail_size = 250;
 
         GtkFileChooserNative *native;
+
         GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER;
         gint res;
 
@@ -88,7 +89,7 @@ gboolean cut(GtkMenuItem* *widget,struct main_window_ *main_window){
 
 gboolean open_config(GtkMenuItem* *widget,struct main_window_ *main_window){
 
-
+        gtk_widget_set_sensitive (GTK_WIDGET(main_window->menu_bar.bar_edit_config),FALSE);
         main_window->menu_bar.config._path_conf = main_window->_path_conf;
         conf::open_conf_window(&main_window->menu_bar,&(main_window->menu_bar.config),main_window);
 
@@ -122,10 +123,6 @@ void create_menu_bar(GtkWidget *add_to,struct menu_bar_ *menu_bar,struct main_wi
 
         menu_bar->bar_file_open = gtk_menu_item_new_with_label ("Open Folder");
         gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar->bar_file_submenu),menu_bar->bar_file_open);
-
-        menu_bar->bar_file_save = gtk_menu_item_new_with_label ("Save Panorama");
-        gtk_widget_set_sensitive(GTK_WIDGET(menu_bar->bar_file_save),FALSE);
-        gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar->bar_file_submenu),menu_bar->bar_file_save);
 
         GtkWidget *seperator = gtk_separator_menu_item_new ();
         gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar->bar_file_submenu),seperator);

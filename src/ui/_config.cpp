@@ -3,6 +3,8 @@
 
 namespace conf{
 
+    const std::string ret_pathstr(std::filesystem::path& path);
+
     void entry_settings(GtkWidget *row,GtkWidget *hbox,GtkWidget *label,GtkWidget * insert_to,GtkWidget * entry_address){
 
         row = gtk_list_box_row_new();
@@ -16,6 +18,13 @@ namespace conf{
         gtk_box_pack_start(GTK_BOX(hbox), entry_address, FALSE, FALSE, 0);
         gtk_container_add(GTK_CONTAINER(row), hbox);
         gtk_list_box_insert(GTK_LIST_BOX(insert_to), row, -1);
+
+    }
+
+
+    void conf_closed(GtkWidget *widget, struct main_window_ *main_window){
+
+        gtk_widget_set_sensitive (GTK_WIDGET(main_window->menu_bar.bar_edit_config),TRUE);
 
     }
 
@@ -101,7 +110,7 @@ namespace conf{
         config_window->config_->lambda = util::stringToFloat(e2str(entry));
 
         conf::ConfigParser test(config_window->config_);
-        test.write_cfg(config_window->_path_conf);
+        test.write_cfg(ret_pathstr(config_window->_path_conf));
         return FALSE;
 
     }
@@ -513,6 +522,7 @@ namespace conf{
 
     void connect_signals(struct config_* config_window,struct main_window_ *main_window){
 
+        g_signal_connect(config_window->conf_menu, "destroy", G_CALLBACK(conf_closed), main_window);
         g_signal_connect(config_window->conf_menu_CANCEL, "button-release-event", G_CALLBACK(cancel), config_window);
         g_signal_connect(config_window->conf_menu_OK, "button-release-event", G_CALLBACK(OK), config_window);
 
@@ -562,5 +572,25 @@ namespace conf{
 
     }
 
+
+#ifdef __linux__
+
+const std::string ret_pathstr(std::filesystem::path& path){
+
+    return path.string();
+
 }
+
+#elif defined(_WIN32)
+
+const std::string ret_pathstr(std::filesystem::path& path){
+
+    return path.string();
+
+}
+#endif
+
+
+}
+
 

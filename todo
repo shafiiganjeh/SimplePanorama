@@ -1,0 +1,16 @@
+windows implementation + path fixes -check
+drag logo fixen (transparent?) -check
+fehleranzeige bei adjustmentfehler anstatt crash -check
+distanz basierende schnitte -check
+
+crop während kein zoom verfügbar crashed?? -check
+conf immer noch bugged?? -check
+maximize fixen, resize flowbox nach lesen-check
+resize bugged manchmal -check
+
+
+wieso crasht es manchmal(sehr selten, möglicherweise sync fehelr)
+
+besseres stitchen bei hoher überlappsquote 
+
+

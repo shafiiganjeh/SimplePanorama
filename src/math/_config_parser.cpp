@@ -3,12 +3,12 @@
 
 namespace conf{
 
+
     enum pan::Blending ConfigParser::stringToMethod(const std::string& str) {
 
         return static_cast<pan::Blending>(pan::StringToBlending(str));
 
     }
-
 
     std::string ConfigParser::methodToString(pan::Blending method) {
 
@@ -19,7 +19,7 @@ namespace conf{
     }
 
 
-    void ConfigParser::write_cfg(const std::string& filename) {
+    void ConfigParser::write_cfg(const std::filesystem::path& filename) {
         std::ofstream file(filename);
         for (const auto& key : entries_order) {
             //std::cout<<entries[key].first()<< "\n";
@@ -28,7 +28,7 @@ namespace conf{
     }
 
 
-    void ConfigParser::read_cfg(const std::string& filename) {
+    void ConfigParser::read_cfg(const std::filesystem::path& filename) {
         std::ifstream file(filename);
         std::string line;
 
@@ -39,7 +39,7 @@ namespace conf{
 
             std::string key = line.substr(0, delimiterPos);
             std::string value = line.substr(delimiterPos + 1);
-
+            std::cout <<"key: "<<key<<" value: "<<value<<"\n";
             key.erase(0, key.find_first_not_of(" \t"));
             key.erase(key.find_last_not_of(" \t") + 1);
             value.erase(0, value.find_first_not_of(" \t"));
@@ -54,7 +54,6 @@ namespace conf{
         }
 
     }
-
 
 }
 
