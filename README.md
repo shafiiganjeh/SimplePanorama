@@ -62,7 +62,6 @@ You will need the following packages:
 - [Eigen3](http://eigen.tuxfamily.org/)
 - [OpenCV](https://opencv.org/releases/)
 - [GTK3](https://www.gtk.org/)
-- [GTK3](https://www.gtk.org/)
 
 Additionally, you need a compiler that supports C++20 and CMake >= 3.1. To compile for Windows, you will also need [MXE](https://mxe.cc/).
 
