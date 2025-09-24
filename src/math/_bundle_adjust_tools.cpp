@@ -160,7 +160,6 @@ namespace bund {
 
         adj = *T.adj;
         adj = adj  + adj.t();
-        float eps = 5e-5;
 
         //std::cout<<"adj :"<< adj<<" \n";
 
@@ -179,7 +178,6 @@ namespace bund {
         }
 
         std::vector<std::vector<std::vector<Eigen::VectorXd>>> measure_mat(adj.rows, std::vector<std::vector<Eigen::VectorXd>>(adj.cols));
-        std::vector<int> idx(2);
 
         for (int i = 0;i < adj.rows;i++){
             for(int j = 0;j < adj.cols;j++){

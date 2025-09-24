@@ -451,7 +451,6 @@ namespace bundm {
         bool addrot = true;
         int break_counter = 0;
 
-        bool num;
         for (int it = 0;it<50;it++){
 
             std::vector<bund::A_vec> avec = get_iter_par();

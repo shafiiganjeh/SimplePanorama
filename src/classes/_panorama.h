@@ -48,10 +48,10 @@ namespace pan{
         int threads = 8;
         int init_size = 800; //set calc size
         //blending
-        Blending blend = NO_BLEND;
+        Blending blend = MULTI_BLEND;
         bool gain_compensation = true;
         bool cut = false;
-        bool cut_seams = false;
+        bool cut_seams = true;
         //MULTI_BLEND
         int bands = 3;
         double sigma_blend = 7;
