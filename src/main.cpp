@@ -39,11 +39,11 @@ int main(int argc, char **argv) {
         build_window(argc,argv,&main_window,&current_conf);
         gtk_main();
 
-/*
+/* for testing
             struct pan::config conf;
             conf.focal = 700;
 
-            std::string path = "/home/sd_bert/projects/Panorama/test";
+            std::string path = "./test";
             std::vector<std::string> path_list;
 
             for (const auto & entry : std::filesystem::directory_iterator(path)){
@@ -54,7 +54,6 @@ int main(int argc, char **argv) {
             }
 
             pan::panorama test(path_list);
-            class util::Timer timer;
             test.stitch_panorama(&conf);
             cv::Mat tes = test.get_preview();
             //test.test(&conf);

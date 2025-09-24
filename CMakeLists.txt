@@ -106,12 +106,4 @@ target_link_libraries(code Eigen3::Eigen)
 target_link_libraries(panorama code)
 target_link_libraries(code OpenMP::OpenMP_CXX)
 
-if(WIN32)
-    install(TARGETS panorama RUNTIME DESTINATION .)
-else()
-    install(TARGETS panorama RUNTIME DESTINATION bin)
-endif()
-
-
-
 
