@@ -448,7 +448,6 @@ namespace bundm {
         }
         std::cout<<"\n" <<"error "<<error_start/iter.e_vec.size()<<"\n";
 
-        bool addrot = true;
         int break_counter = 0;
 
         for (int it = 0;it<50;it++){
@@ -467,7 +466,7 @@ namespace bundm {
             }
 
 
-            par_img -> add_delta(iter.delta_b,iter.delta_a,addrot);
+            par_img -> add_delta(iter.delta_b,iter.delta_a);
 
             std::vector<Eigen::VectorXd> ms = par_img -> ret_measurements_saved();
             std::vector<Eigen::VectorXd> new_error = par_er -> error(ms);
@@ -498,16 +497,7 @@ namespace bundm {
             }
 
             if (break_counter > 5){
-                if(addrot == false){
-                    addrot = true;
-                    break_counter = 0;
-
-                    iter.lambda = 0.0001;
-                }else{
-                    break;
-
-                }
-
+                break;
             };
 
             lambda = iter.lambda;
@@ -518,6 +508,7 @@ namespace bundm {
 
         iter.focal = par_img -> ret_focal();
         iter.hom = par_img -> ret_hmat();
+        iter.error = error_new;
         return iter;
 
     }

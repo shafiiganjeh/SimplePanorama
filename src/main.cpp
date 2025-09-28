@@ -5,6 +5,7 @@
 #include "_main_windows.h"
 #include <filesystem>
 #include "_config_parser.h"
+//#include "_panorama.h"
 
 std::filesystem::path get_executable_path();
 
@@ -39,7 +40,7 @@ int main(int argc, char **argv) {
         build_window(argc,argv,&main_window,&current_conf);
         gtk_main();
 
-/* for testing
+/*
             struct pan::config conf;
             conf.focal = 700;
 

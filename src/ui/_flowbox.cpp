@@ -128,7 +128,10 @@ void drag_rec(GtkWidget *widg, GdkDragContext* context, gint x,
         int index = 0;
 
         GtkWidget* fbox_child = gtk_widget_get_parent (widg);
-        index  = gtk_flow_box_child_get_index (GTK_FLOW_BOX_CHILD(fbox_child));
+
+        if(GTK_IS_FLOW_BOX_CHILD(fbox_child)){
+           index  = gtk_flow_box_child_get_index (GTK_FLOW_BOX_CHILD(fbox_child));
+        }
 
         std::vector<std::string> path_list = gops::get_path_from_Selection_data(&(main_window->ipts),data);
 

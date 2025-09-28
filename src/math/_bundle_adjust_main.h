@@ -37,6 +37,7 @@ namespace bundm {
 
         std::vector<std::vector< cv::Matx33f >> hom;
         std::vector<double> focal;
+        float error;
 
     };
 
