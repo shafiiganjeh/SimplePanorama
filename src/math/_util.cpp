@@ -90,6 +90,28 @@ cv::Rect scaleRect(const cv::Rect& r, double xs, double sy) {
 }
 
 
+std::pair<float,float> get_rot_dif(std::vector<Eigen::MatrixXd> rot){
+
+    float max_w = 0;
+    float min_w = 0;
+    float max_h = 0;
+    float min_h = 0;
+
+    for(Eigen::MatrixXd & r : rot){
+
+        float x = std::atan2(r(2,1),r(2,2)); //h
+        float y = std::atan2(-r(2,0),sqrt(r(2,1)*r(2,1) + r(2,2)*r(2,2))); //w
+        max_w = std::max(max_w,y);
+        min_w = std::max(min_w,y);
+        max_h = std::max(max_h,x);
+        min_h = std::max(min_h,x);
+
+    }
+
+    return {abs(max_h) + abs(min_h),abs(max_w) + abs(min_w)};
+}
+
+
 struct size_data get_pan_dimension(const std::vector<cv::Point>& top_lefts,const std::vector<cv::Mat>& images){
 
     struct size_data p_size;

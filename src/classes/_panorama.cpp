@@ -22,6 +22,18 @@ namespace pan{
     }
 
 
+    void correct_img(std::vector<cv::Mat>& mask_cut,std::vector<cv::Mat>& imgs){
+
+        for(int i = 0;i < mask_cut.size();i++){
+
+            cv::Mat cop;
+            imgs[i].copyTo(cop,mask_cut[i]);
+            imgs[i] = cop;
+
+        }
+
+    }
+
 
     void stitch_parameters::set_config(struct config& conf,std::atomic<bool> *cancel_var){
 
@@ -74,6 +86,8 @@ namespace pan{
                 temp.imgs.push_back(owned_res.imgs[i]);
 
             }
+
+            correct_img(temp.msks,temp.imgs);
 
             temp.corners.push_back(owned_res.corners[i]);
             temp.msks.push_back(owned_res.masks[i]);
@@ -194,6 +208,7 @@ namespace pan{
 
         }
 
+        correct_img(blend_dat.msks,blend_dat.imgs);
 
         cv::Mat full = blend(blend_dat,conf);
         return full;
@@ -286,20 +301,6 @@ namespace pan{
 
     bool panorama::stitch_panorama(struct config* conf){
 
-        std::cout<<"\n"<<"threads "<< conf_local.threads<<"\n";
-        std::cout<<"\n"<<"init_size "<< conf_local.init_size<<"\n";
-        std::cout<<"\n"<<"focal "<< conf_local.focal<<"\n";
-        std::cout<<"\n"<<"lambda "<< conf_local.lambda<<"\n";
-        std::cout<<"\n"<<"max_images_per_match "<< conf_local.max_images_per_match<<"\n";
-        std::cout<<"\n"<<"max_keypoints "<< conf_local.max_keypoints<<"\n";
-        std::cout<<"\n"<<"RANSAC_iterations "<< conf_local.RANSAC_iterations<<"\n";
-        std::cout<<"\n"<<"x_margin "<< conf_local.x_margin<<"\n";
-        std::cout<<"\n"<<"nfeatures "<< conf_local.nfeatures<<"\n";
-        std::cout<<"\n"<<"nOctaveLayers "<< conf_local.nOctaveLayers<<"\n";
-        std::cout<<"\n"<<"contrastThreshold "<< conf_local.contrastThreshold<<"\n";
-        std::cout<<"\n"<<"edgeThreshold "<< conf_local.edgeThreshold<<"\n";
-        std::cout<<"\n"<<"sigma_sift "<< conf_local.sigma_sift<<"\n";
-
         conf_m.contrastThreshold = conf_local.contrastThreshold;
         conf_m.edgeThreshold = conf_local.edgeThreshold;
         conf_m.max_images_per_match = conf_local.max_images_per_match;
@@ -381,28 +382,6 @@ namespace pan{
             stitched->set_config(conf_local);
         }else{ throw std::invalid_argument("something went wrong"); return false;}
 
-
-/*
-        struct stch::stitch_result dt = stch::bundleadjust_stitching(Tr,hom_mat,keypnts,match_mat,conf_local.lambda,threads);
-        std::vector<cv::Mat> mask_cut = dcut::dist_cut(dt.masks,dt.corners);
-
-        for(int i = 0;i < mask_cut.size();i++){
-
-            cv::imshow("Display window", mask_cut[i]);
-            cv::waitKey(0);
-            cv::imshow("Display window", dt.masks[i]);
-            cv::waitKey(0);
-
-
-
-        }
-
-
-        cv::Mat img = blnd::multi_blend(dt.imgs,mask_cut,dt.masks,dt.corners,3,7);
-
-        cv::imshow("Display window", img);
-        cv::waitKey(0);
-*/
 
         return true;
     }

@@ -118,6 +118,8 @@ namespace util {
 
     std::vector<std::pair<int, std::vector<int>>> bfs_ordered_with_neighbors(const cv::Mat& adj, int i);
 
+    std::pair<float,float> get_rot_dif(std::vector<Eigen::MatrixXd> rot);
+
     float focal_from_hom(const std::vector<std::vector< cv::Matx33f >> & H_mat,const cv::Mat &source_adj);
 
     template <typename T>

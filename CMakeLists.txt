@@ -32,7 +32,7 @@ add_custom_target(copy_res ALL
 )
 
 
-add_definitions(-O2)
+add_definitions(-O3)
 
 include_directories(        ${CMAKE_SOURCE_DIR}/src/math
                             ${CMAKE_SOURCE_DIR}/src/ui

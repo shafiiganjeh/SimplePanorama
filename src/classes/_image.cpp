@@ -42,10 +42,11 @@ namespace img {
             loaded.push_back(elem);
             cv::Mat temp_img = imgm::file_to_cv(elem);
 
+            if((temp_img.rows < 300) or (temp_img.cols < 300)or (max_size < 300)){
 
-            CV_Assert(temp_img.rows >= 300);
-            CV_Assert(temp_img.cols >= 300);
-            CV_Assert(max_size >= 300);
+                throw std::runtime_error("Error: Image size too small (img.width < 300 or img.height < 300)");
+
+            }
 
             std::cout << temp_img.size();
             cv::Mat temp_res = temp_img;

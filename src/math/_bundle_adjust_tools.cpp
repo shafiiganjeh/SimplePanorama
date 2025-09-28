@@ -756,7 +756,7 @@ namespace bund {
     }
 
 
-    void parameters::add_delta(const std::vector<Eigen::VectorXd> &delta_b,const Eigen::VectorXd &delta_a,bool add_rot){
+    void parameters::add_delta(const std::vector<Eigen::VectorXd> &delta_b,const Eigen::VectorXd &delta_a){
         double eps = 1e-6;
 
         for(int i = 0;i < saved.rot.size();i++){

@@ -367,8 +367,20 @@ struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,con
 
     par = prep_opt(T,Hom_mat_new,match_mat,kp ,ind,maxLoc,maxLoc);
 
+
+
     res.connectivity = T.connectivity;
-    res.rot = strg::straightenPanorama(Crret);
+    std::pair<float,float> max_dif = util::get_rot_dif(Crret);
+    if(max_dif.first > max_dif.second){
+        std::cout <<"\n Vertical panorama type. \n";
+        res.rot = Crret;
+
+    }else{
+
+        res.rot = strg::straightenPanorama(Crret);
+
+    }
+
 
     struct stch::stitch_data ret = get_proj_parameters((*T.img_address),res.rot,res.K,maxLoc,res.connectivity);
     res.maxLoc = maxLoc;
@@ -379,10 +391,9 @@ struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,con
             indices.push_back(i);
             res.ord.push_back(par.numb2ind[i]);
             cv::Mat masks_temp = blnd::createSurroundingMask(ret.imgs[par.numb2ind[i]], true, 1);
-
-            cv::erode(masks_temp, masks_temp, cv::Mat(), cv::Point(-1, -1), 1); // remove bad borders
-
+            cv::erode(masks_temp, masks_temp, cv::Mat(), cv::Point(-1, -1), 3);
             res.masks.push_back(masks_temp);
+
         }
     }
 
