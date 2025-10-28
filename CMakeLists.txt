@@ -31,11 +31,13 @@ add_custom_target(copy_res ALL
     COMMENT "Copying resources to build directory"
 )
 
-
+#Ofast -march=native
 add_definitions(-O3)
 
 include_directories(        ${CMAKE_SOURCE_DIR}/src/math
                             ${CMAKE_SOURCE_DIR}/src/ui
+                            ${CMAKE_SOURCE_DIR}/src/system
+                            ${CMAKE_SOURCE_DIR}/src/test
                             ${CMAKE_SOURCE_DIR}/src/classes
                             ${CMAKE_SOURCE_DIR}/src/max_flow
                             ${OpenCV_INCLUDE_DIRS})
@@ -69,12 +71,12 @@ add_library(code
     ${CMAKE_SOURCE_DIR}/src/ui/_dialog.h
     ${CMAKE_SOURCE_DIR}/src/math/_img_manipulation.cpp
     ${CMAKE_SOURCE_DIR}/src/math/_img_manipulation.h
-    ${CMAKE_SOURCE_DIR}/src/math/_util.h
-    ${CMAKE_SOURCE_DIR}/src/math/_util.cpp
     ${CMAKE_SOURCE_DIR}/src/math/_bundle_adjust_tools.h
     ${CMAKE_SOURCE_DIR}/src/math/_bundle_adjust_tools.cpp
     ${CMAKE_SOURCE_DIR}/src/math/_bundle_adjust_main.h
     ${CMAKE_SOURCE_DIR}/src/math/_bundle_adjust_main.cpp
+    ${CMAKE_SOURCE_DIR}/src/math/_bundle_adjust_fast.h
+    ${CMAKE_SOURCE_DIR}/src/math/_bundle_adjust_fast.cpp
     ${CMAKE_SOURCE_DIR}/src/math/_gain_compensation.h
     ${CMAKE_SOURCE_DIR}/src/math/_gain_compensation.cpp
     ${CMAKE_SOURCE_DIR}/src/math/_blending.h
@@ -89,11 +91,18 @@ add_library(code
     ${CMAKE_SOURCE_DIR}/src/math/_graph_cut_helper.h
     ${CMAKE_SOURCE_DIR}/src/math/_homography.cpp
     ${CMAKE_SOURCE_DIR}/src/math/_homography.h
-    ${CMAKE_SOURCE_DIR}/src/math/_config_parser.cpp
-    ${CMAKE_SOURCE_DIR}/src/math/_config_parser.h
     ${CMAKE_SOURCE_DIR}/src/math/_distance_cut.cpp
     ${CMAKE_SOURCE_DIR}/src/math/_distance_cut.h
+    ${CMAKE_SOURCE_DIR}/src/math/_projection.cpp
+    ${CMAKE_SOURCE_DIR}/src/math/_projection.h
+    ${CMAKE_SOURCE_DIR}/src/system/_config_parser.cpp
+    ${CMAKE_SOURCE_DIR}/src/system/_config_parser.h
+    ${CMAKE_SOURCE_DIR}/src/system/_util.h
+    ${CMAKE_SOURCE_DIR}/src/system/_util.cpp
 
+
+    ${CMAKE_SOURCE_DIR}/src/test/_test.h
+    ${CMAKE_SOURCE_DIR}/src/test/_test.cpp
 )
 
 add_executable(panorama src/main.cpp)

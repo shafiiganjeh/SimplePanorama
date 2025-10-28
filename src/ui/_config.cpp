@@ -65,10 +65,40 @@ namespace conf{
 
         config_window->config_->gain_compensation = gtk_switch_get_state(GTK_SWITCH(config_window->conf_menu_stack_basic_frame_method_switch_gain));
 
+        config_window->config_->blend_intensity = gtk_switch_get_state(GTK_SWITCH(config_window->conf_menu_stack_basic_frame_method_switch_blendint));
+
         entry = gtk_entry_get_text(GTK_ENTRY(config_window->conf_menu_stack_basic_frame_method_entry_sigma));
         config_window->config_->sigma_blend = util::stringToInt(e2str(entry));
+
+        config_window->config_->straighten = gtk_switch_get_state(GTK_SWITCH(config_window->conf_menu_stack_projection_frame_projsettings_streighten));
+
+        if(gtk_combo_box_get_active_iter(GTK_COMBO_BOX(config_window->conf_menu_stack_projection_frame_projsettings_combo), &iter)){
+
+            gchar *entry;
+            GtkTreeModel* model = gtk_combo_box_get_model(GTK_COMBO_BOX(config_window->conf_menu_stack_projection_frame_projsettings_combo));
+            gtk_tree_model_get(model, &iter,0,&entry,-1);
+            std::string str(entry);
+            config_window->config_->proj = static_cast<pan::Projection>(pan::StringToProjection(str));
+            g_free(entry);
+
+        }
+
+        config_window->config_->fix_center = gtk_switch_get_state(GTK_SWITCH(config_window->conf_menu_stack_projection_frame_projsettings_fix));
+
+        if(gtk_combo_box_get_active_iter(GTK_COMBO_BOX(config_window->conf_menu_stack_projection_frame_scalesettings_combo), &iter)){
+
+            gchar *entry;
+            GtkTreeModel* model = gtk_combo_box_get_model(GTK_COMBO_BOX(config_window->conf_menu_stack_projection_frame_scalesettings_combo));
+            gtk_tree_model_get(model, &iter,0,&entry,-1);
+            std::string str(entry);
+            config_window->config_->stretching = static_cast<pan::Stretch>(pan::StringToStretch(str));
+            g_free(entry);
+
+        }
+
         entry = gtk_entry_get_text(GTK_ENTRY(config_window->conf_menu_stack_basic_frame_method_entry_bands));
         config_window->config_->bands = util::stringToInt(e2str(entry));
+        config_window->config_->fast = gtk_switch_get_state(GTK_SWITCH(config_window->conf_menu_stack_basic_frame_method_switch_fast));
 
         entry = gtk_entry_get_text(GTK_ENTRY(config_window->conf_menu_stack_advanced_frame_system_entry_threads));
         config_window->config_->threads = util::stringToInt(e2str(entry));
@@ -148,8 +178,8 @@ namespace conf{
 
             gtk_tree_model_get(model, &iter,0,&entry,-1);
 
-            GtkListBoxRow* lst3 = gtk_list_box_get_row_at_index (GTK_LIST_BOX(config_window->conf_menu_stack_basic_frame_method_box),3);
-            GtkListBoxRow* lst4 = gtk_list_box_get_row_at_index (GTK_LIST_BOX(config_window->conf_menu_stack_basic_frame_method_box),4);
+            GtkListBoxRow* lst3 = gtk_list_box_get_row_at_index (GTK_LIST_BOX(config_window->conf_menu_stack_basic_frame_method_box),4);
+            GtkListBoxRow* lst4 = gtk_list_box_get_row_at_index (GTK_LIST_BOX(config_window->conf_menu_stack_basic_frame_method_box),5);
 
             if((std::strcmp(entry, "MULTI_BLEND") == 0)){
 
@@ -169,6 +199,36 @@ namespace conf{
 
     }
 
+
+
+    void on_combo_box_changed_proj(GtkComboBox* combo_box, struct config_* config_window) {
+        GtkTreeIter iter;
+        if(gtk_combo_box_get_active_iter(combo_box, &iter)){
+
+            gchar *entry;
+            GtkTreeModel* model = gtk_combo_box_get_model(combo_box);
+
+            gtk_tree_model_get(model, &iter,0,&entry,-1);
+
+            GtkListBoxRow* lst3 = gtk_list_box_get_row_at_index (GTK_LIST_BOX(config_window->conf_menu_stack_projection_frame_projsettings_box),2);
+
+            if((std::strcmp(entry, "STEREOGRAPHIC") == 0)){
+
+                gtk_widget_show (GTK_WIDGET(lst3));
+
+            }else{
+
+                gtk_widget_hide (GTK_WIDGET(lst3));
+
+            }
+
+            g_free(entry);
+
+        }
+
+    }
+
+
     void conf_blending_settings(struct config_* config_window,struct main_window_ *main_window){
 
         config_window->config_ = main_window->config_;
@@ -186,7 +246,6 @@ namespace conf{
                         "blending_", "Blending");
 
         config_window->conf_menu_stack_basic_frame_method = gtk_frame_new ("Blending Method");
-
         gtk_box_pack_start (GTK_BOX(config_window->conf_menu_stack_basic_box),config_window->conf_menu_stack_basic_frame_method,FALSE,FALSE,5);
 
         GtkListStore *store_list;
@@ -212,6 +271,7 @@ namespace conf{
 
         config_window->conf_menu_stack_basic_frame_method_box = gtk_list_box_new ();
         gtk_list_box_set_selection_mode(GTK_LIST_BOX(config_window->conf_menu_stack_basic_frame_method_box), GTK_SELECTION_NONE);
+
         GtkWidget *row;
         GtkWidget *hbox;
         GtkWidget *label;
@@ -260,10 +320,26 @@ namespace conf{
         config_window->conf_menu_stack_basic_frame_method_switch_gain = gtk_switch_new ();
         gtk_switch_set_state (GTK_SWITCH(config_window->conf_menu_stack_basic_frame_method_switch_gain),main_window->config_->gain_compensation);
         gtk_widget_set_margin_end(config_window->conf_menu_stack_basic_frame_method_switch_gain,30);
-        label = gtk_label_new("Equalize Image contrast");
+        label = gtk_label_new("Equalize image contrast");
         gtk_label_set_xalign(GTK_LABEL(label), 0.0);
         gtk_box_pack_start(GTK_BOX(hbox), label, TRUE, TRUE, 0);
         gtk_box_pack_start(GTK_BOX(hbox), config_window->conf_menu_stack_basic_frame_method_switch_gain, FALSE, FALSE, 0);
+        gtk_container_add(GTK_CONTAINER(row), hbox);
+        gtk_list_box_insert(GTK_LIST_BOX(config_window->conf_menu_stack_basic_frame_method_box), row, -1);
+
+
+        row = gtk_list_box_row_new();
+        gtk_widget_set_margin_top(row, 3);
+        gtk_widget_set_margin_bottom(row, 3);
+        hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+        gtk_container_set_border_width(GTK_CONTAINER(hbox), 5);
+        config_window->conf_menu_stack_basic_frame_method_switch_blendint = gtk_switch_new ();
+        gtk_switch_set_state (GTK_SWITCH(config_window->conf_menu_stack_basic_frame_method_switch_blendint),main_window->config_->blend_intensity);
+        gtk_widget_set_margin_end(config_window->conf_menu_stack_basic_frame_method_switch_blendint,30);
+        label = gtk_label_new("Blend image intensities");
+        gtk_label_set_xalign(GTK_LABEL(label), 0.0);
+        gtk_box_pack_start(GTK_BOX(hbox), label, TRUE, TRUE, 0);
+        gtk_box_pack_start(GTK_BOX(hbox), config_window->conf_menu_stack_basic_frame_method_switch_blendint, FALSE, FALSE, 0);
         gtk_container_add(GTK_CONTAINER(row), hbox);
         gtk_list_box_insert(GTK_LIST_BOX(config_window->conf_menu_stack_basic_frame_method_box), row, -1);
 
@@ -293,7 +369,163 @@ namespace conf{
         gtk_container_add(GTK_CONTAINER(config_window->conf_menu_stack_basic_frame_method),config_window->conf_menu_stack_basic_frame_method_box);
         gtk_combo_box_set_active(GTK_COMBO_BOX(config_window->conf_menu_stack_basic_frame_method_combo), main_window->config_->blend);
 
+
+        config_window->conf_menu_stack_basic_frame_adjustment = gtk_frame_new ("Adjustment");
+        config_window->conf_menu_stack_basic_frame_adjustment_box = gtk_list_box_new ();
+        gtk_list_box_set_selection_mode(GTK_LIST_BOX(config_window->conf_menu_stack_basic_frame_adjustment_box), GTK_SELECTION_NONE);
+        gtk_container_add(GTK_CONTAINER(config_window->conf_menu_stack_basic_frame_adjustment),config_window->conf_menu_stack_basic_frame_adjustment_box);
+
+        row = gtk_list_box_row_new();
+        gtk_widget_set_margin_top(row, 3);
+        gtk_widget_set_margin_bottom(row, 3);
+        hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+        gtk_container_set_border_width(GTK_CONTAINER(hbox), 5);
+        config_window->conf_menu_stack_basic_frame_method_switch_fast = gtk_switch_new ();
+        gtk_switch_set_state (GTK_SWITCH(config_window->conf_menu_stack_basic_frame_method_switch_fast),main_window->config_->fast);
+        gtk_widget_set_margin_end(config_window->conf_menu_stack_basic_frame_method_switch_fast,30);
+        label = gtk_label_new("Use fast image adjustment");
+        gtk_label_set_xalign(GTK_LABEL(label), 0.0);
+        gtk_box_pack_start(GTK_BOX(hbox), label, TRUE, TRUE, 0);
+        gtk_box_pack_start(GTK_BOX(hbox), config_window->conf_menu_stack_basic_frame_method_switch_fast, FALSE, FALSE, 0);
+        gtk_container_add(GTK_CONTAINER(row), hbox);
+        gtk_list_box_insert(GTK_LIST_BOX(config_window->conf_menu_stack_basic_frame_adjustment_box), row, -1);
+
+
+        gtk_box_pack_start (GTK_BOX(config_window->conf_menu_stack_basic_box),config_window->conf_menu_stack_basic_frame_adjustment,FALSE,FALSE,5);
+
     }
+
+
+    void conf_projection_settings(struct config_* config_window,struct main_window_ *main_window){
+
+        config_window->config_ = main_window->config_;
+        config_window->conf_menu_stack_projection_scrolled_window = gtk_scrolled_window_new(NULL, NULL);
+        gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(config_window->conf_menu_stack_projection_scrolled_window),
+                                    GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+
+        config_window->conf_menu_stack_projection_viewport = gtk_viewport_new(NULL, NULL);
+        gtk_container_add(GTK_CONTAINER(config_window->conf_menu_stack_projection_scrolled_window),
+                        config_window->conf_menu_stack_projection_viewport);
+
+        config_window->conf_menu_stack_projection_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+        gtk_container_add(GTK_CONTAINER(config_window->conf_menu_stack_projection_viewport),
+                        config_window->conf_menu_stack_projection_box);
+        gtk_stack_add_titled(GTK_STACK(config_window->conf_menu_stack),
+                        config_window->conf_menu_stack_projection_scrolled_window,
+                        "projection_", "Projection Settings");
+
+        config_window->conf_menu_stack_projection_frame_projsettings = gtk_frame_new ("Projection Method");
+
+        gtk_box_pack_start (GTK_BOX(config_window->conf_menu_stack_projection_box),config_window->conf_menu_stack_projection_frame_projsettings,FALSE,FALSE,5);
+
+        GtkListStore *store_list;
+        GtkTreeIter method_iter;
+        store_list = gtk_list_store_new(1, G_TYPE_STRING);
+
+        std::vector<GtkCellRenderer *>().swap(config_window->proj_combo_renderer);
+        for(int i = 0 ; i < pan::_PROJ_sizeoff_;i++){
+            gtk_list_store_append(store_list, &method_iter);
+            gtk_list_store_set(store_list, &method_iter,0,pan::ProjectionToString(i),-1);
+            GtkCellRenderer* r = gtk_cell_renderer_text_new();
+            config_window->proj_combo_renderer.push_back(r);
+        }
+
+        config_window->conf_menu_stack_projection_frame_projsettings_combo = gtk_combo_box_new_with_model(GTK_TREE_MODEL(store_list));
+
+        for(int i = 0 ; i < pan::_PROJ_sizeoff_;i++){
+            gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(config_window->conf_menu_stack_projection_frame_projsettings_combo), config_window->proj_combo_renderer[i], TRUE);
+        }
+
+        gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(config_window->conf_menu_stack_projection_frame_projsettings_combo), config_window->proj_combo_renderer[0],
+                                  "text", 0, NULL);
+
+        config_window->conf_menu_stack_projection_frame_projsettings_box = gtk_list_box_new ();
+        gtk_list_box_set_selection_mode(GTK_LIST_BOX(config_window->conf_menu_stack_projection_frame_projsettings_box), GTK_SELECTION_NONE);
+        GtkWidget *row;
+        GtkWidget *hbox;
+        GtkWidget *label;
+        std::string varAsString;
+        struct util::val ret;
+
+        row = gtk_list_box_row_new();
+        gtk_widget_set_margin_top(row, 15);
+        gtk_widget_set_margin_bottom(row, 5);
+        gtk_container_add(GTK_CONTAINER(row), config_window->conf_menu_stack_projection_frame_projsettings_combo);
+        gtk_list_box_insert(GTK_LIST_BOX(config_window->conf_menu_stack_projection_frame_projsettings_box), row, -1);
+
+        gtk_container_add(GTK_CONTAINER(config_window->conf_menu_stack_projection_frame_projsettings),config_window->conf_menu_stack_projection_frame_projsettings_box);
+        gtk_combo_box_set_active(GTK_COMBO_BOX(config_window->conf_menu_stack_projection_frame_projsettings_combo), main_window->config_->proj);
+
+
+        row = gtk_list_box_row_new();
+        gtk_widget_set_margin_top(row, 3);
+        gtk_widget_set_margin_bottom(row, 3);
+
+        hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+        gtk_container_set_border_width(GTK_CONTAINER(hbox), 5);
+        config_window->conf_menu_stack_projection_frame_projsettings_streighten = gtk_switch_new ();
+        gtk_switch_set_state (GTK_SWITCH(config_window->conf_menu_stack_projection_frame_projsettings_streighten),main_window->config_->straighten);
+        gtk_widget_set_margin_end(config_window->conf_menu_stack_projection_frame_projsettings_streighten,30);
+        label = gtk_label_new("Straighten panorama");
+        gtk_label_set_xalign(GTK_LABEL(label), 0.0);
+        gtk_box_pack_start(GTK_BOX(hbox), label, TRUE, TRUE, 0);
+        gtk_box_pack_start(GTK_BOX(hbox), config_window->conf_menu_stack_projection_frame_projsettings_streighten, FALSE, FALSE, 0);
+        gtk_container_add(GTK_CONTAINER(row), hbox);
+        gtk_list_box_insert(GTK_LIST_BOX(config_window->conf_menu_stack_projection_frame_projsettings_box), row, -1);
+
+
+        row = gtk_list_box_row_new();
+        gtk_widget_set_margin_top(row, 3);
+        gtk_widget_set_margin_bottom(row, 3);
+
+        hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+        gtk_container_set_border_width(GTK_CONTAINER(hbox), 5);
+        config_window->conf_menu_stack_projection_frame_projsettings_fix = gtk_switch_new ();
+        gtk_switch_set_state (GTK_SWITCH(config_window->conf_menu_stack_projection_frame_projsettings_fix),main_window->config_->fix_center);
+        gtk_widget_set_margin_end(config_window->conf_menu_stack_projection_frame_projsettings_fix,30);
+        label = gtk_label_new("Fix center by stretching");
+        gtk_label_set_xalign(GTK_LABEL(label), 0.0);
+        gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 0);
+        gtk_box_pack_start(GTK_BOX(hbox), config_window->conf_menu_stack_projection_frame_projsettings_fix, FALSE, FALSE, 0);
+
+
+        GtkTreeIter method_iter_2;
+        GtkListStore *store_list_2;
+        store_list_2 = gtk_list_store_new(1, G_TYPE_STRING);
+        std::vector<GtkCellRenderer *>().swap(config_window->scal_combo_renderer);
+        for(int i = 0 ; i < pan::_STRE_sizeoff_;i++){
+            gtk_list_store_append(store_list_2, &method_iter_2);
+            gtk_list_store_set(store_list_2, &method_iter_2,0,pan::StretchToString(i),-1);
+            GtkCellRenderer* r = gtk_cell_renderer_text_new();
+            config_window->scal_combo_renderer.push_back(r);
+        }
+
+        config_window->conf_menu_stack_projection_frame_scalesettings_combo = gtk_combo_box_new_with_model(GTK_TREE_MODEL(store_list_2));
+
+        for(int i = 0 ; i < pan::_STRE_sizeoff_;i++){
+            gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(config_window->conf_menu_stack_projection_frame_scalesettings_combo), config_window->scal_combo_renderer[i], TRUE);
+        }
+
+        gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(config_window->conf_menu_stack_projection_frame_scalesettings_combo), config_window->scal_combo_renderer[0],
+                                  "text", 0, NULL);
+
+
+        gtk_combo_box_set_active(GTK_COMBO_BOX(config_window->conf_menu_stack_projection_frame_scalesettings_combo), main_window->config_->stretching);
+
+        label = gtk_label_new("Stretching factor");
+        gtk_label_set_xalign(GTK_LABEL(label), 0.0);
+        gtk_box_pack_start(GTK_BOX(hbox), label, TRUE, TRUE, 0);
+
+        gtk_box_pack_start(GTK_BOX(hbox), config_window->conf_menu_stack_projection_frame_scalesettings_combo, TRUE, TRUE, 0);
+
+        gtk_container_add(GTK_CONTAINER(row), hbox);
+        gtk_list_box_insert(GTK_LIST_BOX(config_window->conf_menu_stack_projection_frame_projsettings_box), row, -1);
+
+        g_signal_connect(config_window->conf_menu_stack_projection_frame_projsettings_combo, "changed", G_CALLBACK(on_combo_box_changed_proj), config_window);
+
+
+    }
+
 
     void conf_advanced_settings(struct config_* config_window,struct main_window_ *main_window){
 
@@ -428,9 +660,7 @@ namespace conf{
         entry_settings(row,hbox,label,config_window->conf_menu_stack_advanced_frame_matching_box,config_window->conf_menu_stack_advanced_frame_matching_entry_conf);
         g_signal_connect(G_OBJECT(config_window->conf_menu_stack_advanced_frame_matching_entry_conf), "insert-text", G_CALLBACK(insert_text_event_float), NULL);
 
-
         gtk_container_add(GTK_CONTAINER(config_window->conf_menu_stack_advanced_frame_matching),config_window->conf_menu_stack_advanced_frame_matching_box);
-
 
         //SIFT.............................
         config_window->conf_menu_stack_advanced_frame_SIFT = gtk_frame_new ("SIFT Settings");
@@ -565,12 +795,40 @@ namespace conf{
 
 
         conf_blending_settings(config_window,main_window);
+        conf_projection_settings(config_window,main_window);
         conf_advanced_settings(config_window,main_window);
         connect_signals(config_window,main_window);
 
         gtk_widget_show_all(config_window->conf_menu);
 
+        GtkTreeIter iter;
+        if(gtk_combo_box_get_active_iter(GTK_COMBO_BOX(config_window->conf_menu_stack_projection_frame_projsettings_combo), &iter)){
+
+            gchar *entry;
+            GtkTreeModel* model = gtk_combo_box_get_model(GTK_COMBO_BOX(config_window->conf_menu_stack_projection_frame_projsettings_combo));
+
+            gtk_tree_model_get(model, &iter,0,&entry,-1);
+
+            GtkListBoxRow* lst3 = gtk_list_box_get_row_at_index (GTK_LIST_BOX(config_window->conf_menu_stack_projection_frame_projsettings_box),2);
+
+            if((std::strcmp(entry, "STEREOGRAPHIC") == 0)){
+
+                gtk_widget_show (GTK_WIDGET(lst3));
+
+            }else{
+
+                gtk_widget_hide (GTK_WIDGET(lst3));
+
+            }
+
+            g_free(entry);
+
+        }
+
+
     }
+
+
 
 
 #ifdef __linux__

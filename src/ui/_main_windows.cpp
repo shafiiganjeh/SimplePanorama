@@ -1,4 +1,3 @@
-
 #include "_main_windows.h"
 
 const gchar* ret_path8(std::filesystem::path& path);
@@ -51,13 +50,16 @@ void build_window(int argc, char** argv,struct main_window_ *main_window,struct 
         gtk_drag_dest_set(GTK_WIDGET(main_window->img_dragdrop), GTK_DEST_DEFAULT_ALL, targetentries, 1, GDK_ACTION_COPY);
 
         cmenu::create_menu_bar(main_window->box,&(main_window->menu_bar),main_window);
-
         fbox::build_flowbox(main_window->box,&(main_window->flowbox),main_window);
-
         gtk_widget_show_all(main_window->window);
-        gtk_widget_hide (GTK_WIDGET(main_window->flowbox.flowbox_scrolled_window));
-
         connect_signals(main_window);
+
+        g_idle_add([](gpointer data) -> gboolean {
+                struct main_window_ *mw = static_cast<struct main_window_*>(data);
+                gtk_widget_hide(GTK_WIDGET(mw->flowbox.flowbox_scrolled_window));
+                return G_SOURCE_REMOVE;
+        }, main_window);
+
 }
 
 #ifdef __linux__
@@ -77,4 +79,3 @@ const gchar* ret_path8(std::filesystem::path& path){
 
 }
 #endif
-

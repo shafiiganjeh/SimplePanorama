@@ -1,6 +1,29 @@
 
 #include "_bundle_adjust_main.h"
 
+/*
+ * Algorithm overview:
+ * Objective Find the set of parameters P that minimizes e.T Σ−1_X e where e = X − X_(projected) stored in e_vec.
+ * P are parameters of R_i and K_i matrices and the key-point coordinates.
+ *
+ * Initialize a constant λ = 0.05 .
+ * Compute the derivative matrices A = [∂ X/∂a] and B = [∂ X/∂b] and the error vector e (where a are parameters of R_i and K_i and b are parameters of the key-point coordinates).
+ * This happens in _bundle_adjust_tools.
+ * Compute intermediate expressions:
+ * U = A.T Σ−1_X A (as u_vecf)
+ * V = B.T Σ−1_X B (as v_vec)
+ * W = A.T Σ−1_X B (as w_vec)
+ * e_A = A.T Σ−1_X e (as eA_vec)
+ * e_B = B.T Σ−1_X e (as eB_vec)
+ * Augment U and V by multiplying their diagonal elements by 1 + λ (see adjuster::augment)
+ * Compute the inverse V∗−1 , and define Y = WV∗−1 (where * stands for augmented, see adjuster::augment_calc, note that V is a block diagonal matrix).
+ * in adjuster::get_error:
+ * Find δ_a by solving (U∗ − YW.T )δ_a = e_A − Ye_B. (note that the original paper only calculates δ_a via (U∗)δ_a = e_A)
+ * Find δ_b by substitution: δ_b = V∗−1 (e_B − W.T δ_a ) (this step is skipped in the original paper).
+ * Update the P by adding (δ_a.T , δ_b.T ).T and compute the new error vector (see add_delta).
+ * If error improves accept values and set λ = λ/10 else set λ = λ/10 recalculate.
+ * repeat until no error improvements in 5 steps. (see main loop).
+*/
 
 namespace bundm {
 
@@ -50,7 +73,7 @@ namespace bundm {
         }
 
         Eigen::MatrixXd U = Eigen::MatrixXd::Zero(total_cols, total_cols);
-        for (auto& accum : thread_accumulators) {
+        for (auto const & accum : thread_accumulators) {
             U.noalias() += accum;
         }
 
@@ -144,7 +167,7 @@ namespace bundm {
             t.join();
         }
 
-        for (auto& vec : thread_Ev) {
+        for (auto const & vec : thread_Ev) {
             Ev.noalias() += vec;
         }
 
@@ -167,24 +190,6 @@ namespace bundm {
 
 
     std::vector<bund::A_vec> adjuster::get_iter_par() {
-/*
-
-        std::vector<bund::A_vec> avec = par_img->ret_A_i();
-        int size_tot = avec[0].size * 6;
-
-        std::vector<Eigen::MatrixXd> bvec = par_img->ret_B_i();
-
-        std::vector<Eigen::VectorXd> ms = par_img->ret_measurements_saved();
-
-        iter.e_vec = par_er->error(ms);
-        iter.u_vecf = ret_uf(avec, size_tot);
-        iter.v_vec = sum_transpose(bvec, bvec);
-        iter.w_vec = sum_transposeAB(bvec, avec);
-
-        iter.eA_vec = ret_Ea(avec, iter.e_vec);
-        iter.eB_vec = ret_Eb(bvec, iter.e_vec);
-
-*/
 
         auto avec_fut = std::async(std::launch::async, [this]() {
             return par_img->ret_A_i();
@@ -377,7 +382,7 @@ namespace bundm {
         }
 */
 
-        for (auto& accum : thread_accumulators_wy) {
+        for (auto const & accum : thread_accumulators_wy) {
             sum_wy.noalias() += accum;
         }
 
@@ -436,8 +441,6 @@ namespace bundm {
         std::vector<bund::A_vec> avec = get_iter_par();
 
         augment(avec);
-
-        //while(1){get_error(avec);}
         get_error(avec);
 
         error_start = 0;
@@ -514,13 +517,13 @@ namespace bundm {
     }
 
 
-    std::vector<Eigen::MatrixXd> adjuster::ret_K(){
+    std::vector<Eigen::MatrixXd> adjuster::ret_K() const{
 
         return par_img -> ret_K();
 
     }
 
-    std::vector<Eigen::MatrixXd> adjuster::ret_rot(){
+    std::vector<Eigen::MatrixXd> adjuster::ret_rot() const{
 
         return par_img -> ret_rot();
 

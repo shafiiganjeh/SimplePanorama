@@ -46,6 +46,11 @@ namespace imgv{
 
         if(progress_bar->finished){
             if(progress_bar->error == false){
+
+                int a = progress_bar->view->panorama_->conf_local.result.first;
+                int b = progress_bar->view->panorama_->conf_local.result.second;
+                const gchar *formatted = g_strdup_printf("Successfully connected %d of %d images.", a, b);
+                dbox(formatted);
                 show_image(progress_bar);
             }else{
                 dbox(progress_bar->what_error);

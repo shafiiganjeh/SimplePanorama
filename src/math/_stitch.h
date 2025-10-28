@@ -7,34 +7,14 @@
 #include <Eigen/Dense>
 #include <opencv2/core/eigen.hpp>
 #include "_img_manipulation.h"
-#include <tuple>
-#include <iostream>
-#include <fstream>
 #include <unsupported/Eigen/MatrixFunctions>
 #include "_homography.h"
-
+#include "_projection.h"
 #include <vector>
-#include <string>
-#include "_image.h"
-#include "_blending.h"
 #include "_bundle_adjust_main.h"
-#include <climits>
-#include "_gain_compensation.h"
-#include "_straightening.h"
-#define PI 3.14159265
-
-#include "_graph_cut.h"
+#include "_bundle_adjust_fast.h"
 
 namespace stch {
-
-struct stitch_data {
-    std::vector<cv::Mat> imgs;
-    std::vector<cv::Mat> msks;
-    std::vector<cv::Mat> msks_cut;
-    std::vector<cv::Point> corners;
-    cv::Mat adj;
-};
-
 
 struct stitch_result {
 
@@ -49,6 +29,14 @@ struct stitch_result {
     std::vector<int> ord;
     cv::Mat adj;
     struct util::size_data prev_size;
+    std::shared_ptr<proj::projection> proj;
+    std::vector<cv::Mat> intensity_correction;
+
+    cv::Point ansatz_prev;
+    cv::Point ansatz;
+    float radius_prev;
+    float radius;
+    bool has_circle = false;
 
 };
 

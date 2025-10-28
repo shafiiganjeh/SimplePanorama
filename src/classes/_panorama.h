@@ -19,6 +19,9 @@
 #include "_gtk_vars.h"
 #include "_distance_cut.h"
 #include <cmath>      /* sin */
+#include "_projection.h"
+#include "_straightening.h"
+#include "_test.h"
 
 #define PI 3.14159265
 
@@ -40,24 +43,62 @@ namespace pan{
     };
 
 
+    #define PROJECTION_ENUM \
+        X(SPHERICAL, 0)     \
+        X(CYLINDRICAL, 1) \
+        X(STEREOGRAPHIC, 2)  \
+        X(_PROJ_sizeoff_, 3)
+
+    enum Projection {
+        #define X(name, value) name = value,
+        PROJECTION_ENUM
+        #undef X
+    };
+
+
+    #define STRETCHING_ENUM \
+        X(LINEAR_SCALING, 0)     \
+        X(QUADRATIC_SCALING, 1) \
+        X(_STRE_sizeoff_, 2)
+
+    enum Stretch {
+        #define X(name, value) name = value,
+        STRETCHING_ENUM
+        #undef X
+    };
+
+
     const char* BlendingToString(int value);
     int StringToBlending(const std::string& str);
+
+    const char* ProjectionToString(int value);
+    int StringToProjection(const std::string& str);
+
+    const char* StretchToString(int value);
+    int StringToStretch(const std::string& str);
 
     struct config{
         //system
         int threads = 8;
-        int init_size = 800; //set calc size
+        int init_size = 700; //set calc size
         //blending
         Blending blend = MULTI_BLEND;
-        bool gain_compensation = true;
-        bool cut = false;
+        bool gain_compensation = false;
+        bool blend_intensity = true;
+        bool cut = false; //graph_cut enable
         bool cut_seams = true;
         //MULTI_BLEND
-        int bands = 3;
+        int bands = 2;
         double sigma_blend = 7;
+        //Projection
+        bool straighten = true;
+        Projection proj = SPHERICAL;
+        bool fix_center = true;
+        Stretch stretching = QUADRATIC_SCALING;
         //adjustment
         float focal = 700; //initial focal if estimation fails
         float lambda = .05; //initial lambda
+        bool fast = false;//implement
         //matching
         int max_images_per_match = 5;
         int max_keypoints = 250;
@@ -78,6 +119,8 @@ namespace pan{
 
         //non settings
         std::vector<bool> use;
+        std::pair<int,int> result;
+        std::vector<std::string> img_list;
 
     };
 

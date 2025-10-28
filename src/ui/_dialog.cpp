@@ -33,6 +33,6 @@ void dbox(const gchar *message) {
 
     g_signal_connect(button, "clicked", G_CALLBACK(close_dialog), dialog);
 
-
+    gtk_window_set_keep_above (GTK_WINDOW(dialog),TRUE);
     gtk_widget_show_all(dialog);
 }

@@ -19,6 +19,36 @@ namespace conf{
     }
 
 
+    enum pan::Projection ConfigParser::stringToProjection(const std::string& str) {
+
+        return static_cast<pan::Projection>(pan::StringToProjection(str));
+
+    }
+
+    std::string ConfigParser::projectionToString(pan::Projection method) {
+
+        const char* str=pan::ProjectionToString(method);
+        std::string s = str;
+        return s;
+
+    }
+
+
+    enum pan::Stretch ConfigParser::stringToStretch(const std::string& str) {
+
+    return static_cast<pan::Stretch>(pan::StringToStretch(str));
+
+    }
+
+    std::string ConfigParser::stretchToString(pan::Stretch method) {
+
+        const char* str=pan::StretchToString(method);
+        std::string s = str;
+        return s;
+
+    }
+
+
     void ConfigParser::write_cfg(const std::filesystem::path& filename) {
         std::ofstream file(filename);
         for (const auto& key : entries_order) {

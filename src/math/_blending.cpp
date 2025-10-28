@@ -3,10 +3,86 @@
 
 namespace blnd {
 
+//same as cv::erode but with costum kernel and superior boundry handling
+void erode(const cv::Mat& tmp, cv::Mat& dst, const cv::Mat& kernel) {
+    cv::Mat src = tmp.clone();
+    dst.create(src.size(), src.type());
+    int kHeight = kernel.rows;
+    int kWidth = kernel.cols;
+    int kCenterY = kHeight / 2;
+    int kCenterX = kWidth / 2;
+
+    std::vector<std::pair<int, int>> kernelOffsets;
+    for (int ky = 0; ky < kHeight; ky++) {
+        for (int kx = 0; kx < kWidth; kx++) {
+            if (kernel.at<uchar>(ky, kx) != 0) {
+                kernelOffsets.push_back({ky - kCenterY, kx - kCenterX});
+            }
+        }
+    }
+
+    const int rows = src.rows;
+    const int cols = src.cols;
+
+    #pragma omp parallel for
+    for (int y = 0; y < rows; y++) {
+        uchar* dst_row = dst.ptr<uchar>(y);
+
+        for (int x = 0; x < cols; x++) {
+            uchar minVal = 255;
+
+            for (const auto& offset : kernelOffsets) {
+                int ny = y + offset.first;
+                int nx = x + offset.second;
+
+                if (ny >= 0 && ny < rows && nx >= 0 && nx < cols) {
+                    uchar val = src.at<uchar>(ny, nx);
+                    if (val == 0) {
+                        minVal = 0;
+                        break;  // found black pixel
+                    }
+                    minVal = std::min(minVal, val);
+                } else {
+                    minVal = 0;  // Outside is black
+                    break;       // Early exit
+                }
+            }
+            dst_row[x] = minVal;
+        }
+    }
+}
+
+
+cv::Mat getStructuringElementDiamond(int size) {
+
+    if (size <= 0) {
+        throw std::invalid_argument("Diamond kernel size must be positive");
+    }
+    if (size % 2 == 0) {
+        throw std::invalid_argument("Diamond kernel size must be odd");
+    }
+
+    int radius = size / 2;
+    cv::Mat kernel = cv::Mat::zeros(size, size, CV_8U);
+    int center = radius;
+
+    for (int y = 0; y < size; y++) {
+        for (int x = 0; x < size; x++) {
+            int dist = std::abs(y - center) + std::abs(x - center);
+            if (dist <= radius) {
+                kernel.at<uchar>(y, x) = 1;
+            }
+        }
+    }
+
+    return kernel;
+}
+
+
 //aka alpha blending
 cv::Mat simple_blend(const std::vector<cv::Mat>& images,const std::vector<cv::Mat>& masks,const std::vector<cv::Point>& top_lefts) {
 
-    if (images.empty() || images.size() != masks.size() || images.size() != top_lefts.size()) {
+    if (images.empty() or images.size() != masks.size() or images.size() != top_lefts.size()) {
         throw std::runtime_error("Input consistency!");
     }
 
@@ -118,8 +194,8 @@ cv::Mat multi_blend(const std::vector<cv::Mat>& images,const std::vector<cv::Mat
 
         double sigma_band = sqrt(2*(bands - i)+1) * sigma;
         cv::Size kernel_size;
-        kernel_size.height = 31;//2 * ceil(3 * sigma_band) + 1;
-        kernel_size.width = 31;//2 * ceil(3 * sigma_band) + 1;
+        kernel_size.height = 2 * ceil(3 * sigma) + 1;
+        kernel_size.width = 2 * ceil(3 * sigma) + 1;
 
         for(int j = 0 ; j < masks.size() ; j++){
 
@@ -175,6 +251,29 @@ cv::Mat multi_blend(const std::vector<cv::Mat>& images,const std::vector<cv::Mat
 
 }
 
+cv::Mat createSurroundingMask_backup(const cv::Mat& inputImage, bool invert, uchar thresholdValue) {
+    if (inputImage.empty()) {
+        return cv::Mat();
+    }
+    int thresholdType;
+    if(not invert){
+        thresholdType = cv::THRESH_BINARY_INV;
+    }else{
+        thresholdType = cv::THRESH_BINARY;
+    }
+
+    cv::Mat gray;
+    cv::cvtColor(inputImage, gray, cv::COLOR_BGR2GRAY);
+
+    cv::threshold( gray, gray, 1, 255, thresholdType);
+
+    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
+    erode(gray, gray, kernel);
+
+
+    return gray;
+
+}
 
 cv::Mat createSurroundingMask(const cv::Mat& inputImage, bool invert, uchar thresholdValue) {
     if (inputImage.empty()) {
@@ -212,7 +311,10 @@ cv::Mat createSurroundingMask(const cv::Mat& inputImage, bool invert, uchar thre
     cv::Mat mask;
     cv::subtract(thresh, floodFilled, mask);
 
-    cv::dilate(mask, mask, cv::Mat(), cv::Point(-1, -1), 1);
+    //cv::Mat kernel = cv::getStructuringElement(cv::MORPH_DIAMOND, cv::Size(5, 5)); not implemented in older opencv versions
+    cv::Mat kernel = getStructuringElementDiamond(5);
+
+    cv::erode(gray, gray, kernel);
 
     if (invert) {
         cv::bitwise_not(mask, mask);

@@ -35,6 +35,9 @@ namespace conf{
         registerEntry("Gain_Compensation", [&]() { return config_->gain_compensation ? "true" : "false"; },
                           [&](const std::string& val) { config_->gain_compensation = (val == "true"); });
 
+        registerEntry("Blend_Intensity", [&]() { return config_->blend_intensity ? "true" : "false"; },
+                        [&](const std::string& val) { config_->blend_intensity = (val == "true"); });
+
         registerEntry("Cut", [&]() { return config_->cut ? "true" : "false"; },
                           [&](const std::string& val) { config_->cut = (val == "true"); });
 
@@ -47,8 +50,23 @@ namespace conf{
         registerEntry("Blend_Sigma", [&]() { return util::doubleToString(config_->sigma_blend); },
                           [&](const std::string& val) { config_->sigma_blend = util::stringToDouble(val); });
 
+        registerEntry("Straighten", [&]() { return config_->straighten ? "true" : "false"; },
+                          [&](const std::string& val) { config_->straighten = (val == "true"); });
+
+        registerEntry("Projection", [&]() { return projectionToString(config_->proj); },
+                          [&](const std::string& val) { config_->proj = stringToProjection(val); });
+
+        registerEntry("Fix_center", [&]() { return config_->fix_center ? "true" : "false"; },
+                          [&](const std::string& val) { config_->fix_center = (val == "true"); });
+
+        registerEntry("Stretch", [&]() { return stretchToString(config_->stretching); },
+                          [&](const std::string& val) { config_->stretching = stringToStretch(val); });
+
         registerEntry("Lambda", [&]() { return util::floatToString(config_->lambda); },
                           [&](const std::string& val) { config_->lambda = util::stringToFloat(val); });
+
+        registerEntry("Adjustment", [&]() { return config_->fast ? "true" : "false"; },
+                        [&](const std::string& val) { config_->fast = (val == "true"); });
 
         registerEntry("Max_Images_Per_Match", [&]() { return std::to_string(config_->max_images_per_match); },
                           [&](const std::string& val) { config_->max_images_per_match = util::stringToInt(val); });
@@ -100,6 +118,12 @@ namespace conf{
 
         enum pan::Blending stringToMethod(const std::string& str);
         std::string methodToString(pan::Blending method);
+
+        enum pan::Projection stringToProjection(const std::string& str);
+        std::string projectionToString(pan::Projection method);
+
+        enum pan::Stretch stringToStretch(const std::string& str);
+        std::string stretchToString(pan::Stretch method);
 
         std::map<std::string, std::pair<std::function<std::string()>,std::function<void(const std::string&)>>> entries;
         std::vector<std::string> entries_order;

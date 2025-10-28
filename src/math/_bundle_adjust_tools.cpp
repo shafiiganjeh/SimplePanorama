@@ -756,7 +756,7 @@ namespace bund {
     }
 
 
-    void parameters::add_delta(const std::vector<Eigen::VectorXd> &delta_b,const Eigen::VectorXd &delta_a){
+    void parameters::add_delta(const std::vector<Eigen::VectorXd> &delta_b,const Eigen::VectorXd &delta_a,bool add_b){
         double eps = 1e-6;
 
         for(int i = 0;i < saved.rot.size();i++){
@@ -778,28 +778,55 @@ namespace bund {
 
         }
 
-        int c = 0;
-        for (int i = 0;i < adj.rows;i++){
-            for(int j = 0;j < adj.cols;j++){
+        if(add_b){
+            int c = 0;
+            for (int i = 0;i < adj.rows;i++){
+                for(int j = 0;j < adj.cols;j++){
 
-                if (0 < adj.at<double>(i,j)){
+                    if (0 < adj.at<double>(i,j)){
 
-                    Eigen::MatrixXd hom = ret_hom_saved(i, j);
-                    for (int p = 0;p < saved.measurements[i][j].size();p++){
+                        Eigen::MatrixXd hom = ret_hom_saved(i, j);
+                        for (int p = 0;p < saved.measurements[i][j].size();p++){
 
-                        Eigen::VectorXd temp(3);
-                        saved.measurements[i][j][p]({0,1}) = current.measurements[i][j][p]({0,1}) + delta_b[c];
+                            Eigen::VectorXd temp(3);
+                            saved.measurements[i][j][p]({0,1}) = current.measurements[i][j][p]({0,1}) + delta_b[c];
 
-                        temp({0,1}) = saved.measurements[i][j][p]({0,1});
-                        temp[2] = 1.0;
-                        temp = hom * temp;
-                        temp = temp/temp[2];
-                        saved.measurements[i][j][p]({3,4,5}) = temp;
+                            temp({0,1}) = saved.measurements[i][j][p]({0,1});
+                            temp[2] = 1.0;
+                            temp = hom * temp;
+                            temp = temp/temp[2];
+                            saved.measurements[i][j][p]({3,4,5}) = temp;
 
-                        c++;
+                            c++;
+                        }
                     }
                 }
             }
+
+        }else{
+            for (int i = 0;i < adj.rows;i++){
+                for(int j = 0;j < adj.cols;j++){
+
+                    if (0 < adj.at<double>(i,j)){
+
+                        Eigen::MatrixXd hom = ret_hom_saved(i, j);
+                        for (int p = 0;p < saved.measurements[i][j].size();p++){
+
+                            Eigen::VectorXd temp(3);
+                            saved.measurements[i][j][p]({0,1}) = current.measurements[i][j][p]({0,1});
+
+                            temp({0,1}) = saved.measurements[i][j][p]({0,1});
+                            temp[2] = 1.0;
+                            temp = hom * temp;
+                            temp = temp/temp[2];
+                            saved.measurements[i][j][p]({3,4,5}) = temp;
+
+                        }
+                    }
+                }
+            }
+
+
         }
 
     }

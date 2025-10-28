@@ -56,7 +56,7 @@ namespace bund {
             Eigen::MatrixXd ret_hom_saved(int i, int j);
             std::vector<Eigen::MatrixXd> ret_rot();
             std::vector<Eigen::MatrixXd> ret_K();
-            void add_delta(const std::vector<Eigen::VectorXd> &delta_b,const Eigen::VectorXd &delta_a);
+            void add_delta(const std::vector<Eigen::VectorXd> &delta_b,const Eigen::VectorXd &delta_a,bool add_b = true);
 
             void reset();
             void accept();
