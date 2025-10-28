@@ -55,7 +55,11 @@ namespace util {
                 //std::cout << loss <<"\n";
                 loss = temp_loss;
 
-                Hom.H = H_temp;
+                if(hom_sanity(H_temp,img1,img2) == true){
+
+                    Hom.H = H_temp;
+
+                }
 
             }
 
@@ -544,12 +548,6 @@ void keypoints_in_overlap_centered(const std::vector<cv::Point2f>& matches,
             }
 */
             //std::cout<<"homog: "<<H12.H;
-
-            if(hom_sanity(H12.H,img1,img2) == false){
-
-                return 0;
-
-            }
 
             hom_mat[row][col] = H12.H;
             hom_mat[col][row] = H12.H.inv();

@@ -21,6 +21,43 @@ namespace pan{
         throw std::invalid_argument("Invalid Blending string: " + str);
     }
 
+    const char* ProjectionToString(int value) {
+    switch (value) {
+        #define X(name, value) case value: return #name;
+        PROJECTION_ENUM
+        #undef X
+        default: return "SPHERICAL";
+        }
+
+    }
+
+    int StringToProjection(const std::string& str) {
+        #define X(name, value) if (str == #name) return value;
+        PROJECTION_ENUM
+        #undef X
+
+        throw std::invalid_argument("Invalid Projection string: " + str);
+    }
+
+
+    const char* StretchToString(int value) {
+    switch (value) {
+        #define X(name, value) case value: return #name;
+        STRETCHING_ENUM
+        #undef X
+        default: return "QUADRATIC";
+        }
+
+    }
+
+    int StringToStretch(const std::string& str) {
+        #define X(name, value) if (str == #name) return value;
+        STRETCHING_ENUM
+        #undef X
+
+        throw std::invalid_argument("Invalid Stretch string: " + str);
+    }
+
 
     void correct_img(std::vector<cv::Mat>& mask_cut,std::vector<cv::Mat>& imgs){
 
@@ -36,6 +73,64 @@ namespace pan{
 
 
     void stitch_parameters::set_config(struct config& conf,std::atomic<bool> *cancel_var){
+
+        if(conf.straighten){
+
+            owned_res.rot = strg::straightenPanorama(owned_res.rot);
+
+        }
+
+        const double focal = owned_res.K[owned_res.maxLoc](0, 0);  // Focal length from first camera
+
+        switch(conf.proj) {
+            case SPHERICAL:{
+                proj::spherical_proj projector_sp(focal);
+                owned_res.proj = std::make_shared<proj::spherical_proj>(projector_sp);
+            }break;
+            case STEREOGRAPHIC:{
+                proj::sten_proj projector_st(focal);
+                owned_res.proj = std::make_shared<proj::sten_proj>(projector_st);
+            }break;
+            case CYLINDRICAL:{
+                proj::cylindrical_proj projector_st(focal);
+                owned_res.proj = std::make_shared<proj::cylindrical_proj>(projector_st);
+            }break;
+
+        }
+
+        struct proj::proj_data PRD = proj::get_proj_parameters(owned_res.imgs,owned_res.rot,owned_res.K,owned_res.connectivity,owned_res.proj);
+
+        if(conf.fix_center and (conf.proj == STEREOGRAPHIC)){
+
+            std::shared_ptr<proj::sten_proj> recast = std::static_pointer_cast<proj::sten_proj>(owned_res.proj);
+
+            std::pair<cv::Point,float> prev_est = recast->estimate_circle(PRD);
+            owned_res.ansatz_prev = prev_est.first;
+            owned_res.radius_prev = prev_est.second;
+
+            bool quad;
+            if(conf.stretching == QUADRATIC_SCALING){
+                quad = true;
+            }else{
+                quad = false;
+            }
+
+            if(recast->has_circle == true){
+                owned_res.has_circle = true;
+                recast->disk_reproj(PRD,quad);
+
+            }
+
+        }
+
+        owned_res.imgs = PRD.imgs;
+        owned_res.masks = PRD.msks;
+        owned_res.corners = PRD.corners;
+        owned_res.prev_size = util::get_pan_dimension(owned_res.corners,owned_res.imgs);
+
+        if(conf.blend_intensity){
+            owned_res.intensity_correction = test::equalizeIntensities(owned_res.imgs,owned_res.masks,owned_res.corners);
+        }
 
         std::atomic<double>* f_adress = NULL;
         if(not (progress == NULL)){progress->bar_text("Blending Images...");
@@ -60,7 +155,6 @@ namespace pan{
 
         }
 
-
     }
 
 
@@ -72,6 +166,7 @@ namespace pan{
         temp.msks.reserve(conf.use.size());
         temp.msks_cut.reserve(conf.use.size());
         temp.ord.reserve(conf.use.size());
+
 
         for(int i = 0;i < conf.use.size(); i++){
 
@@ -87,7 +182,7 @@ namespace pan{
 
             }
 
-            correct_img(temp.msks,temp.imgs);
+            //correct_img(temp.msks,temp.imgs);
 
             temp.corners.push_back(owned_res.corners[i]);
             temp.msks.push_back(owned_res.masks[i]);
@@ -96,7 +191,19 @@ namespace pan{
 
         }
 
+        if(conf.blend_intensity){
+            test::adjust_intensity(temp.imgs,owned_res.intensity_correction);
+        }
+
         cv::Mat preview = blend(temp,conf);
+
+        if((conf.proj == STEREOGRAPHIC) and (conf.fix_center == true) and (owned_res.has_circle == true)){
+
+            std::shared_ptr<proj::sten_proj> recast = std::static_pointer_cast<proj::sten_proj>(owned_res.proj);
+            recast->inpaint(preview,owned_res.ansatz_prev,owned_res.radius_prev);
+
+        }
+
         return preview;
 
     }
@@ -136,6 +243,7 @@ namespace pan{
 
                 blend = blnd::multi_blend(temp.imgs,temp.msks_cut,temp.msks,temp.corners,conf.bands,conf.sigma_blend);
                 blend = blend * 255;
+
                 blend.convertTo(blend, CV_8UC3);
 
                 return blend;
@@ -150,38 +258,63 @@ namespace pan{
 
     cv::Mat stitch_parameters::return_full(struct config& conf){
 
-
         std::vector<Eigen::MatrixXd> k_scaled = owned_res.K;
         struct blend_data blend_dat;
         blend_dat.ord = owned_res.ord;
 
         {
-        struct stch::stitch_data ret;
+        struct proj::proj_data ret;
             {
 
-            std::vector<cv::Mat> images = pan_address->load_connected_images(owned_res.connectivity);
-            std::vector<cv::Mat>* img_addresses = pan_address->get_image_addresses();
+                std::vector<cv::Mat> images = pan_address->load_connected_images(owned_res.connectivity);
+                std::vector<cv::Mat>* img_addresses = pan_address->get_image_addresses();
 
-            for(int i = 0; i < owned_res.connectivity.size();i++){
+                for(int i = 0; i < owned_res.connectivity.size();i++){
 
-                if(owned_res.connectivity[i] > 0){
+                    if(owned_res.connectivity[i] > 0){
 
-                    double ratio = (double)images[i].size[0]/(double)(*img_addresses)[i].size[0];
 
-                    Eigen::Matrix3d scale;
-                    scale << ratio,0,0,0,ratio,0,0,0,1;
-                    k_scaled[i] = scale * owned_res.K[i];
+
+                        double ratio = (double)images[i].size[0]/(double)(*img_addresses)[i].size[0];
+
+                        Eigen::Matrix3d scale;
+                        scale << ratio,0,0,0,ratio,0,0,0,1;
+                        k_scaled[i] = scale * owned_res.K[i];
+
+                    }
 
                 }
 
-            }
+                const double focal = k_scaled[owned_res.maxLoc](0, 0);  // Focal length from first camera
+                owned_res.proj->change_focal(focal);
+                ret = proj::get_proj_parameters(images,owned_res.rot,k_scaled,owned_res.connectivity,owned_res.proj);
 
-                ret = stch::get_proj_parameters(images,owned_res.rot,k_scaled,owned_res.maxLoc,owned_res.connectivity);
+                if(conf.fix_center and (conf.proj == STEREOGRAPHIC)){
+
+                    std::shared_ptr<proj::sten_proj> recast = std::static_pointer_cast<proj::sten_proj>(owned_res.proj);
+                    std::pair<cv::Point,float> prev_est = recast->estimate_circle(ret);
+                    owned_res.ansatz = prev_est.first;
+                    owned_res.radius = prev_est.second;
+                    bool quad;
+                    if(conf.stretching == QUADRATIC_SCALING){
+                        quad = true;
+                    }else{
+                        quad = false;
+                    }
+
+                    if(recast->has_circle == true){
+
+                        recast->disk_reproj(ret,quad);
+
+                    }
+
+                }
+
                 blend_dat.imgs = ret.imgs;
                 blend_dat.corners = ret.corners;
+                blend_dat.msks = ret.msks;
 
              }
-
 
         }
 
@@ -193,14 +326,7 @@ namespace pan{
             }
         }
 
-        blend_dat.msks = std::vector<cv::Mat>(owned_res.masks.size());
         blend_dat.msks_cut = std::vector<cv::Mat>(mask_cut.size());
-
-        for(int i = 0;i < owned_res.masks.size();i++){
-
-            cv::resize(owned_res.masks[i], blend_dat.msks[i],blend_dat.imgs[i].size(),cv::INTER_CUBIC );
-
-        }
 
         for(int i = 0;i < mask_cut.size();i++){
 
@@ -208,9 +334,21 @@ namespace pan{
 
         }
 
-        correct_img(blend_dat.msks,blend_dat.imgs);
+        if(conf.blend_intensity){
+            test::adjust_intensity(blend_dat.imgs,owned_res.intensity_correction);
+        }
+        //correct_img(blend_dat.msks,blend_dat.imgs);
 
         cv::Mat full = blend(blend_dat,conf);
+
+        if((conf.proj == STEREOGRAPHIC) and (conf.fix_center == true) and (owned_res.has_circle == true)){
+
+            std::shared_ptr<proj::sten_proj> recast = std::static_pointer_cast<proj::sten_proj>(owned_res.proj);
+
+            recast->inpaint(full,owned_res.ansatz,owned_res.radius);
+
+        }
+
         return full;
 
     }
@@ -355,7 +493,19 @@ namespace pan{
         Tr.focal = util::focal_from_hom(hom_mat,adj_string[0].adj);
         if(Tr.focal == -1) {Tr.focal = conf_local.focal;}
 
+
+        conf_local.result = {adj_string[0].nodes,adj_string[0].adj.cols};
+        for(int f = 0;f < adj_string[0].connectivity.size();f++){
+
+            if(adj_string[0].connectivity[f] > 0){
+                conf_local.img_list.push_back(f_list[f]);
+            }
+
+        }
+
+
         imgm::calc_stitch_from_adj(Tr,hom_mat,match_mat,keypnts);
+        Tr.fast = conf_local.fast;
 
         if(not (progress == NULL)){
             progress->bar_text("Adjusting Images...");
@@ -365,6 +515,7 @@ namespace pan{
             stitched = stitch_parameters(stch::bundleadjust_stitching(Tr,hom_mat,keypnts,match_mat,conf_local.lambda,threads),this);
 
         }
+
 
         if(cancel_var){return false;}
 
@@ -381,7 +532,6 @@ namespace pan{
         if (stitched.has_value()) {
             stitched->set_config(conf_local);
         }else{ throw std::invalid_argument("something went wrong"); return false;}
-
 
         return true;
     }

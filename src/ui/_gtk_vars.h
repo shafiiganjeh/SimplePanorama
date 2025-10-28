@@ -1,4 +1,4 @@
-
+//gtk_widget_hide
 #ifndef GTKVARS_H
 #define GTKVARS_H
 
@@ -89,7 +89,23 @@ struct config_{
     GtkWidget *conf_menu_CANCEL;
 
     GtkWidget *conf_menu_stack;
-    //adv
+
+    //projection
+
+    GtkWidget *conf_menu_stack_projection_scrolled_window;
+    GtkWidget *conf_menu_stack_projection_viewport;
+    GtkWidget *conf_menu_stack_projection_box;
+
+    GtkWidget *conf_menu_stack_projection_frame_projsettings;
+    GtkWidget *conf_menu_stack_projection_frame_projsettings_combo;
+    GtkWidget *conf_menu_stack_projection_frame_projsettings_box;
+
+    GtkWidget *conf_menu_stack_projection_frame_projsettings_streighten;
+    GtkWidget *conf_menu_stack_projection_frame_projsettings_fix;
+
+    GtkWidget *conf_menu_stack_projection_frame_scalesettings_combo;
+
+    //advanced
     GtkWidget *conf_menu_stack_advanced_scrolled_window;
     GtkWidget *conf_menu_stack_advanced_viewport;
     GtkWidget *conf_menu_stack_advanced_box;
@@ -123,22 +139,30 @@ struct config_{
     GtkWidget *conf_menu_stack_advanced_frame_system_entry_focal;
     GtkWidget *conf_menu_stack_advanced_frame_system_entry_lambda;
 
-    //bas
+    //basic
     GtkWidget *conf_menu_stack_basic_scrolled_window;
     GtkWidget *conf_menu_stack_basic_viewport;
     GtkWidget *conf_menu_stack_basic_box;
 
     GtkWidget *conf_menu_stack_basic_frame_method;
-    GtkWidget *conf_menu_stack_basic_frame_method_combo;
     GtkWidget *conf_menu_stack_basic_frame_method_box;
+    GtkWidget *conf_menu_stack_basic_frame_method_combo;
+
+    GtkWidget *conf_menu_stack_basic_frame_adjustment;
+    GtkWidget *conf_menu_stack_basic_frame_adjustment_box;
+    GtkWidget *conf_menu_stack_basic_frame_method_switch_fast;
 
     GtkWidget *conf_menu_stack_basic_frame_method_switch_cut;
     GtkWidget *conf_menu_stack_basic_frame_method_switch_cut_yesno;
     GtkWidget *conf_menu_stack_basic_frame_method_switch_gain;
+    GtkWidget *conf_menu_stack_basic_frame_method_switch_blendint;
     GtkWidget *conf_menu_stack_basic_frame_method_entry_sigma;
     GtkWidget *conf_menu_stack_basic_frame_method_entry_bands;
 
     std::vector<GtkCellRenderer *> method_combo_renderer;
+    std::vector<GtkCellRenderer *> proj_combo_renderer;
+    std::vector<GtkCellRenderer *> scal_combo_renderer;
+
     pan::config* config_;
     std::filesystem::path _path_conf;
 

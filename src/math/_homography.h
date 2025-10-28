@@ -37,8 +37,6 @@ namespace util {
 
     using thread = std::vector<std::vector<std::vector<int>>>;
 
-
-
     struct keypoints{
 
         std::vector<cv::KeyPoint> keypoint;
@@ -46,9 +44,7 @@ namespace util {
 
     };
 
-
     struct keypoints extract_keypoints_detGFTT_descSIFT(const cv::Mat &img,int maxCorners = 1000,double qualityLevel = 0.01,double minDistance = 3.0,int blockSize = 3,bool useHarrisDetector = false,double k = 0.04,int nFeatures = 1000,int nOctaveLayers = 4,double contrastThreshold = 0.04,double edgeThreshold = 7.0,double sigma = 1.4142135623);
-
 
     struct Homography{
 

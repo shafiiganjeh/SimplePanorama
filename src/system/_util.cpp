@@ -5,6 +5,82 @@
 namespace util {
 
 
+struct ComponentResult analyzeComponentsWithCircles(const cv::Mat& image, float minArea) {
+
+    cv::Mat mask;
+    if(image.type() == CV_8UC1){
+
+        mask = cv::Mat::ones(image.size(), image.type()) * 255 - image;
+
+    }else{
+
+        cv::inRange(image, cv::Scalar(0, 0, 0), cv::Scalar(0, 0, 0), mask);
+
+    }
+
+
+    if (cv::countNonZero(mask) == 0) {
+        throw std::runtime_error("No connected components found: mask is entirely zero");
+    }
+
+    cv::Point2f imageCenter(image.cols / 2.0f, image.rows / 2.0f);
+
+    cv::Mat labels, stats, centroids;
+    int numComponents = cv::connectedComponentsWithStats(mask, labels, stats, centroids);
+
+    if (numComponents <= 1) {
+        throw std::runtime_error("No connected components found");
+    }
+
+    ComponentResult result;
+    result.imageCenter = imageCenter;
+
+    for (int i = 1; i < numComponents; i++) {
+        int area = stats.at<int>(i, cv::CC_STAT_AREA);
+
+        if (area >= minArea) {
+
+            cv::Mat componentMask = cv::Mat::zeros(mask.size(), CV_8UC1);
+            componentMask.setTo(255, labels == i);
+
+            std::vector<std::vector<cv::Point>> contours;
+            cv::findContours(componentMask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
+            if (!contours.empty()) {
+                CircleInfo circleInfo;
+                circleInfo.componentArea = area;
+                circleInfo.boundingBox = cv::Rect(
+                    stats.at<int>(i, cv::CC_STAT_LEFT),
+                    stats.at<int>(i, cv::CC_STAT_TOP),
+                    stats.at<int>(i, cv::CC_STAT_WIDTH),
+                    stats.at<int>(i, cv::CC_STAT_HEIGHT)
+                );
+
+                cv::Point2f center;
+                float radius;
+                cv::minEnclosingCircle(contours[0], center, radius);
+                circleInfo.center = center;
+                circleInfo.radius = radius;
+
+                float dx = center.x - imageCenter.x;
+                float dy = center.y - imageCenter.y;
+                circleInfo.distanceFromCenter = std::sqrt(dx * dx + dy * dy);
+
+                circleInfo.size = CV_PI * radius * radius;
+
+                result.circles.push_back(circleInfo);
+            }
+        }
+    }
+
+    if (result.circles.empty()) {
+        throw std::runtime_error("No components found with area >= " + std::to_string(minArea));
+    }
+
+    return result;
+}
+
+
 std::string doubleToString(double value, int precision) {
 
     std::ostringstream oss;
@@ -90,21 +166,34 @@ cv::Rect scaleRect(const cv::Rect& r, double xs, double sy) {
 }
 
 
-std::pair<float,float> get_rot_dif(std::vector<Eigen::MatrixXd> rot){
+std::pair<float,float> get_rot_dif(std::vector<Eigen::MatrixXd> &Crret){
 
     float max_w = 0;
     float min_w = 0;
     float max_h = 0;
     float min_h = 0;
 
-    for(Eigen::MatrixXd & r : rot){
+    for(int i = 0;i<Crret.size();i++){
 
-        float x = std::atan2(r(2,1),r(2,2)); //h
-        float y = std::atan2(-r(2,0),sqrt(r(2,1)*r(2,1) + r(2,2)*r(2,2))); //w
-        max_w = std::max(max_w,y);
-        min_w = std::max(min_w,y);
-        max_h = std::max(max_h,x);
-        min_h = std::max(min_h,x);
+
+        float x = std::atan2(Crret[i](2,1),Crret[i](2,2)); //h
+        float y = std::atan2(-Crret[i](2,0),sqrt(Crret[i](2,1)*Crret[i](2,1) + Crret[i](2,2)*Crret[i](2,2))); //w
+
+        if(min_w > y){
+           min_w = y;
+        }
+
+        if(max_w < y){
+           max_w = y;
+        }
+
+        if(min_h > x){
+           min_h = x;
+        }
+
+        if(max_h < x){
+           max_h = x;
+        }
 
     }
 
@@ -511,5 +600,51 @@ float focal_from_hom(const std::vector<std::vector< cv::Matx33f >> & H_mat,const
 }
 
 
+void RadialNormalizer::computeParameters(const cv::Point& initialPoint, const std::vector<cv::Point>& points) {
+    center = cv::Point2f(static_cast<float>(initialPoint.x), static_cast<float>(initialPoint.y));
+
+    if (points.empty()) {
+        scale = 1.0f;
+        return;
+    }
+
+    // Find the maximum Euclidean distance from the initial point
+    float maxDistance = 0.0f;
+
+    for (const auto& point : points) {
+        float dx = static_cast<float>(point.x) - center.x;
+        float dy = static_cast<float>(point.y) - center.y;
+        float distance = std::sqrt(dx * dx + dy * dy);
+
+        if (distance > maxDistance) {
+            maxDistance = distance;
+        }
+    }
+
+    // If all points are at the center, use scale 1 to avoid division by zero
+    scale = (maxDistance == 0.0f) ? 1.0f : 1.0f / maxDistance;
+}
+
+std::vector<cv::Point2f> RadialNormalizer::normalize(const std::vector<cv::Point>& points) {
+    std::vector<cv::Point2f> normalizedPoints;
+    normalizedPoints.reserve(points.size());
+
+    for (const auto& p : points) {
+        normalizedPoints.push_back(normalizePoint(p));
+    }
+
+    return normalizedPoints;
+}
+
+std::vector<cv::Point> RadialNormalizer::denormalize(const std::vector<cv::Point2f>& normalizedPoints) {
+    std::vector<cv::Point> originalPoints;
+    originalPoints.reserve(normalizedPoints.size());
+
+    for (const auto& p : normalizedPoints) {
+        originalPoints.push_back(denormalizePoint(p));
+    }
+
+    return originalPoints;
+}
 
 }

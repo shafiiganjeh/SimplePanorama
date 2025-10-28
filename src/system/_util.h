@@ -21,6 +21,20 @@
 
 namespace util {
 
+    struct CircleInfo {
+        cv::Point2f center;
+        float radius;
+        float distanceFromCenter;
+        float size;
+        int componentArea;
+        cv::Rect boundingBox;
+    };
+
+    struct ComponentResult {
+        cv::Point2f imageCenter;
+        std::vector<CircleInfo> circles;
+    };
+
     struct val {
         int int_part;
         double double_part;
@@ -102,6 +116,8 @@ namespace util {
 
     using thread = std::vector<std::vector<std::vector<int>>>;
 
+    struct ComponentResult analyzeComponentsWithCircles(const cv::Mat& image, float minArea);
+
     cv::Rect scaleRect(const cv::Rect& r, double xs, double sy);
 
     std::vector<double> computeRowSumDividedByZeroCount(const cv::Mat& mat);
@@ -118,7 +134,7 @@ namespace util {
 
     std::vector<std::pair<int, std::vector<int>>> bfs_ordered_with_neighbors(const cv::Mat& adj, int i);
 
-    std::pair<float,float> get_rot_dif(std::vector<Eigen::MatrixXd> rot);
+    std::pair<float,float> get_rot_dif(std::vector<Eigen::MatrixXd> &Crret);
 
     float focal_from_hom(const std::vector<std::vector< cv::Matx33f >> & H_mat,const cv::Mat &source_adj);
 
@@ -151,6 +167,37 @@ namespace util {
     }
 
     std::vector<struct adj_str> extract_adj(const cv::Mat &adj);
+
+
+class RadialNormalizer {
+private:
+    cv::Point2f center;
+    float scale;
+
+public:
+    RadialNormalizer() : center(0, 0), scale(1.0f) {}
+
+    void computeParameters(const cv::Point& initialPoint, const std::vector<cv::Point>& points);
+
+    std::vector<cv::Point2f> normalize(const std::vector<cv::Point>& points);
+    std::vector<cv::Point> denormalize(const std::vector<cv::Point2f>& normalizedPoints);
+
+    cv::Point2f normalizePoint(const cv::Point& point) const {
+        float x = (point.x - center.x) * scale;
+        float y = (point.y - center.y) * scale;
+        return cv::Point2f(x, y);
+    }
+
+    cv::Point denormalizePoint(const cv::Point2f& normalizedPoint) const {
+        int x = static_cast<int>((normalizedPoint.x / scale) + center.x + 0.5f);
+        int y = static_cast<int>((normalizedPoint.y / scale) + center.y + 0.5f);
+        return cv::Point(x, y);
+    }
+
+    // Getter methods
+    cv::Point2f getCenter() const { return center; }
+    float getScale() const { return scale; }
+};
 
 
 }

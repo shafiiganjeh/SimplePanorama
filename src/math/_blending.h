@@ -20,7 +20,7 @@ struct size_data{
 
 };
 
-
+void erode(const cv::Mat& tmp, cv::Mat& dst, const cv::Mat& kernel);
 cv::Mat multi_blend(const std::vector<cv::Mat>& images,const std::vector<cv::Mat>& masks,const std::vector<cv::Mat>& masks_orig,const std::vector<cv::Point>& top_lefts,int bands,double sigma);
 
 cv::Mat createSurroundingMask(const cv::Mat& inputImage, bool invert = false, uchar thresholdValue = 1);

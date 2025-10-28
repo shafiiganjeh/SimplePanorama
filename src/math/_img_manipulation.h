@@ -44,6 +44,7 @@ namespace imgm {
             std::vector<double> connectivity;
 
             double focal = 1000;
+            bool fast = false;
 
     };
 

@@ -4,60 +4,6 @@
 
 namespace stch {
 
-struct stitch_data get_proj_parameters(
-    const std::vector<cv::Mat>& images,
-    std::vector<Eigen::MatrixXd>& R,
-    std::vector<Eigen::MatrixXd>& K,
-    int ref,
-    std::vector<double> &con){
-    stitch_data par_stitch;
-
-    const double focal = K[ref](0, 0);  // Focal length from first camera
-    cv::Ptr<cv::detail::SphericalWarper> warper = cv::makePtr<cv::detail::SphericalWarper>(focal);
-    std::vector<cv::Mat> warped_images;
-    std::vector<cv::Point> corners;
-
-    for (int i = 0; i < images.size(); i++) {
-        if(con[i] > 0){
-
-            const int w_ref = images[i].cols;
-            const int h_ref = images[i].rows;
-            cv::Mat cvK, cvR;
-            Eigen::Matrix3d R_adj = R[i];
-
-            const double f_i = K[i](0, 0);
-            const double s = focal / f_i;
-            const double c_x = K[i](0, 2);
-            const double c_y = K[i](1, 2);
-
-            Eigen::Matrix3d K_adj;
-            K_adj << f_i, 0,w_ref-c_x,
-                    0, f_i,h_ref-c_y,
-                    0, 0, 1;
-
-            cv::eigen2cv(K_adj, cvK);
-            cv::eigen2cv(R_adj, cvR);
-            cvK.convertTo(cvK, CV_32F);
-            cvR.convertTo(cvR, CV_32F);
-
-            cv::Mat warped_image;
-            cv::Point warped_corner = warper->warp(
-                images[i], cvK, cvR, cv::INTER_LINEAR, cv::BORDER_CONSTANT, warped_image
-            );
-
-            warped_images.push_back(warped_image);
-            corners.push_back(warped_corner);
-
-        }
-
-    }
-
-    par_stitch.corners = corners;
-    par_stitch.imgs = warped_images;
-
-    return par_stitch;
-}
-
 
 std::vector<NodeConnection> orderNodesByConnection(const cv::Mat &M) {
     int n = M.rows;
@@ -212,23 +158,7 @@ struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,con
 
 
     struct stitch_result res;
-/*
-    for(int j = 0; j < (*T.adj).rows;j++){
-        cv::Mat outimg;
-        std::vector<cv::KeyPoint> key;
-        for(int i = 0;i < kp[j].keypoint.size();i++){
-            cv::KeyPoint K;
-            K.pt.x = kp[j].keypoint[i].pt.x + ((*T.img_address)[j].cols / 2);
-            K.pt.y = kp[j].keypoint[i].pt.y + ((*T.img_address)[j].rows / 2);
-            key.push_back(K);
-        }
 
-        //cv::drawKeypoints( (*T.img_address)[j], key, outimg, cv::Scalar::all(-1));
-
-        //cv::imshow("Display window", outimg);
-        //cv::waitKey(0);
-    }
-*/
     cv::Mat path_mat = (*T.adj) + (*T.adj).t();
     std::cout <<"\n"<<"path_mat: "<<"\n"<<path_mat<<"\n";
 
@@ -277,18 +207,25 @@ struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,con
 
 
     cv::Mat adjclone = (*par.T.adj);
-    class bundm::adjuster testad(par.kp,par.match,lambda,par.T,threads);
-    std::vector<Eigen::MatrixXd> rret = testad.ret_rot();
-    std::vector<Eigen::MatrixXd> Kret = testad.ret_K();
+    std::unique_ptr<bundm::adjuster_basic> testad;
+
+    if (T.fast) {
+        testad = std::make_unique<bundf::adjuster>(par.kp, par.match, lambda, par.T, threads);
+    } else {
+        testad = std::make_unique<bundm::adjuster>(par.kp, par.match, lambda, par.T, threads);
+    }
+
+    std::vector<Eigen::MatrixXd> rret = testad->ret_rot();
+    std::vector<Eigen::MatrixXd> Kret = testad->ret_K();
 
 
-    struct bundm::inter_par teees = testad.iterate();
+    struct bundm::inter_par teees = testad->iterate();
     if(not (f_adress == NULL)){
 
         f_adress->fetch_add(add_to_fraction, std::memory_order_relaxed);
     }
-    rret = testad.ret_rot();
-    Kret = testad.ret_K();
+    rret = testad->ret_rot();
+    Kret = testad->ret_K();
 
 
     for(int i = 0;i < ind.size();i++){
@@ -313,8 +250,6 @@ struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,con
         K(1,2) = 0;
         T.K[paths_clac[l].nodeAdded] = K;
 
-
-
         ind.push_back(paths_clac[l].nodeAdded);
         std::vector<cv::Mat> img_data(ind.size());
 
@@ -337,13 +272,19 @@ struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,con
 
         }
 
-        class bundm::adjuster testad(par.kp,par.match,lambda,par.T,threads);
+        std::unique_ptr<bundm::adjuster_basic> testad;
 
-        struct bundm::inter_par teees = testad.iterate();
+        if (T.fast) {
+            testad = std::make_unique<bundf::adjuster>(par.kp, par.match, lambda, par.T, threads);
+        } else {
+            testad = std::make_unique<bundm::adjuster>(par.kp, par.match, lambda, par.T, threads);
+        }
+
+        struct bundm::inter_par teees = testad->iterate();
         Hom_mat_new = teees.hom;
 
-        std::vector<Eigen::MatrixXd> rret = testad.ret_rot();
-        std::vector<Eigen::MatrixXd> Kret = testad.ret_K();
+        std::vector<Eigen::MatrixXd> rret = testad->ret_rot();
+        std::vector<Eigen::MatrixXd> Kret = testad->ret_K();
 
         for(int i = 0;i < ind.size();i++){
 
@@ -368,21 +309,8 @@ struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,con
     par = prep_opt(T,Hom_mat_new,match_mat,kp ,ind,maxLoc,maxLoc);
 
 
-
     res.connectivity = T.connectivity;
-    std::pair<float,float> max_dif = util::get_rot_dif(Crret);
-    if(max_dif.first > max_dif.second){
-        std::cout <<"\n Vertical panorama type. \n";
-        res.rot = Crret;
-
-    }else{
-
-        res.rot = strg::straightenPanorama(Crret);
-
-    }
-
-
-    struct stch::stitch_data ret = get_proj_parameters((*T.img_address),res.rot,res.K,maxLoc,res.connectivity);
+    res.rot = Crret;
     res.maxLoc = maxLoc;
 
     std::vector<int> indices;  // Use int instead of Eigen::Index
@@ -390,16 +318,11 @@ struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,con
         if (T.connectivity[i] > 0) {
             indices.push_back(i);
             res.ord.push_back(par.numb2ind[i]);
-            cv::Mat masks_temp = blnd::createSurroundingMask(ret.imgs[par.numb2ind[i]], true, 1);
-            cv::erode(masks_temp, masks_temp, cv::Mat(), cv::Point(-1, -1), 3);
-            res.masks.push_back(masks_temp);
-
         }
     }
 
     res.ind = indices;
 
-    res.corners = ret.corners;
     Eigen::VectorXi indices_eigen = Eigen::Map<Eigen::VectorXi>(indices.data(), indices.size());
     Eigen::MatrixXd mat_temp;
 
@@ -407,8 +330,7 @@ struct stitch_result bundleadjust_stitching(class imgm::pan_img_transform &T,con
     Eigen::MatrixXd new_mat = mat_temp(indices_eigen, indices_eigen);
     cv::eigen2cv(new_mat,res.adj);
 
-    res.imgs = ret.imgs;
-    res.prev_size = util::get_pan_dimension(res.corners,res.imgs);
+    res.imgs = (*T.img_address);
 
     return res;
 

@@ -13,9 +13,7 @@
 
 namespace bundm {
 
-    // See Multiple View Geometry in Computer Vision for an outlier of the algorithm logic. I tried to get the naming simmilar to the outlier.
 
-    //some side terms
     struct alignas(64) inter_par{
 
         float lambda;
@@ -42,15 +40,26 @@ namespace bundm {
     };
 
 
-    class adjuster {
+    class adjuster_basic {
+        public:
+
+            virtual ~adjuster_basic() = default;
+            virtual struct inter_par iterate() = 0;
+            virtual std::vector<Eigen::MatrixXd> ret_rot() const = 0;
+            virtual std::vector<Eigen::MatrixXd> ret_K() const = 0;
+
+    };
+
+
+    class adjuster  : public adjuster_basic {
 
         public:
 
             adjuster(const std::vector<util::keypoints> &kp,const std::vector<std::vector<std::vector<cv::DMatch>>> &match,float lmbd,const imgm::pan_img_transform &Tr,int threads = 8);
 
-            struct inter_par iterate();
-            std::vector<Eigen::MatrixXd> ret_rot();
-            std::vector<Eigen::MatrixXd> ret_K();
+            struct inter_par iterate() override;
+            std::vector<Eigen::MatrixXd> ret_rot() const override;
+            std::vector<Eigen::MatrixXd> ret_K() const override;
             void set_ignore(std::vector<int> idx,bool mode);
             double error_value;
             class util::Timer timer;

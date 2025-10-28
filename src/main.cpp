@@ -5,7 +5,7 @@
 #include "_main_windows.h"
 #include <filesystem>
 #include "_config_parser.h"
-//#include "_panorama.h"
+#include "_panorama.h"
 
 std::filesystem::path get_executable_path();
 
@@ -57,9 +57,11 @@ int main(int argc, char **argv) {
             pan::panorama test(path_list);
             test.stitch_panorama(&conf);
             cv::Mat tes = test.get_preview();
+            //cv::Mat tes = test.get_panorama();
             //test.test(&conf);
-            cv::imshow("Display window", tes);
-            cv::waitKey(0);
+            cv::imwrite("./image1.jpg", tes);
+            //cv::imshow("Display window", tes);
+            //cv::waitKey(0);
 */
 }
 

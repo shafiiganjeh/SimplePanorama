@@ -2,7 +2,7 @@
 
 ![Panorama Example](results/brocken/brocken.jpg)
 
-A simple panorama stitcher application for equirectangular panoramas, written in C++ with a GTK GUI. The stitching routine is based on the paper [Automatic Panoramic Image Stitching using Invariant Features](http://www2.ene.unb.br/mylene/PI/refs/ijcv2007.pdf).
+A simple panorama stitcher application written in C++ with a GTK GUI. The app is written mostly from scratch with as little dependencies as possible. The stitching routine is based on the paper [Automatic Panoramic Image Stitching using Invariant Features](http://www2.ene.unb.br/mylene/PI/refs/ijcv2007.pdf).
 
 ---
 
@@ -15,6 +15,7 @@ A simple panorama stitcher application for equirectangular panoramas, written in
   - [Building on Ubuntu](#building-on-ubuntu)
   - [Cross-Compiling for Windows](#cross-compiling-for-windows)
 - [Technical Details](#technical-details)
+- [Recent Changes](#recent-changes)
 
 ---
 
@@ -52,6 +53,10 @@ From the [PhotoFit gallery](http://www.photofit4panorama.com/gallery.html).
 
 The front door.
 
+<img src="results/sten/fixed.jpg" alt="Front Door" width="300" style="display: block; margin: auto;" />
+
+Little planet .
+
 ---
 
 ## How to Build
@@ -59,7 +64,7 @@ The front door.
 ### Dependencies
 
 You will need the following packages:
-- [Eigen3](http://eigen.tuxfamily.org/)
+- [Eigen3](http://eigen.tuxfamily.org/) 
 - [OpenCV](https://opencv.org/releases/)
 - [GTK3](https://www.gtk.org/)
 
@@ -124,7 +129,7 @@ Copy all files from `~/mxe/usr/x86_64-w64-mingw32.static/share/glib-2.0/schemas`
 
 ```bash
 cd ~/SimplePanorama/share/glib-2.0/schemas 
-glib-compile-schemas
+glib-compile-schemas .
 ```
 
 After this, you can copy the SimplePanorama folder to your Windows machine and use it from inside the bin directory or via shortcut. There is no need to install anything.
@@ -138,7 +143,7 @@ The app follows [Automatic Panoramic Image Stitching using Invariant Features](h
 
 ### Changes in Bundle Adjustment
 
-Bundle adjustment is performed differently. In Lowe's paper, the objective is to minimize residuals between real and projected point pairs. In this implementation, the objective is relaxed — residuals between estimated and projected point pairs are minimized instead. This change makes the algorithm more robust to outliers and results in fewer errors, but it is also slower than the original algorithm.
+Bundle adjustment is performed differently. In Lowe's paper, the objective is to minimize residuals between real and projected point pairs. In this implementation, the objective is relaxed — residuals between estimated and projected point pairs are minimized instead. This change makes the algorithm more robust to outliers and results in fewer errors, but it is also slower than the original algorithm. You can still choose to use the original algorithm If you find the Improved one too slow.
 
 ### Keypoint Retrieval Changes
 
@@ -148,4 +153,10 @@ SIFT has been replaced by [rootSIFT](https://www.robots.ox.ac.uk/~vgg/publicatio
 
 Image seams are found via [Graphcut](https://dl.acm.org/doi/10.1145/882262.882264) instead of just using distance transform. This results in higher quality seams, but can be very slow, so it is disabled by default. You can enable this in the config menu.
 
-
+## Recent Changes
+* Added new Projection methods (Cylindrical,Stereographic).
+* Added method for fixing missing centers-parts in Stereographic projections If possible.
+* Added a new method for fixing exposure disparity.
+* Added the option to use the original bundle adjustment Algorithm from "Automatic Panoramic Image Stitching using Invariant Features".
+* Added the option whether to autoimatically straighten the panorama.
+* Fixed some visual issues.
