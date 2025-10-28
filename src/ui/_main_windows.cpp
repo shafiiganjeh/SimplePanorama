@@ -54,11 +54,8 @@ void build_window(int argc, char** argv,struct main_window_ *main_window,struct 
         gtk_widget_show_all(main_window->window);
         connect_signals(main_window);
 
-        g_idle_add([](gpointer data) -> gboolean {
-                struct main_window_ *mw = static_cast<struct main_window_*>(data);
-                gtk_widget_hide(GTK_WIDGET(mw->flowbox.flowbox_scrolled_window));
-                return G_SOURCE_REMOVE;
-        }, main_window);
+        gtk_widget_hide (GTK_WIDGET(main_window->flowbox.flowbox_scrolled_window));
+
 
 }
 
