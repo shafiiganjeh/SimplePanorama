@@ -143,7 +143,7 @@ The app follows [Automatic Panoramic Image Stitching using Invariant Features](h
 
 ### Changes in Bundle Adjustment
 
-Bundle adjustment is performed differently. In Lowe's paper, the objective is to minimize residuals between real and projected point pairs. In this implementation, the objective is relaxed — residuals between estimated and projected point pairs are minimized instead. This change makes the algorithm more robust to outliers and results in fewer errors, but it is also slower than the original algorithm. You can still choose to use the original algorithm If you find the Improved one too slow.
+Bundle adjustment is performed differently. In Lowe's paper, the objective is to minimize residuals between real and projected point pairs. In this implementation, the objective is relaxed — residuals between estimated and projected point pairs are minimized instead. This change makes the algorithm more robust to outliers and results in fewer errors, but it is also slower than the original algorithm. You can still choose to use the original algorithm If you find the improved one too slow.
 
 ### Keypoint Retrieval Changes
 
