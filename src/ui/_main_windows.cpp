@@ -24,7 +24,7 @@ void build_window(int argc, char** argv,struct main_window_ *main_window,struct 
         GtkCssProvider *provider = gtk_css_provider_new();
         const gchar* css_path = ret_path8(main_window->_path_css);
         gtk_css_provider_load_from_path(provider,css_path,NULL);
-        g_free((gpointer)css_path);
+        //g_free((gpointer)css_path);
         gtk_style_context_add_provider_for_screen(gdk_screen_get_default(),GTK_STYLE_PROVIDER(provider),GTK_STYLE_PROVIDER_PRIORITY_USER);
 
         #endif
@@ -45,7 +45,7 @@ void build_window(int argc, char** argv,struct main_window_ *main_window,struct 
         drag_path /= "res";drag_path /= "drag.png";
         const gchar* drg_path = ret_path8(drag_path);
         main_window->img_dragdrop = gtk_image_new_from_file (drg_path);
-        g_free((gpointer)drg_path);
+        //g_free((gpointer)drg_path);
         gtk_box_set_center_widget (GTK_BOX(main_window->box),main_window->img_dragdrop);
         gtk_drag_dest_set(GTK_WIDGET(main_window->img_dragdrop), GTK_DEST_DEFAULT_ALL, targetentries, 1, GDK_ACTION_COPY);
 
@@ -55,7 +55,6 @@ void build_window(int argc, char** argv,struct main_window_ *main_window,struct 
         connect_signals(main_window);
 
         gtk_widget_hide (GTK_WIDGET(main_window->flowbox.flowbox_scrolled_window));
-
 
 }
 
