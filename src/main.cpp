@@ -39,8 +39,9 @@ int main(int argc, char **argv) {
 
         build_window(argc,argv,&main_window,&current_conf);
         gtk_main();
-
+        return 0;
 /*
+
             struct pan::config conf;
             conf.focal = 700;
 
@@ -63,6 +64,7 @@ int main(int argc, char **argv) {
             //cv::imshow("Display window", tes);
             //cv::waitKey(0);
 */
+
 }
 
 #ifdef __linux__

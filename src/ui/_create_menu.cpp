@@ -175,12 +175,13 @@ void create_menu_bar(GtkWidget *add_to,struct menu_bar_ *menu_bar,struct main_wi
 
 
         gtk_box_pack_start (GTK_BOX(menu_bar->menu_box),menu_bar->bar,TRUE,TRUE,0);
-        //gtk_box_pack_end (GTK_BOX(menu_bar->menu_box),menu_bar->toolbar,FALSE,FALSE,0);
+
         gtk_container_add (GTK_CONTAINER(add_to),menu_bar->menu_box);
 
         tbar::create_toolbar(menu_bar->menu_box,&(main_window->toolbar),main_window);
 
         connect_signals(main_window);
+
 }
 
 }
